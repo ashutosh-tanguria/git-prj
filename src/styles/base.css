@@ -1,0 +1,57 @@
+* {
+  box-sizing: border-box;
+}
+html {
+  font-family: var(--font-ui);
+  font-size: 100%;
+  background: var(--paper-0);
+  color: var(--ink-1);
+}
+body {
+  margin: var(--space-0);
+  font-size: var(--text-ui);
+  line-height: var(--line-ui);
+}
+button,
+input,
+select {
+  font: inherit;
+}
+a {
+  color: var(--accent);
+}
+h1,
+h2,
+h3,
+p {
+  margin-block: var(--space-0) var(--space-3);
+}
+h1 {
+  font-size: var(--text-empty);
+  font-weight: var(--weight-strong);
+}
+h2 {
+  font-size: var(--text-title);
+  font-weight: var(--weight-strong);
+}
+h3 {
+  font-size: var(--text-ui);
+  font-weight: var(--weight-strong);
+}
+:focus-visible {
+  outline: var(--focus-width) solid var(--accent);
+  outline-offset: var(--focus-gap);
+}
+code {
+  font-family: var(--font-ref);
+  overflow-wrap: anywhere;
+}
+
+p {
+  max-inline-size: var(--reading-measure);
+}
+
+strong,
+b {
+  font-weight: var(--weight-strong);
+}

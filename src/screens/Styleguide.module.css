@@ -1,0 +1,199 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  border-block-end: var(--border-width) solid var(--rule-strong);
+  background: var(--paper-1);
+}
+.header strong {
+  font-size: var(--text-title);
+}
+.sample {
+  margin-inline-start: auto;
+  color: var(--ink-2);
+}
+.layout {
+  display: grid;
+  grid-template-columns: var(--locations-width) minmax(var(--space-0), 1fr);
+  max-inline-size: var(--page-max);
+  margin-inline: auto;
+}
+.nav {
+  padding: var(--space-5);
+  border-inline-end: var(--border-width) solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.main {
+  min-inline-size: var(--space-0);
+  padding: var(--space-6);
+  background: var(--paper-1);
+}
+.main > p {
+  max-inline-size: var(--reading-measure);
+}
+.controls {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-block: var(--space-5);
+}
+.controls > * {
+  max-inline-size: min(var(--palette-width), var(--full));
+}
+.section {
+  padding-block: var(--space-6);
+  border-block-start: var(--border-width) solid var(--rule-strong);
+}
+.specimen {
+  font-size: var(--text-title);
+  line-height: var(--line-reading);
+}
+.meta,
+.stateLabel {
+  color: var(--ink-3);
+  font-size: var(--text-meta);
+}
+.matrixRow {
+  display: grid;
+  grid-template-columns: var(--matrix-label) minmax(var(--space-0), 1fr);
+  border-block-start: var(--border-width) solid var(--rule);
+  padding-block: var(--space-4);
+}
+.matrixRow > h3 {
+  padding-block-start: var(--space-2);
+}
+.states {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(var(--matrix-cell), var(--full)), 1fr)
+  );
+  gap: var(--space-4);
+}
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: start;
+  min-inline-size: var(--space-0);
+  padding: var(--space-2);
+}
+.cell > div {
+  max-inline-size: var(--full);
+}
+.stateLabel {
+  display: block;
+}
+.error {
+  color: var(--danger);
+  font-size: var(--text-meta);
+}
+.display {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
+}
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-block-start: var(--space-5);
+}
+.swatches > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-meta);
+}
+.swatch {
+  display: block;
+  inline-size: var(--sample-width);
+  block-size: var(--space-6);
+  border: var(--border-width) solid var(--rule-strong);
+}
+.skip {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  transform: translateY(-200%);
+  background: var(--paper-2);
+  padding: var(--space-2);
+  z-index: var(--layer-menu);
+}
+.skip:focus {
+  transform: none;
+}
+@media (width < 640px) {
+  .layout {
+    grid-template-columns: minmax(var(--space-0), 1fr);
+  }
+  .nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-inline-end: none;
+    border-block-end: var(--border-width) solid var(--rule);
+    padding: var(--space-3);
+  }
+  .main {
+    padding: var(--space-3);
+  }
+  .matrixRow {
+    grid-template-columns: minmax(var(--space-0), 1fr);
+  }
+  .states {
+    grid-template-columns: minmax(var(--space-0), 1fr);
+  }
+  .sample {
+    margin-inline-start: var(--space-0);
+  }
+}
+[data-swatch="paper-0"] {
+  background: var(--paper-0);
+}
+[data-swatch="paper-1"] {
+  background: var(--paper-1);
+}
+[data-swatch="paper-2"] {
+  background: var(--paper-2);
+}
+[data-swatch="ink-1"] {
+  background: var(--ink-1);
+}
+[data-swatch="accent"] {
+  background: var(--accent);
+}
+[data-swatch="ok"] {
+  background: var(--ok);
+}
+[data-swatch="warn"] {
+  background: var(--warn);
+}
+[data-swatch="danger"] {
+  background: var(--danger);
+}
+
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+}
+.nav {
+  flex: 0 1 var(--locations-width);
+}
+.main {
+  flex: 1 1 var(--palette-width);
+}
+@media (width < 640px) {
+  .nav {
+    flex-basis: var(--full);
+  }
+}

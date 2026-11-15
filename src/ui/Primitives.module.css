@@ -1,0 +1,274 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-block-size: max(var(--target-min), var(--control-height));
+  min-inline-size: var(--target-min);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--paper-2);
+  color: var(--ink-1);
+  cursor: pointer;
+  font-weight: var(--weight-medium);
+}
+.button[data-variant="primary"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.button[data-variant="quiet"] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--accent);
+}
+.button[data-variant="danger"] {
+  color: var(--danger);
+}
+.button:hover,
+.button[data-hovered],
+.button[data-preview="hover"] {
+  text-decoration: underline;
+}
+.button[data-pressed],
+.button[data-preview="active"],
+.button[aria-pressed="true"] {
+  background: var(--accent-tint);
+  color: var(--ink-1);
+}
+.button[data-disabled] {
+  cursor: default;
+  color: var(--ink-3);
+  background: var(--paper-1);
+  border-color: var(--rule-strong);
+  text-decoration: none;
+}
+.button[data-focus-visible],
+[data-preview="focus-visible"] {
+  outline: var(--focus-width) solid var(--accent);
+  outline-offset: var(--focus-gap);
+}
+.button[data-variant="primary"][data-focus-visible] {
+  outline-offset: var(--space-1);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+  min-inline-size: var(--space-0);
+}
+.input {
+  inline-size: var(--full);
+  min-block-size: max(var(--target-min), var(--control-height));
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid var(--rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--paper-2);
+  color: var(--ink-1);
+}
+.input::placeholder {
+  color: var(--ink-3);
+  opacity: 1;
+}
+.input:disabled {
+  color: var(--ink-3);
+  background: var(--paper-1);
+}
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.field[data-preview="hover"] .input {
+  background: var(--paper-0);
+}
+.field[data-preview="active"] .input,
+.field[data-preview="selected"] .input {
+  background: var(--accent-tint);
+}
+.error {
+  color: var(--danger);
+  font-size: var(--text-meta);
+}
+.meta {
+  color: var(--ink-3);
+  font-size: var(--text-meta);
+}
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: max(var(--target-min), var(--row-height));
+  cursor: pointer;
+}
+.checkbox[data-disabled] {
+  color: var(--ink-3);
+  cursor: default;
+}
+.check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  border: var(--border-width) solid var(--rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--paper-2);
+  color: var(--ink-1);
+}
+.checkbox[data-selected] .check,
+.checkbox[data-indeterminate] .check {
+  background: var(--accent-tint);
+}
+.checkbox[data-focus-visible] {
+  outline: var(--focus-width) solid var(--accent);
+  outline-offset: var(--focus-gap);
+}
+.checkbox[data-invalid] {
+  color: var(--danger);
+}
+.icon {
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+  stroke-width: var(--icon-stroke);
+  flex-shrink: 0;
+}
+.kbd {
+  font: inherit;
+  font-size: var(--text-meta);
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--rule-strong);
+  border-radius: var(--radius-control);
+  color: var(--ink-2);
+  background: var(--paper-2);
+}
+.badge {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  font-size: var(--text-meta);
+  color: var(--ink-2);
+  background: var(--paper-0);
+}
+.badge[data-tone="info"] {
+  color: var(--accent);
+  background: var(--accent-tint);
+}
+.badge[data-tone="ok"] {
+  color: var(--ok);
+  background: var(--ok-tint);
+}
+.badge[data-tone="warn"] {
+  color: var(--warn);
+  background: var(--warn-tint);
+}
+.badge[data-tone="danger"] {
+  color: var(--danger);
+  background: var(--danger-tint);
+}
+.meter {
+  inline-size: var(--meter-width);
+  block-size: var(--space-4);
+  accent-color: var(--accent);
+}
+.tooltip {
+  max-inline-size: var(--reading-measure);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--rule-strong);
+  border-radius: var(--radius-layer);
+  background: var(--paper-2);
+  color: var(--ink-1);
+  box-shadow: var(--elevation);
+}
+.provider {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.provider svg {
+  fill: currentColor;
+}
+[data-provider="github"] {
+  color: var(--provider-github);
+}
+[data-provider="gdrive"] {
+  color: var(--provider-gdrive);
+}
+[data-provider="dropbox"] {
+  color: var(--provider-dropbox);
+}
+[data-provider="onedrive"] {
+  color: var(--provider-onedrive);
+}
+[data-provider="local"] {
+  color: var(--provider-local);
+}
+.file {
+  position: relative;
+  display: inline-flex;
+  inline-size: var(--glyph-width);
+  block-size: var(--glyph-height);
+  color: var(--ink-3);
+}
+.file svg {
+  inline-size: var(--full);
+  block-size: var(--full);
+  stroke-width: var(--icon-stroke);
+}
+.file span {
+  position: absolute;
+  inset-inline-start: var(--space-0);
+  inset-block-end: var(--space-1);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-strong);
+  background: var(--paper-1);
+}
+
+.meter {
+  position: relative;
+  background: var(--paper-2);
+  border: var(--border-width) solid var(--rule-strong);
+  block-size: var(--space-2);
+  margin-block: var(--space-2);
+}
+.meterFill {
+  display: block;
+  inline-size: var(--measured-fill);
+  block-size: var(--full);
+  background: var(--ok);
+}
+.meter[data-tier="warn"] .meterFill {
+  background: var(--warn);
+}
+.meter[data-tier="danger"] .meterFill {
+  background: var(--danger);
+}
+.midTick,
+.stopTick {
+  position: absolute;
+  inset-block-start: calc(var(--space-1) * -1);
+  block-size: var(--space-4);
+  border-inline-start: var(--border-width) solid var(--ink-1);
+}
+.midTick {
+  inset-inline-start: var(--tick-mid);
+}
+.stopTick {
+  inset-inline-start: var(--tick-stop);
+}
+.checkbox[data-preview="hover"] .check {
+  background: var(--paper-0);
+}
+.checkbox[data-preview="active"] .check {
+  background: var(--accent-tint);
+}
+
+.field[data-preview="focus-visible"] {
+  outline: none;
+}
+.field[data-preview="focus-visible"] .input {
+  outline: var(--focus-width) solid var(--accent);
+  outline-offset: var(--focus-gap);
+}
