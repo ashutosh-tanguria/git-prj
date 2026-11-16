@@ -1,14 +1,7 @@
-import { useEffect, useState, useRef } from "react";
-import { library, type Repo, type Entry } from "../services/library";
-import {
-  routeRef,
-  refString,
-  parseRef,
-  explorerRoute,
-  viewerRoute,
-  type GitRef,
-} from "../lib/refs";
-import { Locations } from "../components/Locations";
+import { useLibrary } from "./useLibrary";
+import { library } from "../services/library";
+import { explorerRoute, parseRef } from "../lib/refs";
+import { ReadShell } from "../components/ReadShell";
 import { FileTable } from "../components/FileTable";
 import { AddressBar } from "../components/AddressBar";
 import { GuardStrip, PendingTray, StatusBar } from "../components/ReadChrome";
@@ -19,93 +12,35 @@ import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import styles from "../components/Library.module.css";
 export default function Library() {
-  const previewRequest = useRef<AbortController | null>(null);
-  const [account, setAccount] = useState("");
-  const [token, setToken] = useState("");
-  const [roots, setRoots] = useState<Repo[]>([]);
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [hash, setHash] = useState(location.hash);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [blob, setBlob] = useState<Blob>();
-  const [preview, setPreview] = useState<Entry>();
-  let ref: GitRef | null = null;
-  try {
-    ref = routeRef(hash);
-  } catch {
-    /* Invalid routes are shown as typed UI errors below. */
-  }
-  const key = ref ? refString(ref) : "";
-  useEffect(() => {
-    const listener = () => setHash(location.hash);
-    window.addEventListener("hashchange", listener);
-    return () => window.removeEventListener("hashchange", listener);
-  }, []);
-  useEffect(() => {
-    if (!account || !key) return;
-    const controller = new AbortController();
-    setLoading(true);
-    setError("");
-    setBlob(undefined);
-    const parsed = parseRef(key);
-    const action = hash.startsWith("#/view/")
-      ? library.read(parsed, controller.signal).then(setBlob)
-      : library.list(parsed, controller.signal).then(setEntries);
-    void action
-      .catch(() => {
-        if (!controller.signal.aborted) setError(t("readError"));
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-    return () => controller.abort();
-  }, [account, key, hash]);
-  async function connect() {
-    setLoading(true);
-    setError("");
-    try {
-      const login = await library.connect(token);
-      setToken("");
-      const repos = await library.roots();
-      setRoots(repos);
-      setAccount(login);
-      if (!ref && repos[0]) {
-        const [owner, repo] = repos[0].full_name.split("/");
-        location.hash = explorerRoute({
-          owner,
-          repo,
-          branch: repos[0].default_branch,
-          path: "",
-        });
-      }
-    } catch {
-      setToken("");
-      setError(t("connectError"));
-    } finally {
-      setLoading(false);
-    }
-  }
-  function open(entry: Entry) {
-    if (!ref) return;
-    location.hash =
-      entry.kind === "dir"
-        ? explorerRoute({ ...ref, path: entry.path })
-        : viewerRoute({ ...ref, path: entry.path });
-  }
-  async function quick(entry: Entry) {
-    previewRequest.current?.abort();
-    const controller = new AbortController();
-    previewRequest.current = controller;
-    if (entry.kind !== "file") return;
-    setPreview(entry);
-    setBlob(undefined);
-    try {
-      const bytes = await library.read(parseRef(entry.ref), controller.signal);
-      if (!controller.signal.aborted) setBlob(bytes);
-    } catch {
-      setError(t("readError"));
-    }
-  }
+  const {
+    previewError,
+    visibility,
+    previewOrder,
+    previewRequest,
+    account,
+    setAccount,
+    token,
+    setToken,
+    roots,
+    setRoots,
+    entries,
+    setEntries,
+    hash,
+    error,
+    setError,
+    loading,
+    blob,
+    setBlob,
+    preview,
+    setPreview,
+    ref,
+    key,
+    selection,
+    setSelection,
+    connect,
+    open,
+    quick,
+  } = useLibrary();
   return (
     <div className={styles.shell}>
       <header>
@@ -113,6 +48,9 @@ export default function Library() {
         {account && (
           <Button
             onPress={() => {
+              previewRequest.current?.abort();
+              setPreview(undefined);
+              setSelection([]);
               library.disconnect();
               setAccount("");
               setRoots([]);
@@ -135,59 +73,97 @@ export default function Library() {
           }
         }}
       />
-      <div className={styles.body}>
-        <Locations repos={roots} />
-        <main className={styles.content}>
-          {!account ? (
-            <ConnectPanel
-              token={token}
-              onToken={setToken}
-              onConnect={() => {
-                void connect();
-              }}
-              loading={loading}
-            />
-          ) : (
-            <>
-              <h2>{ref?.repo}</h2>
-              {hash.startsWith("#/view/") ? (
-                blob && (
-                  <ReadViewer
-                    blob={blob}
-                    name={ref?.path.split("/").at(-1) || ""}
-                  />
-                )
-              ) : (
-                <FileTable
-                  entries={entries}
-                  onOpen={open}
-                  onPreview={(entry) => {
-                    void quick(entry);
-                  }}
+      <ReadShell
+        roots={roots}
+        selection={selection}
+        visibility={visibility}
+        selectionBlob={
+          hash.startsWith("#/view/") && !preview ? blob : undefined
+        }
+        onParent={() => {
+          if (ref) {
+            location.hash = explorerRoute({
+              ...ref,
+              path: ref.path.split("/").slice(0, -1).join("/"),
+            });
+          }
+        }}
+      >
+        {!account ? (
+          <ConnectPanel
+            token={token}
+            onToken={setToken}
+            onConnect={() => {
+              void connect();
+            }}
+            loading={loading}
+          />
+        ) : (
+          <>
+            <h2>{ref?.repo}</h2>
+            {hash.startsWith("#/view/") ? (
+              blob && (
+                <ReadViewer
+                  blob={blob}
+                  name={ref?.path.split("/").at(-1) || ""}
+                  fileKey={key}
                 />
-              )}
-            </>
-          )}
-          {loading && <p role="status">{t("loadingRead")}</p>}
-          {error && <p role="alert">{error}</p>}
-        </main>
-      </div>
+              )
+            ) : (
+              <FileTable
+                entries={entries}
+                onSelectionChange={setSelection}
+                locationKey={key}
+                onOpen={open}
+                onPreview={(entry, rows) => {
+                  void quick(entry, rows);
+                }}
+              />
+            )}
+          </>
+        )}
+        {loading && <p role="status">{t("loadingRead")}</p>}
+        {error && <p role="alert">{error}</p>}
+      </ReadShell>
       <PendingTray />
       <GuardStrip />
       <StatusBar account={account} />
       {preview && (
         <QuickLook
           title={preview.name}
+          onPrevious={() => {
+            const i = previewOrder.findIndex(
+              (item) => item.ref === preview.ref,
+            );
+            const next =
+              previewOrder[(i - 1 + previewOrder.length) % previewOrder.length];
+            if (next) void quick(next);
+          }}
+          onNext={() => {
+            const i = previewOrder.findIndex(
+              (item) => item.ref === preview.ref,
+            );
+            const next = previewOrder[(i + 1) % previewOrder.length];
+            if (next) void quick(next);
+          }}
+          onOpen={() => {
+            previewRequest.current?.abort();
+            setPreview(undefined);
+            setBlob(undefined);
+            open(preview);
+          }}
           onClose={() => {
             previewRequest.current?.abort();
             setPreview(undefined);
             setBlob(undefined);
           }}
         >
-          {blob ? (
-            <ReadViewer blob={blob} name={preview.name} />
+          {previewError ? (
+            <p role="alert">{previewError}</p>
+          ) : blob ? (
+            <ReadViewer blob={blob} name={preview.name} fileKey={preview.ref} />
           ) : (
-            <p>{t("loadingRead")}</p>
+            <p role="status">{t("loadingRead")}</p>
           )}
         </QuickLook>
       )}

@@ -272,3 +272,12 @@
   outline: var(--focus-width) solid var(--accent);
   outline-offset: var(--focus-gap);
 }
+
+.file[data-compact] {
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+  flex-shrink: 0;
+}
+.file[data-compact] > span {
+  display: none;
+}

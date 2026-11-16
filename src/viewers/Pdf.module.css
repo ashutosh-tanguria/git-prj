@@ -1,0 +1,135 @@
+.reader {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-block-size: var(--space-0);
+  min-inline-size: var(--space-0);
+}
+.controls {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+.controls input {
+  max-inline-size: var(--matrix-label);
+  min-block-size: var(--target-touch);
+  border: var(--border-width) solid var(--rule-strong);
+  background: var(--paper-2);
+  color: var(--ink-1);
+  font: inherit;
+  padding: var(--space-1);
+}
+.layout {
+  flex: 1;
+  min-block-size: var(--space-0);
+  display: flex;
+  min-inline-size: var(--space-0);
+}
+.pages {
+  min-block-size: var(--space-0);
+  position: relative;
+  flex: 1;
+  min-inline-size: var(--space-0);
+  overflow: auto;
+  max-block-size: calc(var(--viewport-height) - var(--pdf-chrome));
+}
+.page {
+  position: relative;
+  flex-shrink: 0;
+  background: var(--document-paper);
+  margin-block-end: var(--space-4);
+}
+.page canvas {
+  display: block;
+}
+.textLayer {
+  position: absolute;
+  inset: var(--space-0);
+  overflow: clip;
+  line-height: 1;
+  transform-origin: var(--space-0) var(--space-0);
+}
+.textLayer :global(span) {
+  position: absolute;
+  white-space: pre;
+  transform-origin: var(--space-0) var(--space-0);
+  color: transparent;
+  cursor: text;
+}
+.textLayer mark {
+  background: var(--warn-tint);
+  color: var(--ink-1);
+}
+.textLayer ::selection {
+  background: var(--accent-tint);
+  color: var(--ink-1);
+}
+.sidebar {
+  inline-size: var(--pdf-sidebar);
+  max-block-size: calc(var(--viewport-height) - var(--pdf-chrome));
+  overflow: auto;
+  flex-shrink: 0;
+}
+.sidebar button {
+  background: var(--paper-1);
+  color: var(--ink-1);
+  border: var(--border-width) solid var(--rule-strong);
+  margin: var(--space-1);
+  min-block-size: var(--target-touch);
+}
+.sidebar ul {
+  padding-inline-start: var(--space-4);
+}
+.pages[data-reading="true"] canvas {
+  filter: invert(1) hue-rotate(180deg);
+}
+@media (width < 640px) {
+  .sidebar {
+    inline-size: var(--pdf-sidebar-mobile);
+  }
+  .controls {
+    align-items: start;
+  }
+}
+
+.textLayer {
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+}
+.textLayer :global(span) {
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x))
+    scale(var(--min-font-size-inv));
+}
+
+.textLayer {
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+.textLayer :global(span) {
+  --rotate: 0deg;
+  --scale-x: 1;
+}
+
+.textLayer mark[data-current="true"] {
+  outline: var(--focus-width) solid var(--accent);
+}
+
+.disclosure {
+  flex-shrink: 0;
+}
+.disclosure summary {
+  min-block-size: var(--target-touch);
+  cursor: pointer;
+}
+@media (width < 640px), (height < 700px) {
+  .disclosure[open] {
+    max-block-size: var(--quicklook-height);
+    overflow: auto;
+  }
+  .layout {
+    min-block-size: var(--target-touch);
+  }
+}

@@ -30,3 +30,9 @@ npm audit and an explicit locked-licence allowlist run in CI. Font licences are 
 - jsdom (development): DOM environment for component and sanitizer checks.
 
 Runtime packages remain below 40. Exact versions are pinned in package.json. PDF and sanitized text/highlighting are separate lazy chunks; the shell budget includes entry and Library chunks. The PDF core/worker exception is explicit, rather than treating every lazy component as exempt.
+
+## M1 completion choices
+
+No dependencies were added for this completion. IndexedDB stores only non-secret table, pane and reading preferences; the existing memory-only token boundary is unchanged. APG tree and Inspector tabs are small local components with roving focus and browser/axe coverage. Replacing the general React Aria Tree/Tabs implementations recovered the measured shell budget; React Aria still supplies Button and modal focus management. This is a dependency-size choice, not an accessibility exemption.
+
+CSV parsing/virtualization and native media are local lazy readers. HTML preview uses the same sanitized source reader plus an opaque, scriptless sandbox with an explicit deny-all resource policy. The shell budget still counts all non-PDF/non-sanitized-text JavaScript, including the new media and table chunks; no size threshold or exclusion was changed.

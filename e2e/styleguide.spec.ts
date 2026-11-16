@@ -5,6 +5,7 @@ for (const theme of ["light", "dark"])
     test(
       theme + " " + density + " accessibility and snapshot",
       async ({ page }) => {
+        await page.clock.setFixedTime(new Date("2026-11-16T12:00:00Z"));
         const external: string[] = [];
         page.on("request", (r) => {
           if (new URL(r.url()).origin !== "http://127.0.0.1:4173")
@@ -54,6 +55,7 @@ test("keyboard interaction, tooltip and disabled controls", async ({
   await expect(selected).toBeChecked();
 });
 test("Hindi, 360px, forced colors and 200 percent reflow", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-16T12:00:00Z"));
   await page.goto("/#/styleguide");
   await page.getByLabel("Language").selectOption("hi");
   await page.setViewportSize({ width: 360, height: 800 });
@@ -84,9 +86,12 @@ test("Hindi, 360px, forced colors and 200 percent reflow", async ({ page }) => {
   });
 });
 
-test("review captures and tooltip open state", async ({ page }) => {
-  for (const theme of ["light", "dark"]) {
+for (const theme of ["light", "dark"])
+  test("review captures and tooltip open state " + theme, async ({ page }) => {
     await page.goto("/?theme=" + theme + "#/styleguide");
+    await expect(
+      page.getByRole("heading", { name: "Styleguide", exact: true }),
+    ).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({
       path: "docs/screenshots/styleguide-" + theme + ".png",
@@ -106,12 +111,12 @@ test("review captures and tooltip open state", async ({ page }) => {
     await page.evaluate(() => {
       document.documentElement.style.filter = "";
     });
-    await page
-      .getByRole("button", { name: "Preview help", exact: true })
-      .focus();
-    await page.keyboard.press("Tab");
+    await page.mouse.move(0, 0);
+    await page.locator("#interactive").getByLabel("Filename").focus();
     await page.keyboard.press("Shift+Tab");
+    await expect(
+      page.getByRole("button", { name: "Preview help", exact: true }),
+    ).toBeFocused();
     await expect(page.getByRole("tooltip")).toBeVisible();
     await expect(page).toHaveScreenshot("tooltip-" + theme + ".png");
-  }
-});
+  });

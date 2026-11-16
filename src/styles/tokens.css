@@ -223,3 +223,10 @@
 :root {
   --viewport-height: 100vh;
 }
+
+:root {
+  --document-paper: #ffffff;
+  --pdf-chrome: 300px;
+  --pdf-sidebar: 180px;
+  --pdf-sidebar-mobile: 120px;
+}

@@ -60,6 +60,7 @@ export function DisplayPrimitives() {
           {["PDF", "MD", "PNG", "MP4", "ZIP", "TS", "?"].map((ext) => (
             <FileGlyph key={ext} extension={ext} />
           ))}
+          <FileGlyph extension="PDF" compact />
           <span role="img" aria-label={t("folder")}>
             <FileGlyph folder />
           </span>

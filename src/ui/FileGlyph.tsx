@@ -2,12 +2,14 @@ import styles from "./Primitives.module.css";
 export function FileGlyph({
   extension,
   folder = false,
+  compact = false,
 }: {
   extension?: string;
   folder?: boolean;
+  compact?: boolean;
 }) {
   return (
-    <span className={styles.file}>
+    <span className={styles.file} data-compact={compact || undefined}>
       <svg
         viewBox="0 0 32 36"
         aria-hidden="true"

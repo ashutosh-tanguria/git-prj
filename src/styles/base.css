@@ -55,3 +55,7 @@ strong,
 b {
   font-weight: var(--weight-strong);
 }
+
+input {
+  accent-color: var(--accent);
+}

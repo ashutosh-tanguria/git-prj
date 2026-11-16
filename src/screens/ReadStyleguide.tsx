@@ -1,3 +1,6 @@
+import { SampleViewers } from "./SampleViewers";
+import { PaneLayer } from "../components/PaneLayer";
+import { Inspector } from "../components/Inspector";
 import { ConnectPanel } from "../components/ConnectPanel";
 import { useState } from "react";
 import { QuickLook } from "../components/QuickLook";
@@ -9,6 +12,7 @@ import { AddressBar } from "../components/AddressBar";
 import { GuardStrip, StatusBar, PendingTray } from "../components/ReadChrome";
 import { t } from "../i18n";
 export function ReadStyleguide() {
+  const [panel, setPanel] = useState<"locations" | "inspector" | null>(null);
   const [open, setOpen] = useState(false);
   return (
     <section>
@@ -31,6 +35,8 @@ export function ReadStyleguide() {
             name: "distributed-systems.pdf",
             path: "distributed-systems.pdf",
             sha: "sample",
+            modified: "2026-11-15T08:00:00Z",
+            lastChange: "Sample: add reading notes",
             size: 14680064,
             kind: "file",
             ref: "gh:ada/notes@main/distributed-systems.pdf",
@@ -39,6 +45,59 @@ export function ReadStyleguide() {
         onOpen={() => {}}
         onPreview={() => {}}
       />
+      <Inspector entries={[]} visibility={t("unknown")} />
+      <Inspector
+        defaultTab="details"
+        entries={[
+          {
+            name: "distributed-systems.pdf",
+            path: "distributed-systems.pdf",
+            sha: "sample",
+            size: 14680064,
+            kind: "file",
+            ref: "gh:ada/notes@main/distributed-systems.pdf",
+            modified: "2026-11-15T08:00:00Z",
+            lastChange: "Sample: add reading notes",
+          },
+        ]}
+        visibility={t("private")}
+      />
+      <Inspector
+        defaultTab="details"
+        entries={[
+          {
+            name: "distributed-systems.pdf",
+            path: "distributed-systems.pdf",
+            sha: "sample",
+            size: 14680064,
+            kind: "file",
+            ref: "gh:ada/notes@main/distributed-systems.pdf",
+          },
+          {
+            name: "reading-notes.md",
+            path: "reading-notes.md",
+            sha: "sample-md",
+            size: 1024,
+            kind: "file",
+            ref: "gh:ada/notes@main/reading-notes.md",
+          },
+        ]}
+        visibility={t("private")}
+      />
+      <Button onPress={() => setPanel("locations")}>
+        {t("openLocations")}
+      </Button>
+      <Button onPress={() => setPanel("inspector")}>{t("inspector")}</Button>
+      {panel && (
+        <PaneLayer kind={panel} onClose={() => setPanel(null)}>
+          {panel === "locations" ? (
+            <Locations repos={[]} />
+          ) : (
+            <Inspector entries={[]} visibility={t("unknown")} />
+          )}
+        </PaneLayer>
+      )}
+      <SampleViewers />
       <PendingTray />
       <GuardStrip />
       <StatusBar account="ada (sample)" />

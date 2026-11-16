@@ -1,0 +1,54 @@
+.inspector {
+  padding: var(--pane-padding);
+  min-inline-size: var(--space-0);
+  overflow: auto;
+}
+.inspector [role="tablist"] {
+  display: flex;
+  gap: var(--space-3);
+  border-block-end: var(--border-width) solid var(--rule-strong);
+}
+.inspector [role="tab"] {
+  padding: var(--space-2);
+  min-block-size: var(--target-touch);
+  cursor: pointer;
+}
+.inspector [role="tab"][data-selected] {
+  border-block-end: var(--focus-width) solid var(--accent);
+  font-weight: var(--weight-strong);
+}
+.inspector dd {
+  margin-inline-start: var(--space-0);
+  overflow-wrap: anywhere;
+}
+.inspector dt {
+  font-weight: var(--weight-strong);
+  margin-block-start: var(--space-3);
+}
+.drawer,
+.sheet {
+  position: fixed;
+  background: var(--paper-2);
+  border: var(--border-width) solid var(--rule-strong);
+  padding: var(--space-3);
+  overflow: auto;
+  z-index: var(--layer-dialog);
+}
+.drawer {
+  inset-block: var(--space-0);
+  inset-inline-start: var(--space-0);
+  inline-size: min(var(--locations-max), var(--full));
+}
+.sheet {
+  inset-inline: var(--space-0);
+  inset-block-end: var(--space-0);
+  max-block-size: var(--quicklook-height);
+  inline-size: var(--full);
+}
+
+.inspector [role="tab"] {
+  border: none;
+  background: var(--paper-1);
+  color: var(--ink-1);
+  font: inherit;
+}

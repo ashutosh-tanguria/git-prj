@@ -13,6 +13,8 @@ export interface Repo {
   private: boolean;
 }
 export interface Entry {
+  modified?: string | null;
+  lastChange?: string | null;
   name: string;
   path: string;
   sha: string;

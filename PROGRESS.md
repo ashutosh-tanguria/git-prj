@@ -4,81 +4,65 @@ Updated: 2026-11-16 (Asia/Calcutta).
 
 ## Status
 
-The owner approved the analysis and all its proposed ambiguity resolutions. M0 foundation is implemented. M1 read-path implementation is in progress and remains partial. Local verification is green; the foundation is ready for owner review.
+The approved analysis governs ambiguities. The requested M1 implementation is complete locally. Its real-account exit check remains an owner-run gate and has not been claimed as verified. M2 has not started.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
-| Planning analysis | Done, approved | docs/ANALYSIS.md resolutions govern implementation. |
-| M0 Foundation | Done | Tokens, self-hosted fonts, 11 primitive families, state gallery, contrast/design-policy tests, browser snapshots, axe and CI. |
-| M1 Shell and GitHub read | Partial | Read path and mocked browser flows implemented; full behavior and real-account exit check remain incomplete. |
-| M2 Guards | Not started | Requires M1 exit and authorization. |
-| M3 Staging and push | Not started | Requires M2 exit and authorization. |
-| M4 Other providers and moves | Not started | Requires M3 exit and account setup. |
-| M5 Library features | Not started | Requires M4 exit and authorization. |
-| M6 Platform | Not started | Requires M5 exit and hosting/OAuth setup. |
-| M7 Release | Not started | Requires M6 exit and all release reviews. |
+| Planning analysis | Done, approved | docs/ANALYSIS.md |
+| M0 Foundation | Done | Tokens, fonts, primitives, Styleguide, contrast/policy checks, snapshots and CI. |
+| M1 Shell and GitHub read | Implementation done; real-account verification pending | Full selection/grid, tree/keyboard, PDF reader, Inspector, responsive panes, local preferences and mocked browser tests. Owner follows docs/manual-test-m1.md. |
+| M2 Guards | Not started | Owner authorization required. |
+| M3 Staging and push | Not started | M2 exit and authorization required. |
+| M4 Other providers and moves | Not started | M3 exit and provider setup required. |
+| M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
+| M6 Platform | Not started | OAuth, hosting, extension, PWA, Settings and Privacy remain here. |
+| M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
 
-- Implemented tokens first, primitives second, then #/styleguide in development and explicit styleguide test builds only. Production import elimination is checked by the bundle script. No Explorer or provider implementation is included.
-- Applied approved contrast corrections, dark provider marks and the local Hindi font fallback. A semantic-pair registry compares actual tokens numerically rather than every meaningless background/background pair.
-- Fixed hover/focus/pressed fixtures coexist with real accessible controls. Display-only states are explicitly non-applicable. Native Select handles its OS popup; React Aria handles Button, Checkbox and Tooltip behavior.
-- Used TypeScript 6.0.3 for the approved peer compatibility exception. ESLint remains supported 10.15.0, with a scoped npm override for jsx-a11y's peer resolution. All recommended rules execute; positive/negative regression fixtures verify the integration.
-- Overrode only typescript-estree's minimatch to 11.0.1 for GHSA-g3hv-75wg-m249. No force/legacy-peer-deps flags or lifecycle scripts are enabled.
-- Development/build downloads are distinct from the production host policy, as approved in analysis. Browser tests observe same-origin-only runtime requests and preview serves an enforcing CSP.
-- CI uses Windows to match committed visual baselines. M7 owns the full three-engine release matrix. No cloud workflow or deployment was triggered from this local task.
-- Initialized a local Git repository to satisfy the explicit commit request; no remote was created or contacted.
+- The previous partial M1 checkpoint is superseded by this completion. FileTable now supports click/toggle/range/select-all/rectangle selection, type-ahead, virtual rows with the focused row retained, roving focus, sticky headers and persisted sorting/column sizes/visibility per location.
+- Locations uses the APG tree pattern with explicit group ownership, arrows, Home/End, type-ahead and sibling expansion. Inspector tabs also follow the APG pattern. Local implementations replaced general Tree/Tabs imports to meet the unchanged bundle budget; modal focus trapping remains React Aria.
+- Ctrl/Cmd+L, pane toggles, parent/history keys and Quick Look sibling/open/close keys have visible-control alternatives. Deferred row focus is cancelled or avoided when the row already exists, preventing a modal focus race. Skip links, polite selection updates and assertive errors are present.
+- PDF uses a local matching PDF.js worker, canvas plus selectable text, single/continuous modes, fit width/page, 25 to 400 percent zoom, thumbnails, internal outline, phrase highlights/next/previous, keyboard shortcuts and per-file page/zoom/mode. Distant canvases/text layers and page resources are released. PDF document actions/scripts are never invoked. The obsolete isEvalSupported option was removed; it is not claimed as a security control in PDF.js 6.
+- IndexedDB stores only non-secret table layouts, pane widths and reading preferences. Tokens stay only in module memory. Storage failure falls back to session defaults; it does not block reading. Remembered token encryption and cache/wipe behavior are not implemented early.
+- Responsive defaults follow all four width bands. Mobile uses a Locations drawer, Inspector sheet, two-line rows, sticky Pending line and long-press selection with read actions. Touch movement cancels long-press; file drag/drop mutations are absent.
+- Inspector has Preview and Details, exact known byte totals, ref/hash copy, metadata, visibility and cache status. Full-viewer Details is the default; its Preview reuses loaded bytes. Unknown metadata is labelled rather than fabricated. Guard copy is descriptive only; actual verdicts remain M2 and History remains M3.
+- GitHub last-change metadata is fetched for visible rows and cached briefly in bounded RAM. No recursive tree is trusted after truncation. Symlinks/submodules remain read-only special entries. No write API is exposed.
+- Closed the earlier image/code/Markdown gaps: image fit/100 percent/zoom/pan/sibling keys, code line numbers/wrap/copy, same-provider relative links and image blobs, and common viewer actions/help. The approved analysis P14 also places CSV/media/HTML baseline reading in M1, so those readers are included.
+- Security takes precedence over HTML's requested script execution. Run preview is opaque and scriptless, with scripts, forms and network resources denied. The UI explicitly says so. This is a deliberate deviation from executing scripts in an isolated frame.
+- Bounded text previews stop at 10 MiB and relative Markdown images at ten per document. Above 2 MiB, code uses plain text. Download remains available. These safety limits are explicit in HELP.md; they are additional limits beyond README 6.5.
+- Viewer controls reflow with the shared shell instead of forcing every action into one fixed 40px toolbar. Pane resizing uses named width sliders rather than draggable pane-edge handles. Table dividers do support drag and keyboard resizing. These are remaining presentation differences, not hidden functionality claims.
+- All new composites and reader specimens are in the development/test Styleguide. Samples are labelled and excluded from production. Fonts remain self-hosted. No dependency, runtime host, credential mode, budget exception or subsequent milestone was added.
 
 ## Not done
 
-| Item | Reason / next milestone |
+| Item | Reason / next gate |
 | --- | --- |
-| M1 and subsequent product features/composites | Explicit task boundary. |
-| Real-account/provider/OAuth checks | No provider code or credentials in M0. |
-| Independent owner visual approval and fluent Hindi copy review | Owner review of captures; final language pass M7. |
-| Explorer/Pending tray identity review | Needs real components in later milestones; no fabricated screenshots. |
-| Firefox/WebKit, NVDA/VoiceOver and device QA | Release gates in M7; M0 Chromium/axe checks are local. |
-| CI execution on a remote repository | Workflow committed locally; remote not configured. |
-| README prose rewrite | Approved analysis is retained as the resolution record; source text was not silently rewritten. |
+| Real GitHub account, actual 20 MB/50-page document and deep-link exit verification | Owner must supply a disposable repo/PAT through the app. Checklist is docs/manual-test-m1.md. Mock fixtures are not real-account evidence. |
+| Independent browser-menu zoom, mid-range phone 10,000-row/60fps and memory measurements | Automated virtualization/reflow checks do not prove physical-device performance. Release/device gate remains pending. |
+| NVDA/VoiceOver, fluent Hindi review and full Firefox/WebKit matrix | Manual/release gates; local Chromium and axe are not WCAG certification. |
+| Remote CI execution | Workflow exists, but no Git remote is configured. No push/deployment was performed. |
+| Actual guards, staging, History, push, backup, cache/offline reload, other providers and alternate views | Assigned to M2 through M6; deliberately not started. |
+| Script-enabled HTML preview | Disabled under the stronger security policy; documented deviation. |
 
 ## Manual steps
 
-[HUMAN] Review docs/design-qa.md and the light/dark captures; approve the primitive baselines and authorize M1 when ready. Choose a repository remote to enable CI. No OAuth app, secret or deployment is required for M0.
+[HUMAN] Follow docs/manual-test-m1.md with a throwaway initialized repo and short-lived fine-grained PAT. Verify public/private browsing, a real PDF, page/zoom persistence after reconnection, deep links, keyboard and mobile width. Never send the token in chat or commit it. Revoke it afterward and record the result without credentials.
 
-All later account setup, exact permission/callback templates and device gates are in SETUP.md and docs/ANALYSIS.md section 7. Supply secrets only through the relevant app/secret manager when those features exist.
+[HUMAN] Review the new Explorer/Inspector/PDF/360px captures and intentional Styleguide baselines in docs/design-qa.md. Review the bounded-preview and scriptless-HTML choices above. Configure a Git remote if CI should run remotely. Authorize M2 separately when ready.
 
-## Known issues
+## Known issues and limits
 
-- jsx-a11y does not yet declare ESLint 10 in its upstream peer range; the scoped override is tested locally and in CI and should be removed when upstream support lands. TypeScript and minimatch overrides are documented in docs/dependencies.md.
-- Browser snapshots depend on Windows font/browser rendering. Deliberate visual changes require review before baseline updates.
-- Hindi strings are present and glyphs render, but have not received a fluent independent review.
-- WOFF2 font assets include all supplied script subsets; no external font requests occur. Future performance work may subset further without removing Hindi coverage.
-- Real provider, LFS, signed-URL/CSP and multi-commit issues remain documented in ANALYSIS.md; no M0 code claims to resolve their runtime behavior.
+- Real provider CORS/large-file/font/codec combinations remain unverified until the checklist is run. Password-protected, damaged or unsupported PDFs show an error plus Download; no password prompt is implemented.
+- GitHub per-item commit metadata can consume API quota. Only mounted rows request it, results are briefly cached, and unavailable metadata stays Unknown. Deep-link metadata failure does not discard successfully loaded bytes.
+- Preferences are optional and can be removed by private browsing/storage clearing. A branch/path key intentionally follows that file across content updates. No offline file-byte cache is claimed.
+- The jsx-a11y ESLint peer override and TypeScript/minimatch compatibility choices from M0 remain documented in docs/dependencies.md. No new packages were installed.
+- Screenshot baselines depend on Windows Chromium. Changes were reviewed locally; independent owner visual approval remains pending.
 
 ## Validation
 
-- Clean npm ci with lifecycle scripts disabled: passed.
-- npm run check: passed, including typecheck, ESLint, Stylelint, 101 unit checks, production build and bundle budget.
-- npm run test:e2e: nine Chromium scenarios pass, including six unchanged theme/density snapshot baselines, keyboard, Hindi/360px/forced-colors/200% zoom and tooltip/review captures.
-- npm audit: zero vulnerabilities. Locked-licence allowlist: passed.
-- Production JS: 67,689 gzip bytes by scripts/check-size.mjs, below 150 KB; no Styleguide/sample import.
-- Actual light/dark, grayscale, squint and zoom captures inspected and recorded in docs/design-qa.md.
-- Local conventional commit requested by owner; no remote push or M1 work.
+Local completion results: npm run check passes with 117 unit/component checks, type/lint/style/contrast/policy checks, production build and the unchanged 153,600-byte gzip shell limit. The full 25-scenario Chromium suite passed without snapshot updates. Subsequent focused mobile PDF runs passed after strengthening render-completion, pixel, visible-text and focus assertions. The fixed-date Hindi/360px baseline was also verified. npm audit found zero vulnerabilities and the locked-licence check passed. No test was skipped or deleted to get green. Acceptance 5, the M1 portion of 11/13/14/15/16/18, and the read-only exit flow are covered locally. Acceptance 8's offline reload is M5 and is not claimed by merely remembering a page.
 
-## M1 checkpoint (2026-11-16)
+Completion QA note: narrow/short-height PDFs start with a collapsible controls disclosure so document pages retain usable space. The / shortcut opens search; fit actions collapse controls on those viewports. At short desktop heights the shared chrome becomes compact without hiding controls or bottom status bands.
 
-Status: Partial. M2 has not started.
-
-Decisions: GitHub PAT is held only in module memory, cleared on authentication failure/disconnect, and never persisted. All requests pass one HTTPS API-origin boundary and reject redirects. UI uses a library service. Listings traverse non-recursive Git trees by subtree SHA, preserving special-entry read-only status. Refs encode branch/path components, including branch slashes. No write API is exposed. Markdown removes active content and images and opens external links with noopener/noreferrer. Relative Markdown assets currently fail closed. Code highlighting uses a limited grammar list and the same sanitizer. PDF core/worker are self-hosted and lazy, use canvas plus text layer, and never execute document actions. The installed PDF.js 6 typings no longer list isEvalSupported; the compatibility flag is passed but must not be treated as proof that the old switch still exists.
-
-Built: shell, hash routes, memory PAT validation and repository pagination, Locations tree, virtualized selectable/sortable file rows, editable address, Quick Look modal, basic PDF/image/Markdown/code views, download/copy-link actions, fixed guard strip, empty Pending tray, status bar, Styleguide specimens, unit/component/MSW browser tests. Production translations no longer import Styleguide sample copy.
-
-Not done within M1: full PDF continuous/single-page modes, outline/thumbnails, fit controls, search/highlights, saved page/zoom; full image pan/zoom; code line numbers/wrap/copy; same-provider relative Markdown assets; Inspector; resizable/collapsible persisted panes and mobile drawer/sheet; full table headers/column sizing/chooser/persistent sort and multiselection; complete keyboard maps/address completion/Quick Look sibling navigation; progressive last-change metadata, private/public badge, complete loading/error/offline states and error boundary. Additional media/CSV/HTML behavior from the approved analysis is not implemented. The provider currently exposes a read-only subset rather than the full future StorageProvider write/history contract. These are unfinished requirements, not approved scope reductions.
-
-Manual steps: [HUMAN] Supply a disposable initialized repository and fine-grained PAT through the app, then verify private/public repository browsing, a real PDF and deep-link reload. No credential was available in this task. Do not put the token in chat, VITE variables or a file. Fluent Hindi and independent accessibility/device reviews are still pending.
-
-Known issues: the full Explorer does not yet meet acceptance 13/18, and PDF narrow-layout text alignment needs review. Guard copy is present, but actual guards remain M2. Remembered tokens/offline caching/wipe behavior remain their planned milestones; this checkpoint only proves memory-only reconnect after reload. No claim of a completed real-account exit test or full M1 completion is made.
-
-Validation: npm run check passes with 108 unit/component tests; MSW browser tests exercise light/dark browse, Markdown, Quick Look, PDF canvas and deep-link reconnection. Full Styleguide snapshot refresh and final validation results are recorded with the checkpoint commit. Audit reports zero vulnerabilities; locked licence check passes. Screenshots and review limits are in docs/design-qa.md.
-
-Final checkpoint verification: npm run check passed with 108 tests; npm run test:e2e passed all 11 scenarios without updating snapshots. Tests now run one Vitest worker at a time; simultaneous local browser/unit runs had caused resource-related startup timeouts. No tests were skipped or removed. Shell JS is 151,814 gzip bytes, below the 153,600-byte budget. Licence validation passed. M1 remains Partial for the unfinished requirements above.
+Final evidence: Windows Chromium screenshots for selection/Inspector, PDF, 360px list/sheet/PDF, grayscale, squint and 200% layout are in docs/design-qa.md. No real-account or physical-device verification is claimed. A conventional local commit completes this task; no remote push or M2 work.

@@ -1,4 +1,5 @@
-import { explorerRoute } from '../src/lib/refs';
+import { metadata, clearMetadata } from "../src/services/metadata";
+import { explorerRoute } from "../src/lib/refs";
 import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
@@ -79,4 +80,34 @@ it("round trips reserved names and branches with slashes through deep links", ()
   expect(routeRef(explorerRoute(ref))).toEqual(ref);
   expect(parseRef(refString(ref))).toEqual(ref);
   expect(() => parseRef("gh:ada/notes@main/../secrets")).toThrow();
+});
+
+it("fetches real last-change metadata with bounded cache reuse", async () => {
+  clearMetadata();
+  let requests = 0;
+  server.use(
+    http.get(
+      "https://api.github.com/repos/ada/notes/commits",
+      ({ request }) => {
+        requests++;
+        expect(new URL(request.url).searchParams.get("path")).toBe("notes.pdf");
+        return HttpResponse.json([
+          {
+            commit: {
+              message: "Add reading notes\nDetails",
+              author: { date: "2026-11-15T08:00:00Z" },
+            },
+          },
+        ]);
+      },
+    ),
+  );
+  const value = await metadata("gh:ada/notes@main/notes.pdf");
+  expect(value).toEqual({
+    modified: "2026-11-15T08:00:00Z",
+    lastChange: "Add reading notes",
+  });
+  expect(await metadata("gh:ada/notes@main/notes.pdf")).toEqual(value);
+  expect(requests).toBe(1);
+  clearMetadata();
 });
