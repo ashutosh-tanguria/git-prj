@@ -1,0 +1,45 @@
+.viewer {
+  min-inline-size: var(--space-0);
+  overflow: auto;
+}
+.viewer header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  padding-block: var(--space-3);
+}
+.image {
+  max-inline-size: var(--full);
+  object-fit: contain;
+}
+.code {
+  font-family: var(--font-ui);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: var(--line-reading);
+}
+
+.pdfPage {
+  position: relative;
+  inline-size: fit-content;
+  max-inline-size: var(--full);
+}
+.textLayer {
+  position: absolute;
+  inset: var(--space-0);
+  overflow: clip;
+  line-height: 1;
+  transform-origin: var(--space-0) var(--space-0);
+}
+.textLayer :global(span) {
+  position: absolute;
+  white-space: pre;
+  transform-origin: var(--space-0) var(--space-0);
+  color: transparent;
+  cursor: text;
+}
+.textLayer ::selection {
+  background: var(--accent-tint);
+  color: var(--ink-1);
+}

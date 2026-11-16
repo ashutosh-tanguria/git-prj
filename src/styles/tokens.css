@@ -219,3 +219,7 @@
     --elevation: none;
   }
 }
+
+:root {
+  --viewport-height: 100vh;
+}

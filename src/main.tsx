@@ -4,19 +4,27 @@ import "./styles/tokens.css";
 import "./styles/fonts.css";
 import "./styles/base.css";
 const root = createRoot(document.getElementById("root")!);
-if (import.meta.env.DEV || __STYLEGUIDE__) {
-  const render = async () => {
-    if (location.hash.startsWith("#/styleguide")) {
-      const { default: Styleguide } = await import("./screens/Styleguide");
-      root.render(
-        <StrictMode>
-          <Styleguide />
-        </StrictMode>,
-      );
-    } else root.render(null);
-  };
-  window.addEventListener("hashchange", () => {
-    void render();
-  });
-  void render();
+async function render() {
+  if (
+    (import.meta.env.DEV || __STYLEGUIDE__) &&
+    location.hash.startsWith("#/styleguide")
+  ) {
+    const { default: Styleguide } = await import("./screens/Styleguide");
+    root.render(
+      <StrictMode>
+        <Styleguide />
+      </StrictMode>,
+    );
+  } else {
+    const { default: Library } = await import("./screens/Library");
+    root.render(
+      <StrictMode>
+        <Library />
+      </StrictMode>,
+    );
+  }
 }
+window.addEventListener("hashchange", () => {
+  void render();
+});
+void render();

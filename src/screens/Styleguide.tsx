@@ -1,3 +1,5 @@
+import "../i18n/styleguide";
+import { ReadStyleguide } from "./ReadStyleguide";
 import { useState } from "react";
 import { PrimitiveMatrix } from "./PrimitiveMatrix";
 import { DisplayPrimitives } from "./DisplayPrimitives";
@@ -134,6 +136,7 @@ export default function Styleguide() {
               />
             </div>
           </section>
+          <ReadStyleguide />
         </main>
       </div>
     </>

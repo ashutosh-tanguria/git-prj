@@ -15,8 +15,10 @@ The full values, proposed callback templates and evidence requirements are in [a
 
 ## Local foundation
 
-Use Node 24.19.0 and npm 11.17.0. Run npm ci (lifecycle scripts stay disabled), then npm run dev and open http://localhost:5173/#/styleguide. No other product route exists in M0.
+Use Node 24.19.0 and npm 11.17.0. Run npm ci (lifecycle scripts stay disabled), then npm run dev and open http://localhost:5173/#/styleguide. The product root now opens the GitHub token connection screen. GitHub explorer/viewer deep links are supported; a reload requires reconnection because credentials remain in memory.
 
 Run npm run check. For visual/a11y tests run npx playwright install chromium, then npm run test:e2e. Browser downloads are explicit development setup, separate from the application's runtime host allowlist. Snapshot baselines use Windows, matching CI. To review an intentional change, run npm run test:e2e -- --update-snapshots and inspect every changed image before committing.
 
 npm run build creates a production shell with no workbench or sample import. npx vite build --mode styleguide creates dist-styleguide for local/test review only. Do not deploy that test build as the product.
+
+M1 checkpoint: npm run test:e2e runs GitHub flows against MSW fixtures without contacting a real account. Real private repository/PDF verification requires the [HUMAN] M1 test account and PAT described above. The current checkpoint is partial; see PROGRESS.md before advancing milestones.

@@ -36,3 +36,11 @@ The fixed data-preview examples are visual fixtures. The separate interactive co
 ## Remaining human review
 
 [HUMAN] Review the captured states, typography, Hindi wording and desired density; approve intentional baselines before later milestone visual changes. A real Explorer squint/grayscale review and an independent no-logo identity review follow when those components exist. No screenshots or notes here claim those future screens have been evaluated.
+
+## M1 read-path review (2026-11-16)
+
+Actual MSW-backed Explorer and Viewer captures: [Explorer light](screenshots/explorer-light.png), [Explorer dark](screenshots/explorer-dark.png), [Markdown light](screenshots/viewer-light.png), [Markdown dark](screenshots/viewer-dark.png), [PDF light](screenshots/viewer-pdf-light.png), [PDF dark](screenshots/viewer-pdf-dark.png). These contain labelled sample document content, not a live private account.
+
+Reviewed pane rules, full-row selection, font readability and static guard-strip placement. The read path has no remote mutation controls. PDF pages remain their document's original paper color in dark mode; surrounding chrome uses dark tokens. Styleguide now includes the read composites and a text-viewer specimen; snapshots intentionally grow to include those sections. The tooltip test now selects its own trigger unambiguously, and the PDF test targets its labelled page canvas rather than PDF.js's private measurement canvas.
+
+This remains a partial M1 visual implementation. Inspector and mobile drawer/bottom-sheet behavior, column headers/resizing/chooser, complete shortcut and focus behavior, and the full signature ruler treatment are not ready for sign-off. The narrow Styleguide reflow test is not evidence that the full Explorer satisfies acceptance 18. No claim of full Explorer WCAG certification, phone performance, or manual screen-reader review is made.

@@ -17,3 +17,16 @@ Build/test tools: Vite for local/build bundling; TypeScript for strict types; ES
 Compatibility deviations: TypeScript 6.0.3 stays within typescript-eslint's supported range. ESLint 10.15.0 stays supported; npm override replaces only jsx-a11y's ESLint peer resolution. All recommended jsx-a11y rules are enabled and the suite tests an actual positive/negative alt-text case. No force or legacy-peer-deps install flag is used. typescript-estree's minimatch is overridden to 11.0.1 to address GHSA-g3hv-75wg-m249; the parser/lint tests exercise that integration. Revisit both overrides when upstream ranges change.
 
 npm audit and an explicit locked-licence allowlist run in CI. Font licences are retained inside their installed packages and bundled notice source is recorded in docs/font-licenses. Exact installed versions are in package.json/package-lock.json; latest registry verification is documented in ANALYSIS.md.
+
+## M1 additions
+
+- @tanstack/react-virtual: bounded visible file rows.
+- pdfjs-dist: locally bundled PDF parser/rendering core and matching worker, lazily loaded.
+- marked: local Markdown parsing, always sanitized.
+- dompurify: single content sanitization boundary for Markdown and highlighted code.
+- highlight.js: core with JavaScript/TypeScript grammars; no full grammar bundle.
+- msw (development): deterministic GitHub HTTP contracts and browser test bridge; no production worker/mock entry. Version 3 uses onUnhandledFrame.
+- Testing Library React/DOM/user-event (development): component interaction checks.
+- jsdom (development): DOM environment for component and sanitizer checks.
+
+Runtime packages remain below 40. Exact versions are pinned in package.json. PDF and sanitized text/highlighting are separate lazy chunks; the shell budget includes entry and Library chunks. The PDF core/worker exception is explicit, rather than treating every lazy component as exempt.

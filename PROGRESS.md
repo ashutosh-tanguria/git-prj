@@ -4,13 +4,13 @@ Updated: 2026-11-16 (Asia/Calcutta).
 
 ## Status
 
-The owner approved the analysis and all its proposed ambiguity resolutions. M0 foundation is implemented. M1 has not started. Local verification is green; the foundation is ready for owner review.
+The owner approved the analysis and all its proposed ambiguity resolutions. M0 foundation is implemented. M1 read-path implementation is in progress and remains partial. Local verification is green; the foundation is ready for owner review.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
 | Planning analysis | Done, approved | docs/ANALYSIS.md resolutions govern implementation. |
 | M0 Foundation | Done | Tokens, self-hosted fonts, 11 primitive families, state gallery, contrast/design-policy tests, browser snapshots, axe and CI. |
-| M1 Shell and GitHub read | Not started | Requires owner authorization. |
+| M1 Shell and GitHub read | Partial | Read path and mocked browser flows implemented; full behavior and real-account exit check remain incomplete. |
 | M2 Guards | Not started | Requires M1 exit and authorization. |
 | M3 Staging and push | Not started | Requires M2 exit and authorization. |
 | M4 Other providers and moves | Not started | Requires M3 exit and account setup. |
@@ -64,3 +64,21 @@ All later account setup, exact permission/callback templates and device gates ar
 - Production JS: 67,689 gzip bytes by scripts/check-size.mjs, below 150 KB; no Styleguide/sample import.
 - Actual light/dark, grayscale, squint and zoom captures inspected and recorded in docs/design-qa.md.
 - Local conventional commit requested by owner; no remote push or M1 work.
+
+## M1 checkpoint (2026-11-16)
+
+Status: Partial. M2 has not started.
+
+Decisions: GitHub PAT is held only in module memory, cleared on authentication failure/disconnect, and never persisted. All requests pass one HTTPS API-origin boundary and reject redirects. UI uses a library service. Listings traverse non-recursive Git trees by subtree SHA, preserving special-entry read-only status. Refs encode branch/path components, including branch slashes. No write API is exposed. Markdown removes active content and images and opens external links with noopener/noreferrer. Relative Markdown assets currently fail closed. Code highlighting uses a limited grammar list and the same sanitizer. PDF core/worker are self-hosted and lazy, use canvas plus text layer, and never execute document actions. The installed PDF.js 6 typings no longer list isEvalSupported; the compatibility flag is passed but must not be treated as proof that the old switch still exists.
+
+Built: shell, hash routes, memory PAT validation and repository pagination, Locations tree, virtualized selectable/sortable file rows, editable address, Quick Look modal, basic PDF/image/Markdown/code views, download/copy-link actions, fixed guard strip, empty Pending tray, status bar, Styleguide specimens, unit/component/MSW browser tests. Production translations no longer import Styleguide sample copy.
+
+Not done within M1: full PDF continuous/single-page modes, outline/thumbnails, fit controls, search/highlights, saved page/zoom; full image pan/zoom; code line numbers/wrap/copy; same-provider relative Markdown assets; Inspector; resizable/collapsible persisted panes and mobile drawer/sheet; full table headers/column sizing/chooser/persistent sort and multiselection; complete keyboard maps/address completion/Quick Look sibling navigation; progressive last-change metadata, private/public badge, complete loading/error/offline states and error boundary. Additional media/CSV/HTML behavior from the approved analysis is not implemented. The provider currently exposes a read-only subset rather than the full future StorageProvider write/history contract. These are unfinished requirements, not approved scope reductions.
+
+Manual steps: [HUMAN] Supply a disposable initialized repository and fine-grained PAT through the app, then verify private/public repository browsing, a real PDF and deep-link reload. No credential was available in this task. Do not put the token in chat, VITE variables or a file. Fluent Hindi and independent accessibility/device reviews are still pending.
+
+Known issues: the full Explorer does not yet meet acceptance 13/18, and PDF narrow-layout text alignment needs review. Guard copy is present, but actual guards remain M2. Remembered tokens/offline caching/wipe behavior remain their planned milestones; this checkpoint only proves memory-only reconnect after reload. No claim of a completed real-account exit test or full M1 completion is made.
+
+Validation: npm run check passes with 108 unit/component tests; MSW browser tests exercise light/dark browse, Markdown, Quick Look, PDF canvas and deep-link reconnection. Full Styleguide snapshot refresh and final validation results are recorded with the checkpoint commit. Audit reports zero vulnerabilities; locked licence check passes. Screenshots and review limits are in docs/design-qa.md.
+
+Final checkpoint verification: npm run check passed with 108 tests; npm run test:e2e passed all 11 scenarios without updating snapshots. Tests now run one Vitest worker at a time; simultaneous local browser/unit runs had caused resource-related startup timeouts. No tests were skipped or removed. Shell JS is 151,814 gzip bytes, below the 153,600-byte budget. Licence validation passed. M1 remains Partial for the unfinished requirements above.
