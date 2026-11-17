@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-17",
+  "results": [
+    {
+      "browser": "chrome",
+      "version": "157.0.8103.79",
+      "result": "Headless automated key dispatch passed for Alt+N, Alt+M, Alt+P. Native browser-menu conflicts remain a manual check."
+    },
+    {
+      "browser": "msedge",
+      "version": "157.0.4341.60",
+      "result": "Headless automated key dispatch passed for Alt+N, Alt+M, Alt+P. Native browser-menu conflicts remain a manual check."
+    }
+  ],
+  "firefox": "Unverified: no Firefox executable found in standard Program Files or per-user installation paths. No native UI conflict check claimed."
+}

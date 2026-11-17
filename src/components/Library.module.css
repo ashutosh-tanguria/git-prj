@@ -802,3 +802,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+.specimenPanel input,
+.specimenPanel select {
+  min-inline-size: 0;
+  max-inline-size: var(--full);
+}
+
+.repoMeter {
+  max-inline-size: var(--full);
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}

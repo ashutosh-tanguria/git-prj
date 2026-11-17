@@ -337,3 +337,7 @@
     display: none;
   }
 }
+
+.row:hover [data-family] > span {
+  color: var(--ink-2);
+}

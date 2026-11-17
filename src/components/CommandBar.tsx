@@ -95,6 +95,7 @@ export function CommandAction({
   return (
     <Button
       data-action={action}
+      aria-label={t(action)}
       onPress={() =>
         window.dispatchEvent(
           new CustomEvent("shelf-command", { detail: { action } }),

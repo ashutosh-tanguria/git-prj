@@ -118,3 +118,12 @@ The mocked browser flow stages files through guards, reloads and reconnects, exp
 Known limits: protected-branch recovery/retargeting is manual; conflict checking occurs at Push rather than background refresh; history is the default recent API page; ZIP backup is store-only and bounded by classic ZIP limits, with large-file memory/performance unverified. Historical full-page visual baselines were not regenerated. M3b and M3.5 were not started.
 
 Validation: npm run check passes (139 tests; static shell 148658 bytes gzip). The focused Chromium working-copy flow and Pending/conflict axe gates pass. Source checks pass after splitting UI helpers to keep components small.
+
+
+## M3b validation repair, 2026-11-17
+
+Six sample review images: [creation light](m3b/create-light.png), [dark](m3b/create-dark.png), [Quick push light](m3b/quick-light.png), [dark](m3b/quick-dark.png), [shortcut Settings light](m3b/settings-light.png), [dark](m3b/settings-dark.png). Dialogs use shared tokens, aligned form columns, visible focus and scrolling. Quick push names the complete destination. Both themes have automated serious/critical axe coverage for creation, Quick push, Settings and Styleguide validation/fallback states. No real-account or native browser-menu verification is claimed.
+
+Historical snapshot review and final validation results are recorded in PROGRESS.md. The manual account checklist is docs/manual-test-m3b.md. M3.5 remains unstarted.
+
+Validation recovery: reviewed and refreshed only light-default, dark-default, hindi-360 and both tooltip goldens. Fixed narrow command accessible names, hover glyph text contrast, meter wrapping and zoomed command-bar overflow. All initially failing browser cases passed on targeted reruns. Final npm run check passes with 161 tests and a 149269-byte gzip shell. Native menus, Firefox and real accounts remain unverified.

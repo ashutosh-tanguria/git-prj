@@ -35,12 +35,13 @@ for (const [width, theme] of [
         page.getByRole("columnheader").getByRole("button"),
       ).toHaveText(["Name", "Date modified", "Type", "Size", "Last change"]);
       const action = page.getByRole("button", {
-        name: "New repository: Available after M3",
+        name: "View: Available after M5",
         exact: true,
       });
+      await page.keyboard.press("Tab");
       await action.focus();
       await expect(action).toHaveAttribute("aria-disabled", "true");
-      await expect(page.getByRole("tooltip")).toContainText("M3");
+      await expect(page.getByRole("tooltip")).toContainText("M5");
       await page.getByRole("grid").focus();
     }
     expect(

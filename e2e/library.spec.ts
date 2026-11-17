@@ -291,9 +291,11 @@ for (const theme of ["light", "dark"])
     await expect(page.getByRole("tree")).toHaveCount(0);
     await page.keyboard.press("Control+b");
     await page.keyboard.press("Control+l");
-    await expect(page.getByLabel("Address", { exact: true })).toBeFocused();
+    await expect(
+      page.getByRole("textbox", { name: "Address", exact: true }),
+    ).toBeFocused();
     await page
-      .getByLabel("Address", { exact: true })
+      .getByRole("textbox", { name: "Address", exact: true })
       .fill("gh:ada/notes@main/");
     await page.keyboard.press("Enter");
     await page.evaluate(
@@ -523,7 +525,9 @@ test("keyboard-only connect, browse, Quick Look, tree, address, parent and histo
   await page.keyboard.press("Alt+ArrowRight");
   await expect(page.getByRole("grid")).toBeVisible();
   await page.keyboard.press("Control+l");
-  await expect(page.getByLabel("Address", { exact: true })).toBeFocused();
+  await expect(
+    page.getByRole("textbox", { name: "Address", exact: true }),
+  ).toBeFocused();
   await page.keyboard.press("Escape");
   await page.keyboard.press("Alt+ArrowUp");
   await expect(page.getByRole("grid")).toBeVisible();

@@ -256,3 +256,9 @@
     transition: none;
   }
 }
+
+.command .desktop {
+  min-inline-size: 0;
+  max-inline-size: var(--full);
+  overflow-x: auto;
+}

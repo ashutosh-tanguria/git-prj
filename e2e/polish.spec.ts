@@ -105,11 +105,11 @@ test("polished shell interactions, tooltips and four review captures", async ({
   await page.screenshot({ path: "docs/polish/explorer-empty-dark.png" });
   await page.evaluate(() => (document.documentElement.dataset.theme = "light"));
   const later = page.getByRole("button", {
-    name: "New repository: Available after M3",
+    name: "View: Available after M5",
     exact: true,
   });
   await later.hover();
-  await expect(page.getByRole("tooltip")).toHaveText("Available after M3");
+  await expect(page.getByRole("tooltip")).toHaveText("Available after M5");
   await page.screenshot({ path: "docs/polish/command-disabled-hover.png" });
   await page.mouse.move(0, 0);
   await expect(page.getByRole("tooltip")).toHaveCount(0);

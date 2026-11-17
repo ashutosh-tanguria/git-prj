@@ -120,7 +120,10 @@ test("persists dropped files across reload and exports a working ZIP", async ({
   await page.evaluate(() => (document.documentElement.dataset.theme = "dark"));
   await page.screenshot({ path: "docs/m3a/pending-dark.png" });
   await page.evaluate(() => (document.documentElement.dataset.theme = "light"));
-  await page.getByRole("button", { name: "Push", exact: true }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Push", exact: true })
+    .click();
   await expect(page.getByText("Push completed", { exact: true })).toBeVisible({
     timeout: 15000,
   });
@@ -140,7 +143,10 @@ test("persists dropped files across reload and exports a working ZIP", async ({
     page.getByText("add: sample-a.txt", { exact: false }),
   ).toBeVisible();
   collision = true;
-  await page.getByRole("button", { name: "Push", exact: true }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Push", exact: true })
+    .click();
   await expect(
     page.getByText("Changed on GitHub since you staged this", { exact: true }),
   ).toBeVisible();

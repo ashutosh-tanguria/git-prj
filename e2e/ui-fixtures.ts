@@ -59,6 +59,13 @@ export const uiServer = setupServer(
       if (mode === "auth-error") return new HttpResponse(null, { status: 401 });
       return HttpResponse.json({ login: "ada (sample)" });
     }
+    if (url.pathname === "/repos/ada/sample-reading-library")
+      return HttpResponse.json({
+        full_name: "ada/sample-reading-library",
+        size: 612 * 1024,
+        private: true,
+        default_branch: "main",
+      });
     if (url.pathname === "/user/repos")
       return HttpResponse.json([
         {
