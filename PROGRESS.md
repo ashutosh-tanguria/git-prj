@@ -14,12 +14,16 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M1.5 UI v2 | Done locally | Amendment merged in place; colour roles, command/address rows, navigation groups, revised columns, preview and counts, glyph families, Styleguide and focused accessibility tests. |
 | M2 Guards | Implemented locally with documented limits | Guard review, badges, meter and read-only ledger; real-account checks remain pending. |
 | M3 Staging and push | Not started | M2 exit and authorization required. |
+| M3.5 Preview Plus | Not started | Spikes, isolated preview origin and mock managed tiers follow M3. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
 | M6 Platform | Not started | OAuth, hosting, extension, PWA, Settings and Privacy remain here. |
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- Documentation merge: verified Amendment 1 content is already incorporated in README sections 5.3, 5.6, 5.7, 5.9, 6.7, 6.16 and 6.17, milestone M1.5 and acceptance 19 to 26. Kept the existing M1.5 rather than duplicating it. Merged Amendments 2 and 3 into 6.5b, 9.3, 9.4, 9.8, 10, 11, 13.4, 14 and acceptance 27 to 42; corrected Amendment 1 cross references to their in-place section numbers. No feature is marked implemented by this documentation update.
+- Conflict resolutions: isolated origin B replaces the prior scriptless-only preview for opt-in executable sites, while the existing scriptless implementation may remain until isolation is proven. Origin A retains strict CSP; verified preview, Turnstile and vendor origins are added only to the appropriate policy when enabled. Managed cloud rendering is opt-in and supplements local tiers, and changes the earlier no-third-party-transfer claim: consented bytes go directly to the vendor, never through the metadata-only worker. Tier E extends the earlier hand-off-only option for server-dependent projects; a failed local spike does not remove optional managed tiers, which remain subject to consent, budget and M6 availability. The 100 MB default local-conversion cap and stricter managed per-file cap apply independently. Tier 3 provider rendering waits for M4; M3.5 uses mock paid vendors and M6 wires real adapters. Unverified pricing, host, vendor and licence claims remain explicitly conditional on verification.
 
 - M2 UI uses the pure guards for file, projected repo, batch, visibility and sensitive-name review. U opens the file picker only in the file grid; OS file drops open review without reading/uploading bytes. Confirmations are per-review component state and reset on close. Stage is visibly disabled and labelled M3; no staging store or write API was added. A blocked dialog initially focuses its container, with no default action.
 - Size ledger is a right-hand read-only drawer with 50/100 MB reference lines, up to 20 largest files from the current listing, a repo-size meter and segmented threshold bar. This is explicitly labelled as a listing view, not a recursive repository scan. Move/PDF split controls are unavailable until M4; the block review shows a PDF split estimate without performing it. LFS is not offered because no advanced LFS setting/capability exists yet.
@@ -52,6 +56,8 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Not done
 
+Preview Plus, the sandbox, broker, managed vendor adapters, cost controls and their tests are documentation requirements only; implementation and owner setup remain outstanding.
+
 M2 review UI is implemented. Repository-wide recursive largest-file enumeration remains outstanding; the ledger explicitly limits its claim to the current listing. Actual staging and push remain M3, and transfers/splitting remain M4.
 
 M1.5 does not activate M3 shortcuts or M5 search/views/collections. Chrome/Edge/Firefox shortcut conflict checks belong to M3 and are unverified here. Older non-default visual baselines outside the focused suite are retained, not claimed as current v2 evidence.
@@ -69,6 +75,12 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Manual steps
 
+### SETUP: Preview Plus and optional managed rendering
+
+[HUMAN] Create a second static deployment on a verified different registrable site; configure origin B COOP, COEP, CSP and frame-ancestors, and the app origin allowlist. Verify the host site boundary.
+
+[HUMAN] For optional managed tiers, create a CloudConvert account and API key and a CodeSandbox account and SDK key, using free tiers first. Create a Cloudflare Turnstile site key. Set Worker secrets, budget variables and kill switch, configure billing alerts at both vendors, and document the monthly ceiling in docs/costs.md. Do not commit secrets. These steps are for M6; M3.5 uses mocks.
+
 [HUMAN] Review docs/m2 captures and verify U/file drops with disposable local files. No bytes are staged or sent. Follow the existing real-account M1 checklist separately.
 
 [HUMAN] No setup is required for the pure guard functions. Review and authorize the remaining M2 guard UI separately.
@@ -84,6 +96,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 [HUMAN] Review the new Explorer/Inspector/PDF/360px captures and intentional Styleguide baselines in docs/design-qa.md. Review the bounded-preview and scriptless-HTML choices above. Configure a Git remote if CI should run remotely. Authorize M2 separately when ready.
 
 ## Known issues and limits
+
+- Vendor prices, retention, licences, browser support, host site boundaries, CSP hosts and cloud preview permissions are unverified until the required spikes and adapter research. M2 recursive-ledger scope remains open.
 
 - Ledger largest-files scope is the current listing, not the whole repository. Unknown repo size blocks approval. No real-account verification is claimed. Stage remains a disabled M3 placeholder, so confirmation success means only that checks passed.
 

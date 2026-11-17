@@ -23,7 +23,7 @@ This README is the single source of truth for the project. It is written for two
 
 Shelf is a client-side web app (installable as a PWA) that gives you one explorer over several storage providers. Its core idea is a **working copy**: every change you make (upload, rename, move, delete) is staged locally and shown in a Pending tray. Nothing touches the remote storage until you press Push. On GitHub, one Push becomes one atomic commit.
 
-Shelf has no backend. Your tokens and files never pass through a Shelf server. The only server-side code is a tiny stateless Cloudflare Worker that exchanges GitHub OAuth codes (section 9.2), and it never sees files.
+Shelf has no file-serving backend. A Cloudflare Worker exchanges GitHub OAuth codes and brokers optional managed render jobs; it never receives file bytes or provider tokens. With explicit consent, files may be sent directly from the browser to the user’s selected provider or managed vendor (sections 6.5b.12 and 6.5b.14).
 
 ### 1.1 The problem
 
@@ -42,7 +42,7 @@ Shelf has no backend. Your tokens and files never pass through a Shelf server. T
 | Online viewing with offline cache | Read a 300-page PDF without downloading it by hand |
 | Cross-provider move with hash verification | Move a heavy file from GitHub to Drive safely |
 | Full-text search across cached PDFs | Find the page, not just the file |
-| No server, no account, no tracking | Your files stay between your browser and your provider |
+| No file-serving backend, no account, no tracking | Files stay between your browser and your provider unless you explicitly choose a third-party render |
 
 ### 1.3 Form factor (final verdict)
 
@@ -92,7 +92,7 @@ Constraints from the real world to design for: mid-range Android phones, patchy 
 3. **The file is the hero.** Chrome is quiet, dense and utilitarian. The viewer gets the space.
 4. **Keyboard first, pointer friendly, touch capable.**
 5. **Plain language.** "Pending changes", "Push", "Private". No Git jargon unless the user opens Details.
-6. **Local and honest.** No server, no analytics, no dark patterns. Say what is stored where.
+6. **Local and honest.** No file-serving backend, no analytics, no dark patterns. Disclose optional third-party rendering and say what is stored where.
 7. **Fast on cheap devices.** Performance budgets in section 11 are requirements.
 8. **Accessible by default.** WCAG 2.2 AA, full keyboard support, screen reader announcements for staged and pushed changes.
 
@@ -102,7 +102,7 @@ Constraints from the real world to design for: mid-range Android phones, patchy 
 - No document editing of any kind (no PDF annotation, no Office editing, no Markdown or text editing). Shelf views, organises and moves files.
 - No Git client features (branches UI, merge, rebase). Shelf commits to one chosen branch and shows file history.
 - No AI features, chat, or summarisation.
-- No telemetry, and no third-party scripts, with one documented exception: Google's identity and Picker scripts, loaded only after the user connects Drive (section 9.3).
+- No telemetry. Third-party scripts are limited to Google identity and Picker after Drive connection, and Turnstile for enabled managed-tier requests (section 9.3).
 - No LFS writes by default (advanced toggle only, section 8.6).
 - No S3 or generic WebDAV provider in this release. The provider interface must make adding them easy (section 10.1).
 
@@ -148,11 +148,11 @@ Review checklist before each milestone merge: open the Explorer screen, squint t
 
 ### 5.3 Color tokens
 
-Colour tokens v2 (Amendment A1.1)
+Colour tokens v2 (Amendment 5.3)
 
 Implementation contrast correction: dark navigation blue remains bright for text on the pane and selection tint. White-on-blue action surfaces use a separate `--blue-action` token (`#0969DA`). A single dark blue cannot simultaneously reach 4.5:1 against white and against the specified dark selection tint. The contrast registry checks both roles independently. Dark green is nudged to `#248837` and green-tint to `#010409` so white-on-green and green-on-tint both pass. These corrections supersede the corresponding example values below.
 
-All pairs below were checked numerically for WCAG contrast. Keep the automated contrast test and add every pair listed in A1.3.
+All pairs below were checked numerically for WCAG contrast. Keep the automated contrast test and add every pair listed in 5.3.
 
 ```css
 :root {
@@ -213,7 +213,7 @@ All pairs below were checked numerically for WCAG contrast. Keep the automated c
 
 Dark-theme notes: white text on `--green` is 4.6:1; `--blue` on `--pane` is 6.1:1; `--blue` on `--blue-tint` is 4.6:1; `--rule-control` on `--pane` is 4.1:1. Values for `--t-*` and `--*-ink` families that are not listed above must be checked by the contrast test and nudged until each passes 4.5:1 for text or 3:1 for graphics.
 
-Contrast registry (A1.3): Pairs added to the contrast test
+Contrast registry (5.3): Pairs added to the contrast test
 
 Text and UI pairs (must pass 4.5:1 for text, 3:1 for control borders and graphics): ink-1, ink-2, ink-3 on pane and on canvas; blue on pane, canvas and blue-tint; white on green; white on blue; green on green-tint; red on pane and red-tint; amber on amber-tint; violet on pane and violet-ink on violet-tint; orange on orange-tint; rule-control on pane and canvas; folder on pane (graphic, 3:1); every `--t-*` on pane (graphic or tag text); and the same set for dark.
 
@@ -268,7 +268,7 @@ Each provider has a small geometric mark and a text label. Never use brand logos
 
 
 
-Colour assignment (A1.4)
+Colour assignment (5.7)
 
 - File glyphs: neutral document silhouette with a coloured extension tag from `--t-*`; folders are amber (outline and fill). Row hover is `--hover`; selected row is `--blue-tint`.
 - Provider marks (5.7) keep their shapes; hues may be brightened to this palette but must stay distinct without colour.
@@ -317,7 +317,7 @@ File Explorer structure v2
 Rules:
 - **Command bar** (new): buttons with icon and label, grouped by dividers like Windows File Explorer. Labels collapse to icons below 1100px. Disabled buttons keep their place and show a tooltip stating why ("Select a file", "Available after M3").
   - New (menu): New folder, New repository, Upload files, Upload folder.
-  - Cut, Copy, Paste: stage a move or copy within a provider or across providers (A4). Ctrl+X, Ctrl+C, Ctrl+V when the file list has focus and no text field is focused. Paste shows what will be staged before it does.
+  - Cut, Copy, Paste: stage a move or copy within a provider or across providers (6.7). Ctrl+X, Ctrl+C, Ctrl+V when the file list has focus and no text field is focused. Paste shows what will be staged before it does.
   - Rename, Delete: stage the change (never immediate remote action).
   - Sort and View menus: sort by name, date, type, size; views List (Details), Grid, Columns.
   - Push button: right-aligned, green, shows the pending count. It is the same action as the Push button in the Pending tray.
@@ -405,7 +405,7 @@ There is no marketing page and no hero. First run opens the real shell with an e
 
 ### 6.3 Explorer (table view, the default)
 
-Columns, left to right: selection checkbox (visible on hover, focus, or when any row is selected), Name, Size, Changed, Last change, and Provider (shown only in mixed views such as Collections, Search and Recents).
+Columns, left to right: selection checkbox (visible on hover, focus, or when any row is selected), Name, Date modified, Type, Size, Last change for GitHub, and Provider in mixed views such as Collections, Search and Recents (5.9).
 
 Row anatomy:
 - File glyph (16px) then name. The extension stays visible even when the name is truncated in the middle with an ellipsis.
@@ -442,10 +442,241 @@ Full viewer (`#/view/<ref>`): chrome is a single 40px toolbar (back, filename in
 | Markdown | Sanitised render (marked + DOMPurify). Relative images and links resolve through the same provider. External links open in a new tab with `rel="noopener noreferrer"`. |
 | Code and text | Syntax highlighting, line numbers, wrap toggle, copy button. Files over 2 MB open as plain text with a notice. |
 | CSV, TSV | Virtualised table of the first 5,000 rows with a notice and an "Open all rows" action that warns above 100,000 rows. |
-| HTML | Not auto-run. Shows source with a "Run preview" button; preview runs in an iframe with `sandbox` and without `allow-same-origin`, with a notice that scripts run in isolation. |
-| DOCX, PPTX, XLSX, others | Metadata and a Download button only. Say so plainly: "Shelf cannot preview this file type." |
+| HTML | Not auto-run. Shows source; opt-in site preview runs only on isolated origin B, with the untrusted banner and restrictions in 6.5b.3 and 6.5b.4. |
+| DOCX, PPTX, XLSX, ODF and legacy Office | Tiered Quick view, optional high fidelity, connected-provider render or managed render where supported and consented; see 6.5b.2 and 6.5b.11. Unsupported formats get a specific notice and hand-off or Download. |
 
 Every viewer: Download, Copy path, Open in provider (opens the provider's own web page in a new tab), keyboard shortcuts listed under `?`.
+
+### 6.5b Preview Plus: online viewing
+
+Client-side tiers remain the default. Managed paid tiers are opt-in and do not replace them. Existing scriptless preview remains until separate-origin security tests pass.
+
+#### 6.5b.1 Honest ceiling
+
+"Any technology, however heavy, fully online" has a hard limit: anything that needs a real server process (a database, a Python or Java backend, Docker, server-side rendering) cannot run inside a browser tab. Shelf therefore uses tiers:
+
+| Content | Tier | Where it runs | Fidelity | Cost to the user |
+| --- | --- | --- | --- | --- |
+| Word, Excel, PowerPoint | 1 Quick view | In the tab, small libraries | Good for text, tables, simple slides | Small download, instant |
+| Word, Excel, PowerPoint, ODF | 2 High fidelity | LibreOffice compiled to WebAssembly, converts to PDF, shown in the existing PDF viewer | Near-desktop | Large one-time download (reported around 250 MB), heavy on RAM and phones; opt-in |
+| Word, Excel, PowerPoint | 3 Cloud render | The user's own connected OneDrive or Google Drive renders it | Provider-grade | Temporary copy leaves GitHub for another cloud; opt-in; needs M4 |
+| Static website (HTML, CSS, JS, images, SPAs) | A Virtual site | Service worker on the sandbox origin serves the repo files as a real site | Full for static output | Small |
+| Node frontend project (Vite, React, Vue, Next dev, and similar) | B Run project | WebContainers on the sandbox origin | High | Large, opt-in, depends on StackBlitz infrastructure |
+| Python scripts and notebooks | C Pyodide | WebAssembly Python on the sandbox origin | Good, limited packages | Large, opt-in, later if time allows |
+| Anything needing a server | D Hand-off or E managed cloud sandbox | Opens an external service or runs a consented short-lived vendor VM | Provider-grade | Tier E may consume the owner’s budget |
+
+Video and audio: play in the tab after download (progress shown), cached in OPFS.
+
+The viewer toolbar always shows which tier is active and offers the next one up ("Quick view", "High fidelity", "Open in cloud") so the user is never stuck with a poor render.
+
+---
+
+#### 6.5b.2 Office documents
+
+##### 6.5b.2.1 Tier 1 Quick view (default)
+
+- DOCX with docx-preview, XLSX with SheetJS (verify the correctly maintained distribution and known vulnerabilities first; the npm `xlsx` package has been reported outdated, so use SheetJS's own recommended distribution or a maintained alternative), PPTX with pptx-preview (plus an EMF converter only if it works under the CSP).
+- Render untrusted output inside a sandboxed iframe or isolated container; sanitise.
+- State fidelity limits in a small notice for PPTX: animations, transitions, charts, SmartArt and speaker notes are not reproduced. Legacy binary `.doc` and `.ppt` cannot be handled client-side by these libraries; offer Tier 2 (LibreOffice handles them) or Download.
+
+##### 6.5b.2.2 Tier 2 High fidelity (opt-in)
+
+- Engine: LibreOffice compiled to WebAssembly (ZetaOffice and its `zetajs` wrapper is the primary candidate; licence MPL 2.0). Convert the file to PDF in the browser, store the PDF in OPFS keyed by source version, and show it in the existing PDF viewer (reuse zoom, search, thumbnails, last page).
+- Alternative to evaluate: ONLYOFFICE `x2t` WebAssembly converter (reported around 36 MB). Check its licence before use (ONLYOFFICE core is, as far as known, AGPL, which conflicts with an MIT project); do not adopt it without a recorded licence decision.
+- Runs on the sandbox origin (6.5b.4), because the WebAssembly threads need cross-origin isolation, which the main app cannot have (Google's scripts would break).
+- Consent dialog before the first download: "High fidelity preview downloads about <size> once and uses a lot of memory. Use Wi-Fi and a computer if you can." Buttons: Download and preview, Cancel. Show a progress bar; cache the assets in the Cache API keyed by version; never precache them in the PWA shell.
+- Offer the option only when the device looks capable (desktop, or at least a threshold of `navigator.deviceMemory` where available) and warn otherwise; never block it.
+- Hosting: if the host caps file size (Cloudflare Pages caps individual files at 25 MiB), split and stream assets in parts (the approach used by serverless office converter projects) or host the assets on a bucket you control. If the third-party CDN of the engine is used instead, add it to the allowlist and disclose it in Privacy (the files themselves stay local).
+- Maturity warning: these WebAssembly Office projects are young. The first task of M3.5 is a measured spike (6.5b.9). If the spike fails its criteria, ship Tier 1, offer Tier 3 after M4, and retain optional managed Tier P under its controls; record the decision.
+
+##### 6.5b.2.3 Tier 3 Cloud render (needs M4 providers)
+
+- OneDrive: copy the file to the app folder, call the Microsoft Graph driveItem `preview` action to get an embeddable viewer URL, show it in a sandboxed iframe, then delete the temporary copy. Verify the current endpoint and permissions.
+- Google Drive: upload the Office file to the app folder with `drive.file`, show Drive's embedded preview in an iframe, then delete the copy. Verify that preview works for app-created files and what sign-in state the user needs.
+- Always ask first: "This copies the file to your OneDrive (or Google Drive) temporarily so Microsoft (or Google) can render it. The copy is deleted when you close the preview." The copy is deleted on close and on next launch if the tab was killed.
+- Requires `frame-src` for the provider's viewer host (6.5b.5).
+
+---
+
+#### 6.5b.3 Websites in repositories
+
+##### 6.5b.3.1 Detection
+
+A folder is a **site root** when it contains `index.html`; also check `docs/`, `dist/`, `build/`, `public/` and the repository root. A folder with `package.json` plus a known framework dependency is a **project root** (Tier B). Show a "Preview site" or "Run project" button on those folders and on `.html` files, in the command bar, the context menu and the Inspector.
+
+##### 6.5b.3.2 Tier A Virtual site
+
+- The sandbox origin (6.5b.4) registers a service worker. Shelf sends the repository files (listing plus bytes on demand through a MessageChannel); the service worker answers every request inside its scope from that virtual file system, with correct MIME types, `index.html` fallback for single-page apps, and base-path handling for absolute `/assets/...` references.
+- This makes plain HTML, CSS and JS sites, portfolios, documentation sites and built SPA output (Vite, CRA, Next static export) behave like real sites, including relative `fetch` of JSON and module imports.
+- Limits: 500 files and 50 MB by default (configurable up to the app's cache cap), lazily fetching files as the page requests them rather than all at once.
+- External requests (CDN scripts, fonts, APIs) are allowed on the sandbox origin only if the sandbox CSP permits them; the default is allow `https:` for scripts, styles, fonts, images and connect, because this origin holds no secrets, and it is shown in a notice ("This site contacts external servers"). Provide a "Block external requests" toggle that tightens the CSP.
+
+##### 6.5b.3.3 Tier B Run project (opt-in)
+
+- WebContainers (StackBlitz) running on the sandbox origin: mount the repository files, run `npm install` and the dev or build script, show the preview URL in the iframe, stream the terminal output in a collapsible panel.
+- Requirements and facts: needs `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` and HTTPS; it relies on StackBlitz-hosted proxies and server-side acceleration and its terms of service apply; it is free for open-source and non-commercial use and needs a commercial licence for commercial production use; browser support is best in Chromium and Firefox and limited in Safari. Shelf is an open-source, non-commercial project; record this licence reasoning in `docs/dependencies.md` and revisit if Shelf is ever commercialised.
+- Opt-in consent dialog stating these dependencies and that `npm install` fetches packages from the npm registry (add the registry hosts to the sandbox origin allowlist only).
+- Resource guards: cap install time, memory and output size; Stop button always visible.
+
+##### 6.5b.3.4 Tier C Pyodide (later, only if time allows)
+
+Run Python scripts and Jupyter notebooks (`.ipynb`) via Pyodide on the sandbox origin; render notebooks read-only first (cells and saved outputs) without executing anything, and add "Run" later.
+
+##### 6.5b.3.5 Tier D Hand-off
+
+Always available from the preview toolbar: Open on GitHub Pages (only when the Pages API reports it enabled), Open in StackBlitz, Open in CodeSandbox, Open in Codespaces (verify each current URL format before use and record it in PROGRESS.md). These open in a new tab and send nothing from Shelf.
+
+---
+
+#### 6.5b.4 The sandbox origin (new deployment, still no backend)
+
+```
+Shelf app (origin A)                       Sandbox (origin B, different site)
+- tokens, storage, UI                      - NO tokens, NO Shelf storage
+- fetches file bytes via providers         - service worker (virtual file system)
+- postMessage / MessageChannel  ------->   - WebContainers, Pyodide, LibreOffice WASM
+- iframe (sandboxed) loads B  <----------  - COOP + COEP headers live here only
+```
+
+- Origin B is a second static deployment on a different registrable domain from the app (for example a separate `*.pages.dev` project; verify the host treats each project as its own site). It must never share cookies, storage or credentials with origin A.
+- Shelf communicates with B only through `postMessage` with strict origin checks in both directions and a per-session random channel id. Only file bytes and paths cross; never tokens.
+- Origin B response headers: `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: require-corp` (or `credentialless` if verified to work), `Content-Security-Policy` per feature (stricter for office conversion, looser for site preview), `frame-ancestors` limited to origin A.
+- Shelf embeds B with `<iframe sandbox="allow-scripts allow-same-origin allow-popups-to-escape-sandbox">` only where needed (the iframe's origin is B, not A, so `allow-same-origin` does not expose A). Never allow top navigation. Never use `allow-forms` unless a feature requires it.
+- A persistent banner on every preview of repository code: "Untrusted preview from <owner/repo>. It runs in isolation and cannot see your files or tokens." This also limits phishing risk from malicious repositories.
+- Because COEP breaks cross-origin resources that lack CORP, features that need third-party embeds must not run on B unless verified.
+
+---
+
+#### 6.5b.5 Changes to sections 9.3 and 9.4
+
+- Add origin B to `frame-src` of the Shelf app CSP and to `connect-src` only if direct messages need it (postMessage does not).
+- Tier 3 adds the Microsoft and Google viewer hosts to `frame-src`, loaded only after consent.
+- Tier B adds the npm registry hosts and StackBlitz's required hosts to the **sandbox origin's** allowlist only. Record the exact hosts observed.
+- The network allowlist test covers origin A. Origin B has its own test that asserts it never receives or sends tokens (inspect all postMessage traffic in e2e).
+- Section 9.4 permits repository scripts only on origin B or in a consented vendor sandbox as specified in 6.5b.15.
+- Hostile-fixture security tests are mandatory: a site that tries to read `window.parent`, storage and cookies of origin A, navigate the top window, open popups, exfiltrate via fetch, and spoof the banner.
+
+---
+
+#### 6.5b.6 UI
+
+- **Viewer toolbar** for Office files: a segmented control "Quick view | High fidelity | Open in cloud". Disabled segments carry tooltips explaining why (not connected, not downloaded, not supported). Persist the user's last choice per file type.
+- **Site preview toolbar**: Run or Stop, Reload, Open in new tab (hand-off menu), "Block external requests" toggle, console and requests panel (list of failed or blocked requests), viewport presets (Phone, Tablet, Desktop), and the persistent untrusted banner.
+- **Download consent dialogs** use the neutral secondary button for the heavy action (not green) and show the size, what it is for, and that it is cached.
+- Heavy features show real progress and can always be cancelled. Failures say what happened and what to do next (for example "This site needs a server. Open it in StackBlitz or on GitHub Pages.").
+- Add every new viewer and dialog to the styleguide first, in light and dark.
+
+---
+
+#### 6.5b.7 Caching and performance
+
+- Quick view libraries are lazy chunks; justify any chunk over 250 KB gzip in `docs/dependencies.md`.
+- Heavy engines (LibreOffice WASM, WebContainers, Pyodide) are cached in the Cache API with a version key and a visible "Heavy features cache: 312 MB, Clear" row in Settings. They are never precached by the service worker and never loaded unless the user opts in.
+- Converted PDFs and rendered pages are cached in OPFS under the same LRU rules as files (10.7), keyed by source version.
+- Respect the local conversion file-size cap (default 100 MB input, configurable; the separate managed-vendor cap is enforced before vendor calls under 6.5b.13) and fail with a plain message beyond it.
+- Memory guard: on phones, warn before starting Tier 2 or Tier B and offer the lighter alternative.
+
+---
+
+#### 6.5b.8 Milestone M3.5 scope
+
+1. **Spike first** (measured, written up in `docs/spike-office.md` and `docs/spike-run-project.md`): see 6.5b.9.
+2. Sandbox origin deployment, service worker, MessageChannel protocol, headers, tests.
+3. Tier A Virtual site, then Tier 1 Quick view for Office, video and audio verification, Tier D hand-off.
+4. Tier 2 High fidelity (if the spike passes) and Tier B Run project (if the spike passes).
+5. Tier 3 Cloud render is built in M4 after the OneDrive and Drive providers exist.
+6. Tier C Pyodide is optional and may move to M5 or later.
+7. Add vendor-neutral interfaces, mock adapters, consent UI and worker cost controls against mocks. Tier P and E appear only when capabilities report them enabled and within budget. Real Turnstile, quotas and first vendor adapters are wired in M6 after the owner sets up accounts.
+
+---
+
+#### 6.5b.9 Go and no-go spikes (do these first, record numbers)
+
+**Office spike.** On fixtures (a text-heavy DOCX, a DOCX with images and tables, an XLSX with several sheets and formulas, a PPTX with images, charts and custom fonts, an old `.doc`, an old `.ppt`), measure for Tier 1 and Tier 2: success or failure, rendering differences versus the real file (screenshots), first-load size and time on throttled 4G, warm-load time, peak memory, and behaviour on Chromium desktop, Firefox desktop and a mid-range Android phone. Go criteria for Tier 2: converts at least 80 percent of fixtures acceptably, warm conversion of a 10 MB file under 20 seconds on desktop, no tab crash on the phone with the warning shown. Otherwise ship Tier 1 and, after M4, Tier 3; optional managed Tier P remains subject to its controls.
+
+**Run-project spike.** Mount a small Vite React project and a plain static site; measure boot time, install time, memory, and Safari behaviour; confirm COOP and COEP setup on origin B and that nothing from origin A is reachable. Go criteria: the Vite project previews in under 90 seconds on desktop with no console errors from isolation. Otherwise ship Tiers A and D, retaining optional managed Tier E subject to its controls.
+
+
+#### 6.5b.10 Risks
+
+| Risk | Mitigation |
+| --- | --- |
+| WebAssembly Office engines are young; large and slow on phones | Spike first; opt-in; Tier 1 always available; Tier 3 later |
+| ONLYOFFICE core licence (AGPL) conflicts with MIT | Prefer LibreOffice (MPL 2.0); record any licence decision |
+| WebContainers depends on StackBlitz infrastructure and ToS; commercial use needs a licence | Opt-in, disclosed; hand-off alternatives; revisit if commercialised |
+| Hosting limits on file size and bandwidth for large WASM assets | Split and stream, or use a bucket; measure in the spike |
+| Malicious repositories running code in previews (phishing, resource abuse) | Separate origin, no secrets, persistent untrusted banner, resource caps, Stop button |
+| COEP breaks third-party embeds | Keep COEP on origin B only; never load Google scripts there |
+| Safari limitations for WebContainers and threaded WASM | Detect and fall back to hand-off, say so plainly |
+| Fidelity disappointments (fonts, charts, animations) | Tier switcher, honest notices, cloud render tier |
+
+#### 6.5b.11 New tiers
+
+| Tier | Content | What it does | Candidate vendors (adapters, vendor-neutral) |
+| --- | --- | --- | --- |
+| P Managed document render | DOCX, XLSX, PPTX, ODF, legacy DOC and PPT | A vendor converts the file to PDF; Shelf shows the PDF in its own viewer | CloudConvert (managed, first adapter); Gotenberg (open-source LibreOffice service, self-hosted later); ConvertAPI or Cloudmersive as alternates |
+| E Cloud sandbox | Websites and projects that need a server (Node backends, Python, Docker, databases) | A short-lived cloud VM runs the project and Shelf embeds the preview URL | CodeSandbox SDK (first adapter, Firecracker microVMs); E2B as an alternate |
+
+Order of offering to the user: Tier 1 Quick view, Tier 2 High fidelity (WebAssembly), Tier 3 Cloud render through the user's own OneDrive or Drive, then Tier P, with Tier E for projects. Tier P and E are shown only when the worker reports them enabled and within budget.
+
+Facts gathered at research time (verify before relying on them): CloudConvert bills by conversion minutes and has subscription plans starting at about 8 USD per month with about 1,000 conversion minutes; it deletes files after a retention window reported as about 24 hours. A self-hosted Gotenberg on a small VPS or pay-per-use serverless container can convert thousands of documents a month at very low cost, but it adds operations work. CodeSandbox SDK runs real microVMs (any language, servers, Docker); its free SDK tier is limited (about 10 concurrent VMs and 20 new sandboxes per hour), its paid Scale tier starts at about 170 USD per month per workspace, and VM time is billed in credits (published figures conflict, 0.015 per credit and 0.15 per hour). Do not buy an expensive plan before the free tier proves the feature is used.
+
+---
+
+#### 6.5b.12 The broker worker (extends the OAuth worker, never touches file bytes)
+
+Vendor API keys must stay secret, so they live in the Cloudflare Worker (as Worker secrets). The worker is a **job broker and key vault**, not a file proxy.
+
+Endpoints (all CORS-locked to the app origin):
+- `POST /render/office/start` body `{ size, mime, nameHash }` after verifying a Cloudflare Turnstile token and the quota (6.5b.13). The worker creates the vendor job and returns `{ jobId, uploadUrl, uploadFields }` using the vendor's direct-upload mechanism (a signed URL or form).
+- The browser uploads the file bytes **directly to the vendor**.
+- `GET /render/office/status/:jobId` returns state and, when done, a short-lived signed URL to the resulting PDF. The browser downloads the PDF directly from the vendor, caches it in OPFS keyed by source version, and shows it in the PDF viewer.
+- `DELETE /render/office/:jobId` asks the vendor to delete the job and its files as soon as the PDF is downloaded.
+- `POST /render/sandbox/start` and `DELETE /render/sandbox/:id` for Tier E (6.5b.15).
+- `GET /render/capabilities` returns which tiers are enabled and the remaining daily budget as a coarse flag (available or not), never exact spend.
+
+The worker must never receive file contents or the user's provider tokens. If a vendor cannot support direct browser upload, that vendor is not allowed as a Tier P adapter.
+
+Adapter interface in `worker/src/vendors/`: `RenderVendor { start(meta), status(id), cancel(id), limits }` with one implementation per vendor and a mock for tests. Swapping vendors must not change the app.
+
+---
+
+#### 6.5b.13 Abuse and cost controls (mandatory)
+
+Without accounts, anyone could drive up the owner's bill. Required controls, all enforced in the worker:
+- Cloudflare Turnstile token required on every `start` call.
+- Per-IP and per-day limits (store only counters keyed by a salted hash of the IP, with a 24 hour expiry; no file names, no content).
+- A global daily budget ceiling with a hard stop, and a kill switch environment variable that disables every paid tier instantly. When tripped, the app falls back to Tier 1, 2 and 3 and says so plainly.
+- Per-file caps: for example 50 MB and a page or sheet limit; reject larger files before any vendor call.
+- Per-session caps for Tier E: maximum 15 minutes per sandbox, one sandbox per client at a time, automatic shutdown on tab close, idle timeout, and a watchdog that deletes orphaned sandboxes.
+- Alerts: log only aggregate counters; the owner reviews the vendor dashboards.
+- Document the monthly cost ceiling in `docs/costs.md` with the numbers above and how to change them.
+
+Optional later: a bring-your-own-key mode where advanced users store their own vendor key locally (encrypted, README 9.5) and call the vendor directly if its API allows browser calls. Not in this release unless trivial.
+
+---
+
+#### 6.5b.14 Privacy and consent
+
+Cloud rendering sends the file to a third party. This is a real change from "your files never leave your browser", so:
+- Tier P and E are **off by default** and appear only as an explicit choice ("Render in the cloud") with a consent dialog naming the vendor: "This sends the file to <vendor> to convert it to PDF. They delete it after about <retention>. Shelf does not store it."
+- Consent is per file for private repositories. A per-repository "always allow" checkbox is allowed, never pre-ticked, and never offered for files that trigger the sensitive-name guard (8.7): those require a fresh confirmation every time.
+- Public repository files may use a per-session "allow" instead.
+- The Privacy screen lists each vendor, what is sent, what is retained, and links to the vendor policy. Update `docs/privacy.md` and the Google and Microsoft consent-screen text accordingly.
+- The network allowlist (9.3) gains the vendor hosts used by direct upload and download, and each is documented.
+- The neutral secondary button is used for the send action, never the green primary.
+
+---
+
+#### 6.5b.15 Tier E cloud sandbox for projects that need a server
+
+- Public repositories first: the worker asks the vendor to create a sandbox from the repository URL, runs the install and start commands detected from the project, and returns a preview URL that the app embeds in a sandboxed iframe on a vendor domain (never on the app or sandbox origin).
+- Private repositories are an **open question for the spike**: passing a token to a vendor is not allowed (README 9.5). The only acceptable approach is to upload file contents into the sandbox through a vendor-supported signed channel from the browser. If that is not possible, Tier E is public-repositories-only and the UI says so.
+- Always show the untrusted-preview banner, a visible countdown to automatic shutdown, a Stop button, a console panel, and the cost-safety notice "Sessions end after 15 minutes."
+- Prefer Tier A, B or D when they suffice: the UI should only suggest Tier E when a project clearly needs a server (database config, non-Node runtime, Docker files).
+
+
+---
 
 ### 6.6 Inspector
 
@@ -482,7 +713,7 @@ Every staged change belongs to a **destination**: provider, location (for GitHub
 
 Pressing Push (button, tray or shortcut) opens a compact **popover** anchored to the button, not a full-screen dialog:
 - Destination line: repo, branch, and folder, with a Change link. The folder field has autocomplete over existing folders and a "Create folder `semester-6/week-2`" option that simply adds that path to the commit (Git folders exist only as paths).
-- Automatic commit message (A4.3), editable in place.
+- Automatic commit message (6.7.3), editable in place.
 - Guard summary chips (all must be ok or warn-confirmed).
 - Big green button: "Push to ada/notes/semester-5".
 
@@ -625,7 +856,7 @@ All shortcuts must also exist as buttons and in the command palette, and be rema
 
 ### 6.17. Create repository
 
-Entry points: command bar New menu and the "New repository" button, the command palette, an inline "Create a new repository" row when the Push dialog's repository list is empty, and the keyboard shortcut in A6.
+Entry points: command bar New menu and the "New repository" button, the command palette, an inline "Create a new repository" row when the Push dialog's repository list is empty, and the keyboard shortcut in 6.16.
 
 Dialog fields:
 - **Owner**: the signed-in user, plus organisations the token can create repositories in (if the token cannot list organisations, show only the user).
@@ -803,13 +1034,15 @@ The app may contact only these hosts. A Playwright test records every request in
 - `graph.microsoft.com`, `login.microsoftonline.com`, and the pre-authenticated download hosts that OneDrive redirects to. If CSP blocks one, add only the Microsoft-owned domain actually observed and record it in `PROGRESS.md`.
 - The OAuth worker origin, and the app's own origin.
 
-Third-party scripts: none, with one documented exception: Google's GIS and Picker scripts, injected only after the user clicks Connect on Drive (Google offers no npm-bundled alternative). Everything else is bundled and self-hosted, including fonts.
+Preview Plus also permits the configured sandbox origin B in `frame-src`; add it to `connect-src` only when a direct connection is verified as necessary. After consent, add verified Google and Microsoft viewer origins to `frame-src`, and documented direct vendor upload/download origins to `connect-src`. Origin B uses its own allowlist, including verified npm registry and StackBlitz hosts needed by enabled features. Test both origins and inspect messages for tokens. Cloudflare Turnstile is permitted for enabled managed-tier start requests; verify and document its origins before enabling it.
+
+Third-party scripts are limited to Turnstile and the following exception: Google's GIS and Picker scripts, injected only after the user clicks Connect on Drive (Google offers no npm-bundled alternative). Everything else is bundled and self-hosted, including fonts.
 
 Ship a `_headers` file (Cloudflare Pages and Netlify syntax) with:
 
 ```text
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://apis.google.com; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://www.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com https://graph.microsoft.com https://login.microsoftonline.com https://accounts.google.com <WORKER_ORIGIN>; worker-src 'self' blob:; frame-src blob: https://docs.google.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://apis.google.com <TURNSTILE_SCRIPT_ORIGINS>; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://www.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com https://graph.microsoft.com https://login.microsoftonline.com https://accounts.google.com <WORKER_ORIGIN> <TURNSTILE_CONNECT_ORIGINS> <VENDOR_CONNECT_ORIGINS>; worker-src 'self' blob:; frame-src blob: https://docs.google.com https://accounts.google.com <SANDBOX_ORIGIN> <CONSENTED_VIEWER_ORIGINS> <TURNSTILE_FRAME_ORIGINS>; object-src 'none'; base-uri 'none'; form-action 'self' <CONSENTED_VENDOR_UPLOAD_ORIGINS>; frame-ancestors 'none'
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
@@ -823,7 +1056,7 @@ The service worker precaches only the app shell and fonts. It never caches provi
 - Every file from any provider is untrusted.
 - SVG is displayed only through `<img>` or as source text, never inlined into the DOM.
 - Markdown is rendered with `marked` then sanitised with DOMPurify (no scripts, no iframes, no forms); links get `rel="noopener noreferrer"` and open in a new tab.
-- HTML previews run in an iframe with `sandbox` (no `allow-same-origin`), loaded from a `blob:` URL, only after the user clicks Run preview.
+- Repository scripts run only on the separate sandbox origin B under 6.5b.4, or in a consented vendor sandbox under 6.5b.15. Never run them on the app origin. A scriptless opaque HTML preview may remain available. Apply the hostile-fixture and message-isolation tests in 6.5b.5.
 - PDFs render with pdf.js using `isEvalSupported: false`; JavaScript inside PDFs is disabled.
 - Revoke blob URLs when viewers unmount. Cap the in-memory size of rendered text and tables.
 - Never use `dangerouslySetInnerHTML` except through the single sanitising helper, enforced by a lint rule.
@@ -853,11 +1086,13 @@ Lockfile committed; exact versions pinned for runtime dependencies; `npm audit` 
 
 ### 9.8 Privacy statement
 
-No telemetry, no analytics, no crash reporting service. A "Copy diagnostics" button in Help produces a redacted text block (versions, browser, feature support, recent error codes, no file names, no tokens) the user can paste into an issue.
+No telemetry, no analytics, no crash reporting service. Optional managed rendering sends consented content directly to the chosen vendor; the broker receives no file bytes or provider tokens. Name each enabled vendor, retention and policy in Privacy; see 6.5b.14. A "Copy diagnostics" button in Help produces a redacted text block (versions, browser, feature support, recent error codes, no file names, no tokens) the user can paste into an issue.
 
 ---
 
 ## 10. Architecture
+
+Preview Plus adds a separate static sandbox origin and a metadata-only broker with vendor adapters, quotas and per-file consent. Direct browser-to-vendor transfer, message isolation and cost controls are specified in 6.5b.4 and 6.5b.12 through 6.5b.15. The broker extends the OAuth worker; it is not a file proxy.
 
 ### 10.1 Layers
 
@@ -1034,6 +1269,8 @@ Unpushed changes live only in the browser, and browsers can discard site data, n
 | Staging 100 files | UI stays responsive (hashing and writes off the main thread) |
 | Idle memory after closing a large PDF | returns within 20% of the baseline |
 
+Preview Plus: quick-view libraries are lazy chunks; justify any viewer over 250 KB gzip. Heavy engines are opt-in, version-cached separately and never shell-precached. Conversion defaults to a 100 MB input cap with phone memory warnings. Measure the spike targets in 6.5b.9.
+
 PWA: installable manifest (name, icons, `display: standalone`, theme colours matching tokens), service worker via Workbox with precache of shell and fonts only, an offline fallback that opens the cached library, an update flow that shows "A new version is ready. Reload to update." without interrupting active pushes. Lighthouse PWA and Accessibility scores at least 90 in CI.
 
 ---
@@ -1109,7 +1346,9 @@ Every provider is feature-flagged by the presence of its variable; a missing var
 3. Dropbox: create an app with "Scoped access" and "App folder", enable the permissions for files read and write, add redirect URIs, note that apps start in development mode with a user limit and need Dropbox approval for production.
 4. Microsoft Entra: register a single-page application, supported account types "personal and work", redirect URI `<origin>/`, delegated permission `Files.ReadWrite.AppFolder`.
 5. Cloudflare: create the Pages project and the Worker, set the Worker secrets, set the allowed origin.
-6. A privacy policy page (`docs/privacy.md`, served at `/privacy`) is required by Google and Microsoft consent screens. Generate it from section 9.6 and 9.8.
+6. A privacy policy page (`docs/privacy.md`, served at `/privacy`) is required by Google and Microsoft consent screens. Generate it from section 9.6 and 9.8, including managed vendors and consent.
+7. For Preview Plus, create a second static deployment on a verified different registrable site, set origin B isolation headers and origin A allowlists, and verify both origins.
+8. For optional managed tiers, create CloudConvert and CodeSandbox accounts and API/SDK keys using free tiers first; create a Cloudflare Turnstile site key, set Worker secrets and budget/kill-switch variables, and configure vendor billing alerts. Never commit secrets.
 
 ### 13.5 Scripts
 
@@ -1129,12 +1368,13 @@ Each milestone ends green: `npm run check` passes, `PROGRESS.md` is updated, and
 | --- | --- | --- |
 | M0 Foundation | Tooling, CI, tokens, fonts, base CSS, primitives, `/styleguide` route showing every primitive in every state, light and dark, three densities, Stylelint rules, contrast test, visual snapshots | Styleguide passes axe and snapshots; banned patterns fail lint |
 | M1 Shell and GitHub read | App shell, router, Locations tree, FileTable, address bar, GitHub provider (PAT), listing, Quick Look, PDF, image, Markdown, code viewers, deep links, guard strip (static text), status bar | Browse a real repo, open a PDF, deep link works after reload |
-| M1.5 UI v2 | A1 colour tokens and contrast tests, File Explorer command/address bars, navigation, details columns, preview, counts, colourful glyphs, Styleguide and snapshots. Later features remain disabled with milestone tooltips | Contrast registry passes both themes; responsive Explorer and Styleguide snapshots reviewed |
+| M1.5 UI v2 | 5.3 colour tokens and contrast tests, File Explorer command/address bars, navigation, details columns, preview, counts, colourful glyphs, Styleguide and snapshots. Later features remain disabled with milestone tooltips | Contrast registry passes both themes; responsive Explorer and Styleguide snapshots reviewed |
 | M2 Guards | `limits.ts`, all verdicts, repo meter, visibility badge, sensitive-name warning, Size ledger (read-only), all guard dialogs, locale keys en and hi | All boundary tests pass; 150 MB file blocked; public push needs the checkbox |
 | M3 Staging and push | Create repository with capability detection and fallback (6.17), destination/folder picker, automatic messages, push popover, quick push, cut/copy/paste, remappable shortcut registry; Staging store, OPFS persistence, Pending tray and review, atomic GitHub push, conflict dialog, history and restore, working-copy export and restore, undo and redo | 3 uploads plus 1 delete become one commit; conflict never overwrites |
-| M4 Other providers and moves | Drive, Dropbox, OneDrive providers, Local folder import and export, cross-provider move and copy with verification, Split view, PDF split | Contract suite green for every provider; move verifies hash |
+| M3.5 Preview Plus | Office and project spikes, isolated sandbox, virtual site, Office quick view, media verification, hand-off and conditional local heavy tiers; mock vendor adapters, consent and cost controls | Spike decisions documented; isolation and mock-vendor acceptance tests pass; no real accounts required |
+| M4 Other providers and moves | Drive, Dropbox, OneDrive providers, consented provider cloud-render Tier 3, Local folder import and export, cross-provider move and copy with verification, Split view, PDF split | Contract suite green for every provider; move verifies hash |
 | M5 Library features | Cache with LRU and pinning, offline open, full-text search, command palette, Collections and tags, duplicate finder, ZIP export, Grid and Column views | Offline PDF reopens at the saved page; search returns page numbers |
-| M6 Platform | OAuth worker, Sign in with GitHub, Chrome extension, PWA install and update flow, security headers, allowlist test, Settings and Privacy screens | Allowlist test green; Lighthouse PWA at least 90 |
+| M6 Platform | OAuth/render broker worker, Turnstile, quotas and first real managed vendor adapters, Sign in with GitHub, Chrome extension, PWA install and update flow, security headers, allowlist test, Settings and Privacy screens | Allowlist test green; Lighthouse PWA at least 90 |
 | M7 Release | Accessibility pass (axe plus manual notes), Hindi strings reviewed, Help and onboarding copy, performance budget check, docs, release checklist | Section 15 passes in full on Chromium, Firefox, WebKit |
 
 Feature flags per provider so that M4 can be merged provider by provider if one is blocked on external setup.
@@ -1161,17 +1401,32 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 16. All user-facing strings exist in `en` and `hi`, and contain no em dashes.
 17. Wipe local data removes every record, cache file and token, and signs out of all providers.
 18. Works at 360px width: Locations as a drawer, Inspector as a bottom sheet, selection mode instead of drag and drop.
-
----
-
 19. With a token that can create repositories, New repository (button and `Alt+N`) creates a private repo with a README and opens it; with a token that cannot, the fallback message and the github.com link appear.
 20. Staging 3 files while browsing `semester-5/` and pressing Push shows the popover with destination `.../semester-5` and an automatic message; one click produces exactly one commit adding those files into that folder.
 21. Typing a new folder path in the destination field creates that path in the commit.
 22. Quick push never appears for a public repository or a warn or block verdict.
 23. Cut and Paste across two folders of one repo stages renames without uploading file bytes.
-24. Every commit message rule in A4.3 has a passing unit test, including 72-character truncation.
-25. The colour contrast test passes for every pair in A1.3 in light and dark.
+24. Every commit message rule in 6.7.3 has a passing unit test, including 72-character truncation.
+25. The colour contrast test passes for every pair in 5.3 in light and dark.
 26. The shortcut conflict check for `Alt+N`, `Alt+M`, `Alt+P` is recorded for Chrome, Edge and Firefox.
+
+
+27. A `.docx`, `.xlsx` and `.pptx` in a repository open in Shelf with Quick view and show text, tables and slide images, without downloading to disk.
+28. If the Office spike passes, "High fidelity" converts the sample PPTX to PDF in the browser, opens it in the PDF viewer with zoom and search, and a second open is served from cache.
+29. A folder with `index.html`, CSS, JS and images shows "Preview site" and renders as a real site; relative `fetch` of a JSON file in the repo works; a single-page app route reloads correctly.
+30. A malicious fixture site cannot read origin A storage, cookies or tokens, cannot navigate the top window, and the untrusted banner cannot be removed by it.
+31. If the run-project spike passes, a small Vite project installs, runs and previews; Stop ends it; closing the panel frees memory.
+32. All heavy downloads require consent, show progress, can be cancelled, and are listed in Settings with a Clear action.
+33. Unsupported or too-large content shows a specific message and the hand-off menu, never a blank screen.
+34. Videos up to the 100 MB GitHub file limit play after download, with progress, and reopen from cache.
+35. Origin B network and message traffic is covered by an e2e test proving no token or Shelf storage content is ever sent.
+36. With the mock vendor enabled, a DOCX, PPTX and XLSX can be rendered in the cloud, the PDF opens in the PDF viewer, and a second open is served from OPFS.
+37. The worker never receives file bytes or provider tokens (e2e test inspects all worker requests).
+38. With the kill switch on or the daily budget exhausted, Tier P and E disappear or show a clear unavailable message, and lower tiers still work.
+39. A file over the size cap is rejected before any vendor call.
+40. A file with a sensitive name always asks for fresh confirmation before any cloud send.
+41. A Tier E sandbox for a public repo shows a countdown, stops at 15 minutes, and is deleted on tab close or by the watchdog (verified against the mock).
+42. `docs/costs.md` states the monthly ceiling, how it is enforced, and where to change it.
 
 ---
 
@@ -1214,7 +1469,7 @@ Possible later additions, only if real users ask: (a) a tiny `shelf-guard` Git p
 
 | Decision | Why | Trade-off accepted |
 | --- | --- | --- |
-| Client-only, one stateless worker | Tokens and files never touch a Shelf server; no hosting cost; nothing to breach | No server-side features (shared links, background jobs) |
+| Browser-first, metadata-only worker | File bytes and provider tokens never touch a Shelf server; optional vendors receive consented content directly | Broker quotas and external vendor costs require operations |
 | Working copy and explicit Push | Review before change; one commit; safe on a shared machine | Unpushed work lives in a browser, so it needs the protections in 10.13 |
 | Git Data API for pushes | Only way to make many files one atomic commit without a local clone | More calls; careful handling of empty repos, protected branches, rate limits |
 | Hard-coded guards, near-impossible to disable | The product's promise is "you cannot hit the wall by accident" | Power users must use the LFS advanced path or another provider |
