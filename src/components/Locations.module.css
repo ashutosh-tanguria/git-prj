@@ -42,3 +42,7 @@ nav:has(> .tree) > h2 {
   font-size: var(--text-reading);
   line-height: var(--space-6);
 }
+.item[aria-selected="true"] {
+  color: var(--blue-ink);
+  background: var(--blue-tint);
+}

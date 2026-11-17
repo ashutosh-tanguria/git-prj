@@ -148,45 +148,74 @@ Review checklist before each milestone merge: open the Explorer screen, squint t
 
 ### 5.3 Color tokens
 
-Neutral, slightly green-grey paper tones with ink text, one calm accent, and status colours that map directly to guard tiers. Dark theme follows the system setting; light is the primary design target. All text pairs must pass WCAG AA (4.5:1 body, 3:1 large text and UI parts); add an automated contrast test that fails the build if any pair drops below the threshold, and adjust hex values to pass.
+Colour tokens v2 (Amendment A1.1)
+
+Implementation contrast correction: dark navigation blue remains bright for text on the pane and selection tint. White-on-blue action surfaces use a separate `--blue-action` token (`#0969DA`). A single dark blue cannot simultaneously reach 4.5:1 against white and against the specified dark selection tint. The contrast registry checks both roles independently. Dark green is nudged to `#248837` and green-tint to `#010409` so white-on-green and green-on-tint both pass. These corrections supersede the corresponding example values below.
+
+All pairs below were checked numerically for WCAG contrast. Keep the automated contrast test and add every pair listed in A1.3.
 
 ```css
 :root {
   /* surfaces */
-  --paper-0: #E9ECE7;   /* app background behind panes */
-  --paper-1: #F5F6F3;   /* panes: tree, table, inspector */
-  --paper-2: #FFFFFF;   /* menus, dialogs, inputs */
+  --canvas: #F6F8FA;        /* app background, navigation pane, command bar */
+  --pane: #FFFFFF;          /* file list and viewer background */
+  --raised: #FFFFFF;        /* menus, dialogs, popovers */
+  --hover: #EEF1F4;
   /* ink */
-  --ink-1: #1A1F1B;     /* primary text */
-  --ink-2: #444C46;     /* secondary text */
-  --ink-3: #5F685F;     /* tertiary text, placeholders */
-  /* rules */
-  --rule: #D2D7CF;      /* 1px separators */
-  --rule-strong: #B3BAB0;
-  /* accent */
-  --accent: #1F5C8E;    /* focus ring, links, primary action */
-  --accent-ink: #FFFFFF;
-  --accent-tint: #DCE8F2; /* selected row background */
-  /* status, tied to guard tiers */
-  --ok: #2B7A4B;
-  --warn: #9A6200;
-  --danger: #B3261E;
-  --ok-tint: #E1F0E6; --warn-tint: #F6EAD0; --danger-tint: #F7DEDB;
+  --ink-1: #1F2328;         /* 15.8:1 on pane */
+  --ink-2: #59636E;         /* 6.1:1 on pane */
+  --ink-3: #656D76;         /* 5.3:1 on pane, 4.9:1 on canvas */
+  /* lines */
+  --rule: #D1D9E0;          /* decorative separators */
+  --rule-control: #848D97;  /* borders of inputs and buttons, 3.4:1 on pane */
+  /* roles */
+  --blue: #0969DA;          /* links, selection accent, focus ring (5.2:1 on pane) */
+  --blue-ink: #0550AE;      /* blue text on blue tint (6.7:1 on tint) */
+  --blue-tint: #DDF4FF;     /* selected row, active nav item */
+  --green: #1A7F37;         /* primary action (Push, Create), added (5.1:1 with white text) */
+  --green-hover: #116329;
+  --green-tint: #DAFBE1;
+  --red: #CF222E;           /* delete, block, danger (5.4:1 on pane) */
+  --red-tint: #FFEBE9;
+  --amber: #9A6700;         /* warn, large file (4.5:1 on its tint) */
+  --amber-tint: #FFF8C5;
+  --violet: #8250DF;        /* moved or renamed (5.1:1 on pane) */
+  --violet-ink: #6639BA;    /* violet text on violet tint (6.6:1) */
+  --violet-tint: #FBEFFF;
+  --orange: #BC4C00;        /* Git LFS, attention */
+  --orange-tint: #FFF1E5;
+  /* folder glyph */
+  --folder: #B58900;        /* 3.2:1 on pane, graphic only, always paired with a text name */
+  --folder-fill: #F4D676;
+  /* file type families (glyph tag colours) */
+  --t-pdf: #CF222E;  --t-doc: #0969DA;  --t-sheet: #1A7F37;  --t-slide: #BC4C00;
+  --t-image: #0E7C7B; --t-video: #8250DF; --t-audio: #BF3989;
+  --t-code: #9A6700; --t-text: #59636E;  --t-archive: #6E5A3A;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper-0: #121513; --paper-1: #181C19; --paper-2: #212622;
-    --ink-1: #E4E8E2; --ink-2: #B9C0B7; --ink-3: #939C91;
-    --rule: #2C332D; --rule-strong: #414A42;
-    --accent: #7DB2E3; --accent-ink: #0E1A26; --accent-tint: #1F3447;
-    --ok: #6FCB93; --warn: #E0A84A; --danger: #F2877F;
-    --ok-tint: #1C2B21; --warn-tint: #2E2616; --danger-tint: #33201E;
+    --canvas: #010409; --pane: #0D1117; --raised: #161B22; --hover: #1C2128;
+    --ink-1: #E6EDF3; --ink-2: #9198A1; --ink-3: #8B949E;
+    --rule: #30363D; --rule-control: #6E7681;
+    --blue: #4493F8; --blue-ink: #79C0FF; --blue-tint: #1A2B42;
+    --green: #238636; --green-hover: #2EA043; --green-tint: #12261A;
+    --red: #F85149; --red-tint: #33201E;
+    --amber: #D29922; --amber-tint: #2E2616;
+    --violet: #A371F7; --violet-ink: #D2A8FF; --violet-tint: #2A1F3D;
+    --orange: #F0883E; --orange-tint: #2E1F14;
+    --folder: #D4A72C; --folder-fill: #7A6420;
+    --t-pdf: #F85149; --t-doc: #4493F8; --t-sheet: #3FB950; --t-slide: #F0883E;
+    --t-image: #39C5BB; --t-video: #A371F7; --t-audio: #DB61A2;
+    --t-code: #D29922; --t-text: #9198A1; --t-archive: #B8A06A;
   }
 }
-/* user override: [data-theme="light"] and [data-theme="dark"] on <html> */
 ```
 
-Rules: colour never carries meaning alone (pair with shape, icon or text). Selected rows use the full-row `--accent-tint` plus the 2px focus ring when focused; no left-border accents.
+Dark-theme notes: white text on `--green` is 4.6:1; `--blue` on `--pane` is 6.1:1; `--blue` on `--blue-tint` is 4.6:1; `--rule-control` on `--pane` is 4.1:1. Values for `--t-*` and `--*-ink` families that are not listed above must be checked by the contrast test and nudged until each passes 4.5:1 for text or 3:1 for graphics.
+
+Contrast registry (A1.3): Pairs added to the contrast test
+
+Text and UI pairs (must pass 4.5:1 for text, 3:1 for control borders and graphics): ink-1, ink-2, ink-3 on pane and on canvas; blue on pane, canvas and blue-tint; white on green; white on blue; green on green-tint; red on pane and red-tint; amber on amber-tint; violet on pane and violet-ink on violet-tint; orange on orange-tint; rule-control on pane and canvas; folder on pane (graphic, 3:1); every `--t-*` on pane (graphic or tag text); and the same set for dark.
 
 ### 5.4 Typography
 
@@ -207,11 +236,25 @@ Rules: colour never carries meaning alone (pair with shape, icon or text). Selec
 
 ### 5.6 Iconography and file glyphs
 
-- Action icons: one consistent outline set at 16px with a 1.5px stroke (Lucide icons are acceptable for actions only). No emoji.
-- File glyphs are custom and drawn in code, not stock icons: a document silhouette with a folded corner and a short extension tag set in the UI font (PDF, MD, PNG, MP4, ZIP and so on). Folders are a plain tab-and-body silhouette. Glyph colour is neutral `--ink-3`; only the extension tag may use a muted hue per type family (documents, images, media, code, archives). Provide a generic fallback glyph.
-- Thumbnails: PDFs show a rendered first page (generated lazily in a worker and cached); images show a downscaled thumbnail; others show the glyph.
+Colour roles v2 (use exactly these)
+
+Action icons remain 16px outlines with a 1.5px stroke. File silhouettes retain a folded corner and an extension tag in the UI font. Thumbnails are lazy PDF first-page renders or downscaled images, with glyph fallbacks. The neutral silhouette uses coloured tags and amber folders as specified in 5.7.
+
+| Role | Colour | Used for |
+| --- | --- | --- |
+| Navigation and selection | blue | Links, selected row tint, active nav item, focus ring, "Open" actions |
+| Primary action | green | The one primary button per surface: Push, Create repository, Stage anyway is NOT green (see below) |
+| Added | green marker and tint | Pending add marker, "Added" chips in Review |
+| Delete, block | red | Delete marker, strike-through name, blocked verdicts, Delete button |
+| Warn, large | amber | 50 to 95 MB verdict, repo over 1 GB, "Large" chip |
+| Moved or renamed | violet | Rename and move markers and chips |
+| LFS, attention | orange | LFS pointer rows, advanced options |
+| Folder | folder amber | Folder glyphs (outline plus fill) |
+
+"Stage anyway" and other confirm-risky actions use the neutral secondary button, never the green primary. Only one green button per dialog.
 
 ### 5.7 Provider marks
+
 
 Each provider has a small geometric mark and a text label. Never use brand logos. Shape plus hue so they differ without colour:
 
@@ -223,6 +266,20 @@ Each provider has a small geometric mark and a text label. Never use brand logos
 | OneDrive | filled circle | amber `#B26A00` |
 | Local folder | hexagon outline | slate `#5B6670` |
 
+
+
+Colour assignment (A1.4)
+
+- File glyphs: neutral document silhouette with a coloured extension tag from `--t-*`; folders are amber (outline and fill). Row hover is `--hover`; selected row is `--blue-tint`.
+- Provider marks (5.7) keep their shapes; hues may be brightened to this palette but must stay distinct without colour.
+- Tags and collections: eight label colours drawn from this palette (blue, green, red, amber, violet, orange, teal, pink), always with the text label.
+- Repo visibility badges: Private is neutral with a lock glyph; Public is amber with a globe glyph (it is the risky state).
+- Size column weight rule: green below 50 MB, amber 50 to 95, red at 95 and above.
+- Navigation pane: section headings in `--ink-2`, active item on `--blue-tint` with `--blue-ink` text.
+
+Anti-template check still applies. Colourful is not the same as decorated: if a coloured element has no meaning from the table above, remove the colour.
+
+
 ### 5.8 Motion
 
 - No ambient or entrance animation. Motion only answers a user action and shows what changed.
@@ -231,33 +288,51 @@ Each provider has a small geometric mark and a text label. Never use brand logos
 
 ### 5.9 Shell layout
 
+File Explorer structure v2
+
 ```
-+--------------------------------------------------------------------------------------+
-| Shelf  [<][>][^]  gh:ada/notes@main / semester-5 /        [Search or run  Ctrl+K] [3]|  title bar: history, address bar, command entry, pending badge
-+-----------------+--------------------------------------------+-----------------------+
-| LOCATIONS       | Name              Size       Changed  Last   | INSPECTOR             |
-| GitHub          | [] algorithms.pdf 14.2 MB__  2d  Add wk 3    |  [Preview][Details]   |
-|  > ada/notes    | [] os-notes.pdf   63.0 MB____ 5d  Scan v2    |  [History]            |
-|  > ada/cs       |    (rows virtualised)                        |                       |
-| Google Drive    |                                              |  (file preview or     |
-|  > Shelf        |                                              |   file details)       |
-| Dropbox         |                                              |                       |
-| Collections     |                                              |                       |
-|  Exam prep      |                                              |                       |
-+-----------------+--------------------------------------------+-----------------------+
-| Pending 3   2 added, 1 renamed   +38 MB   [Review] [Push to GitHub]                  |  Pending tray (always visible, collapses to a single line)
-+--------------------------------------------------------------------------------------+
-| GitHub: each file must stay under 100 MB, each repo under 1 GB.  ada/notes 612 MB of 1 GB |  Guard strip (not dismissible)
-+--------------------------------------------------------------------------------------+
-| Online   API calls left 4,812   Cache 212 MB of 500 MB   ada@github                   |  Status bar
-+--------------------------------------------------------------------------------------+
++-------------------------------------------------------------------------------------------------+
+| [+ New v] [Upload] [New repository] | [Cut][Copy][Paste][Rename][Delete] | [Sort v][View v]  [Push 3] |  command bar (canvas)
++-------------------------------------------------------------------------------------------------+
+| [<][>][^][refresh]  GitHub > ada > notes > semester-5 >                  [Search semester-5   ]  |  address row
++----------------------+---------------------------------------------------+----------------------+
+| Quick access         | Name                 Date modified  Type    Size  | Preview              |
+|  Recent              | [folder] week-1                                    |                      |
+|  Favorites           | [pdf] algorithms.pdf 2 days ago     PDF    14 MB  |  (preview or         |
+|  Pending (3)         | [pdf] os-notes.pdf   5 days ago     PDF    63 MB  |   details)           |
+| This library         | [md]  README.md      3 weeks ago    MD     2 KB   |                      |
+|  v GitHub            |                                                    |                      |
+|    > ada/notes       |                                                    |                      |
+|  v Google Drive      |                                                    |                      |
+| Collections          |                                                    |                      |
++----------------------+---------------------------------------------------+----------------------+
+| Pending 3: 2 added, 1 renamed  +38 MB   [Review]  [Push to ada/notes/semester-5]                |  pending tray
++-------------------------------------------------------------------------------------------------+
+| GitHub: files under 100 MB, repositories under 1 GB.  ada/notes 612 MB of 1 GB                   |  guard strip
++-------------------------------------------------------------------------------------------------+
+| 12 items   2 selected  14.2 MB                          Online   API calls left 4,812             |  status bar
++-------------------------------------------------------------------------------------------------+
 ```
 
-Behaviour:
-- Left Locations pane 220px default, resizable 160 to 360, collapsible (`Ctrl+B`). Inspector pane 320px default, resizable 240 to 520, collapsible (`Ctrl+Alt+B`). Pane sizes persist.
-- Title bar holds history buttons, an editable address bar (breadcrumbs by default; `Ctrl+L` turns them into a text field with path completion), the command entry (`Ctrl+K`), and the Pending badge.
-- The **weight rule**: in GitHub locations the Size cell shows a 40px wide, 3px tall rule under the number, filled in proportion to size over 100 MiB, coloured `--ok` below 50 MiB, `--warn` from 50 to 100, `--danger` at 100 and above. Hidden for other providers.
-- Below 900px width the Inspector becomes a bottom sheet; below 640px the Locations pane becomes a drawer and the table becomes a single-line list (section 7.3).
+Rules:
+- **Command bar** (new): buttons with icon and label, grouped by dividers like Windows File Explorer. Labels collapse to icons below 1100px. Disabled buttons keep their place and show a tooltip stating why ("Select a file", "Available after M3").
+  - New (menu): New folder, New repository, Upload files, Upload folder.
+  - Cut, Copy, Paste: stage a move or copy within a provider or across providers (A4). Ctrl+X, Ctrl+C, Ctrl+V when the file list has focus and no text field is focused. Paste shows what will be staged before it does.
+  - Rename, Delete: stage the change (never immediate remote action).
+  - Sort and View menus: sort by name, date, type, size; views List (Details), Grid, Columns.
+  - Push button: right-aligned, green, shows the pending count. It is the same action as the Push button in the Pending tray.
+- **Address row**: back, forward, up, refresh, editable breadcrumbs, and a search box scoped to the current folder (Ctrl+F focuses it). Ctrl+K stays the global palette.
+- **Navigation pane**: "Quick access" (Recent, Favorites, Pending with count), "This library" (providers, then locations as a tree), "Collections". Active item uses blue tint. Resizable and collapsible.
+- **Details list** (default view): columns Name, Date modified, Type, Size, plus Last change for GitHub. Column widths are resizable. Rows are 32px by default.
+- **Preview pane** on the right: preview or details tab as before.
+- **Status bar**: item count, selection count and total size, plus provider status. Same style as File Explorer.
+- Keep the guard strip and weight rule from 5.9. Keep the responsive rules from 7.2, with the command bar becoming a scrollable icon row and then a "..." overflow menu on narrow widths.
+
+
+Connect and Library home
+
+Use the same File Explorer structure: the navigation pane shows providers; the main area shows "Connect a location" rows (6.2) or the Recent files table. No separate marketing-style layout.
+
 
 ### 5.10 Voice and microcopy
 
@@ -382,6 +457,7 @@ Three tabs: **Preview**, **Details**, **History**.
 
 ### 6.7 Pending tray and Push
 
+
 The tray is always visible at the bottom of the shell. With no changes it collapses to a single quiet line "No pending changes". With changes it shows a count, a breakdown ("2 added, 1 renamed, 1 deleted"), the net size ("+38 MB"), and two buttons: Review and Push to <provider> (one button per provider with changes; if several, the primary is the active location's provider).
 
 Review (`#/pending`, or a panel over the Inspector): changes grouped by provider and location. Each row shows op, path, size, guard verdict chip and a Discard button. Linked changes (a move is a copy plus a delete) display as one row. Filter chips: All, Added, Changed, Deleted, Blocked. `Ctrl+Z` undoes the last staging action; undo history lives for the session only.
@@ -393,6 +469,51 @@ Push dialog (per provider):
 4. Plan: "1 commit, 38 MB." If over 500 MB, "Splits into 2 commits" with the reason.
 5. Public repository confirmation checkbox when applicable: "Everything I push here will be public."
 6. Push button, disabled until valid. During push: per-file progress, an overall bar, Cancel (available until the final ref update). On success a toast: "Pushed 3 changes to ada/notes in one commit." with a "View commit on GitHub" link. On failure: which step failed, what to do, and the statement that nothing changed remotely if the final ref update did not run.
+
+
+
+Push destination and automatic messages (Amendment 1)
+
+#### 6.7.1 Destination model
+
+Every staged change belongs to a **destination**: provider, location (for GitHub: owner/repo and branch), and **folder path** inside it (empty means the repository root). Dropping files into a folder you are browsing sets the destination to that folder. Uploading while the browsing location is the library home asks for a destination in the Push popover.
+
+#### 6.7.2 Push popover (default) and full dialog
+
+Pressing Push (button, tray or shortcut) opens a compact **popover** anchored to the button, not a full-screen dialog:
+- Destination line: repo, branch, and folder, with a Change link. The folder field has autocomplete over existing folders and a "Create folder `semester-6/week-2`" option that simply adds that path to the commit (Git folders exist only as paths).
+- Automatic commit message (A4.3), editable in place.
+- Guard summary chips (all must be ok or warn-confirmed).
+- Big green button: "Push to ada/notes/semester-5".
+
+The popover expands to the full Push dialog from 6.7 when any of these is true: a blocked item exists, a warn item needs confirmation, the repository is public, a sensitive-name warning fired, the destination changed since last push, or there is a conflict.
+
+#### 6.7.3 Automatic commit messages
+
+Generate in English, imperative mood, subject at most 72 characters, no trailing period, using the staged changes and destination folder. The user can edit it; the edited text is used as is.
+
+| Situation | Message |
+| --- | --- |
+| One file added | `Add algorithms-week3.pdf` |
+| Several files added to a folder | `Add 3 files to semester-5 (2 PDFs, 1 image)` |
+| One rename | `Rename os-notes.pdf to os-notes-v2.pdf` |
+| One delete | `Delete old-draft.pdf` |
+| Mixed | `Update semester-5: add 2 files, rename 1, delete 1` |
+| Many (over 8) | Subject as above, plus a body listing each change on its own line (`A path`, `M path`, `D path`, `R old -> new`) |
+| Moved from another provider | `Add algorithms.pdf (moved from Google Drive)` |
+
+Pure function in `src/services/commitMessage.ts` with unit tests for every row and for truncation at 72 characters. No network, no AI.
+
+#### 6.7.4 One-click push
+
+- **Pinned destination**: a toggle "Always push here" on a location or collection stores a default destination. With a pinned destination, files you stage already carry it.
+- **Quick push**: when every guard is ok, the repository is private, and the destination equals the pinned or last-used one, the popover shows only the destination, the generated message and the green button; one click pushes. This still passes through every guard (section 8 is never skipped) and still shows a success toast with "View commit on GitHub".
+- Quick push never applies to public repositories, warn or block verdicts, conflicts, or first use of a destination.
+
+#### 6.7.5 Cut, Copy, Paste semantics
+
+Cut then Paste stages a move (copy to the destination, then delete the source after verification, as in 6.11). Copy then Paste stages a copy. Paste into a different folder of the same GitHub repo stages a rename (path change) that reuses the existing blob and uploads nothing. The paste preview lists what will be staged and runs the guards first.
+
 
 ### 6.8 Conflict dialog
 
@@ -454,6 +575,7 @@ Sections: General (language en and hi, theme, density, default view), Providers 
 
 ### 6.16 Selection, keyboard, drag and drop, context menus
 
+
 Selection: click selects one; `Ctrl`/`Cmd` click toggles; `Shift` click selects a range; drag on empty space draws a selection box; `Ctrl+A` selects all in the current view; type-ahead jumps to the first matching name.
 
 Keyboard map (all configurable later, these are the defaults):
@@ -470,7 +592,7 @@ Keyboard map (all configurable later, these are the defaults):
 | `F2` | Rename (stages a rename) |
 | `Delete` | Stage delete |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Undo and redo staging |
-| `Ctrl+Shift+P` | Push active provider |
+| `Alt+P` | Push active provider |
 | `Ctrl+B` / `Ctrl+Alt+B` | Toggle Locations or Inspector |
 | `Ctrl+\` | Toggle split view |
 | `?` | Shortcut list |
@@ -478,6 +600,49 @@ Keyboard map (all configurable later, these are the defaults):
 Drag and drop: dropping OS files on a folder stages adds into it (and shows guards immediately); dropping a row on a folder stages a move within the provider; dropping across Split panes stages a cross-provider copy or move. Touch devices do not use drag and drop (it fights scrolling): long-press enters selection mode and a bottom bar offers Move, Copy, Delete, Tag.
 
 Context menu (right click or long press): Open, Quick Look, Rename, Move to..., Copy to..., Download, Copy path, Add to collection, Tag, Details, Delete. Items that are not valid are hidden, not greyed out.
+
+
+
+Shortcut corrections (Amendment 1)
+
+Browsers reserve some shortcuts, so a web page cannot use them: `Ctrl+Shift+N` (private or incognito window in Chrome and Edge) and `Ctrl+Shift+P` (private window in Firefox). Both are removed from the README.
+
+New defaults (the agent must test each in Chrome, Edge and Firefox on Windows, and replace any that conflict, recording the result):
+
+| Action | Default |
+| --- | --- |
+| New repository | `Alt+N` |
+| New folder | `Alt+M` |
+| Push (opens the Push popover) | `Alt+P` |
+| Upload files | `U` (when the file list has focus) |
+| Cut, Copy, Paste | `Ctrl+X`, `Ctrl+C`, `Ctrl+V` (file list focus only) |
+| Focus search | `Ctrl+F` inside the app's file list (falls back to the browser find outside it) |
+
+All shortcuts must also exist as buttons and in the command palette, and be remappable in Settings, which moves the shortcut registry from "later" to M3. Never hijack a shortcut while a text field has focus.
+
+
+---
+
+### 6.17. Create repository
+
+Entry points: command bar New menu and the "New repository" button, the command palette, an inline "Create a new repository" row when the Push dialog's repository list is empty, and the keyboard shortcut in A6.
+
+Dialog fields:
+- **Owner**: the signed-in user, plus organisations the token can create repositories in (if the token cannot list organisations, show only the user).
+- **Name**: validated live. Allowed characters letters, digits, `.`, `-`, `_`; no spaces (suggest hyphens); up to 100 characters; reject reserved names. Availability check with `GET /repos/{owner}/{name}` (404 means free). Show the result inline.
+- **Visibility**: Private (default, pre-selected) or Public. Choosing Public shows the public warning and requires the unticked-by-default checkbox from 8.5 before the Create button enables.
+- **Description**: optional.
+- **Add a README file**: ticked by default. It creates the first commit, which avoids the empty-repository limitation of the Git Data API (10.3).
+- **Default branch**: `main`.
+- Primary button: "Create repository" (green). Secondary: Cancel.
+
+After creation: add the repo as a Location, select it, open it, show a toast "Created ada/semester-notes (private)". If creation fails, show the specific reason (name taken, permission, rate limit).
+
+Capability handling (important):
+- Whether a fine-grained personal access token can create repositories depends on its permissions and repository access (likely it needs repository Administration write access and access that covers repositories that do not exist yet, which in practice may mean "All repositories"). A classic token with the `repo` scope can. This is **unverified**: the agent must read GitHub's current REST documentation for "Create a repository for the authenticated user" and "Permissions required for fine-grained personal access tokens", record the finding in PROGRESS.md, and implement capability detection.
+- If the API refuses (403, 404, 422 due to permissions), show: "This token cannot create repositories." with two actions: **Create on github.com** (opens `https://github.com/new` in a new tab; add `?name=<name>&visibility=<private|public>` prefill parameters only if verified to work) and **How to allow it** (shows the token settings needed). After the user creates it on GitHub, a "Refresh repositories" button picks it up.
+- Connect dialog presets (replace the single token guide): **Recommended: read and push selected repositories** (Contents read and write, Metadata read, selected repos) and **Also create repositories** (adds what research shows is required, with a warning that this token is broader). Never suggest classic tokens as the default.
+
 
 ---
 
@@ -964,8 +1129,9 @@ Each milestone ends green: `npm run check` passes, `PROGRESS.md` is updated, and
 | --- | --- | --- |
 | M0 Foundation | Tooling, CI, tokens, fonts, base CSS, primitives, `/styleguide` route showing every primitive in every state, light and dark, three densities, Stylelint rules, contrast test, visual snapshots | Styleguide passes axe and snapshots; banned patterns fail lint |
 | M1 Shell and GitHub read | App shell, router, Locations tree, FileTable, address bar, GitHub provider (PAT), listing, Quick Look, PDF, image, Markdown, code viewers, deep links, guard strip (static text), status bar | Browse a real repo, open a PDF, deep link works after reload |
+| M1.5 UI v2 | A1 colour tokens and contrast tests, File Explorer command/address bars, navigation, details columns, preview, counts, colourful glyphs, Styleguide and snapshots. Later features remain disabled with milestone tooltips | Contrast registry passes both themes; responsive Explorer and Styleguide snapshots reviewed |
 | M2 Guards | `limits.ts`, all verdicts, repo meter, visibility badge, sensitive-name warning, Size ledger (read-only), all guard dialogs, locale keys en and hi | All boundary tests pass; 150 MB file blocked; public push needs the checkbox |
-| M3 Staging and push | Staging store, OPFS persistence, Pending tray and review, atomic GitHub push, conflict dialog, history and restore, working-copy export and restore, undo and redo | 3 uploads plus 1 delete become one commit; conflict never overwrites |
+| M3 Staging and push | Create repository with capability detection and fallback (6.17), destination/folder picker, automatic messages, push popover, quick push, cut/copy/paste, remappable shortcut registry; Staging store, OPFS persistence, Pending tray and review, atomic GitHub push, conflict dialog, history and restore, working-copy export and restore, undo and redo | 3 uploads plus 1 delete become one commit; conflict never overwrites |
 | M4 Other providers and moves | Drive, Dropbox, OneDrive providers, Local folder import and export, cross-provider move and copy with verification, Split view, PDF split | Contract suite green for every provider; move verifies hash |
 | M5 Library features | Cache with LRU and pinning, offline open, full-text search, command palette, Collections and tags, duplicate finder, ZIP export, Grid and Column views | Offline PDF reopens at the saved page; search returns page numbers |
 | M6 Platform | OAuth worker, Sign in with GitHub, Chrome extension, PWA install and update flow, security headers, allowlist test, Settings and Privacy screens | Allowlist test green; Lighthouse PWA at least 90 |
@@ -995,6 +1161,17 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 16. All user-facing strings exist in `en` and `hi`, and contain no em dashes.
 17. Wipe local data removes every record, cache file and token, and signs out of all providers.
 18. Works at 360px width: Locations as a drawer, Inspector as a bottom sheet, selection mode instead of drag and drop.
+
+---
+
+19. With a token that can create repositories, New repository (button and `Alt+N`) creates a private repo with a README and opens it; with a token that cannot, the fallback message and the github.com link appear.
+20. Staging 3 files while browsing `semester-5/` and pressing Push shows the popover with destination `.../semester-5` and an automatic message; one click produces exactly one commit adding those files into that folder.
+21. Typing a new folder path in the destination field creates that path in the commit.
+22. Quick push never appears for a public repository or a warn or block verdict.
+23. Cut and Paste across two folders of one repo stages renames without uploading file bytes.
+24. Every commit message rule in A4.3 has a passing unit test, including 72-character truncation.
+25. The colour contrast test passes for every pair in A1.3 in light and dark.
+26. The shortcut conflict check for `Alt+N`, `Alt+M`, `Alt+P` is recorded for Chrome, Edge and Firefox.
 
 ---
 

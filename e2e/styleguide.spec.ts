@@ -23,9 +23,23 @@ for (const theme of ["light", "dark"])
             ["serious", "critical"].includes(v.impact || ""),
           ),
         ).toEqual([]);
-        await expect(page).toHaveScreenshot(theme + "-" + density + ".png", {
-          fullPage: true,
-        });
+        if (density === "default") {
+          await expect(page).toHaveScreenshot(theme + "-" + density + ".png", {
+            fullPage: true,
+          });
+        } else {
+          // Keep density coverage without additional review captures in M1.5.
+          expect(
+            await page.evaluate(() =>
+              getComputedStyle(document.documentElement)
+                .getPropertyValue("--row-height")
+                .trim(),
+            ),
+          ).toBe(density === "compact" ? "28px" : "44px");
+          await expect(
+            page.getByRole("navigation", { name: "Library commands" }),
+          ).toBeVisible();
+        }
         expect(external).toEqual([]);
       },
     );

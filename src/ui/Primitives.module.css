@@ -14,9 +14,9 @@
   font-weight: var(--weight-medium);
 }
 .button[data-variant="primary"] {
-  background: var(--accent);
-  color: var(--accent-ink);
-  border-color: var(--accent);
+  background: var(--green);
+  color: var(--white);
+  border-color: var(--green);
 }
 .button[data-variant="quiet"] {
   border-color: transparent;
@@ -224,6 +224,45 @@
   font-size: var(--text-meta);
   font-weight: var(--weight-strong);
   background: var(--paper-1);
+}
+.file[data-folder] {
+  color: var(--folder);
+}
+.file[data-folder] path {
+  fill: var(--folder-fill);
+}
+.file[data-family="pdf"] span {
+  color: var(--t-pdf);
+}
+.file[data-family="doc"] span {
+  color: var(--t-doc);
+}
+.file[data-family="sheet"] span {
+  color: var(--t-sheet);
+}
+.file[data-family="slide"] span {
+  color: var(--t-slide);
+}
+.file[data-family="image"] span {
+  color: var(--t-image);
+}
+.file[data-family="video"] span {
+  color: var(--t-video);
+}
+.file[data-family="audio"] span {
+  color: var(--t-audio);
+}
+.file[data-family="code"] span {
+  color: var(--t-code);
+}
+.file[data-family="archive"] span {
+  color: var(--t-archive);
+}
+.file[data-family="text"] span {
+  color: var(--t-text);
+}
+.file span {
+  background: var(--pane);
 }
 
 .meter {

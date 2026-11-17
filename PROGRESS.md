@@ -4,13 +4,14 @@ Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities. The requested M1 implementation is complete locally. Its real-account exit check remains an owner-run gate and has not been claimed as verified. M2 has not started.
+The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 has not started.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
 | Planning analysis | Done, approved | docs/ANALYSIS.md |
 | M0 Foundation | Done | Tokens, fonts, primitives, Styleguide, contrast/policy checks, snapshots and CI. |
 | M1 Shell and GitHub read | Implementation done; real-account verification pending | Full selection/grid, tree/keyboard, PDF reader, Inspector, responsive panes, local preferences and mocked browser tests. Owner follows docs/manual-test-m1.md. |
+| M1.5 UI v2 | Done locally | Amendment merged in place; colour roles, command/address rows, navigation groups, revised columns, preview and counts, glyph families, Styleguide and focused accessibility tests. |
 | M2 Guards | Not started | Owner authorization required. |
 | M3 Staging and push | Not started | M2 exit and authorization required. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
@@ -19,6 +20,12 @@ The approved analysis governs ambiguities. The requested M1 implementation is co
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- M1.5: merged README-AMENDMENT-1.md into README sections 5.3, 5.6, 5.7, 5.9, 6.7, 6.16, 14 and 15, adding 6.17 without renumbering existing sections. The amendment source is retained. M3 owns repository creation, destinations/messages/push, clipboard staging and shortcut registration; no write API or guard implementation was added.
+- A1 contrast resolution: the exact dark navigation blue cannot meet both white-on-blue and blue-on-selection-tint at 4.5:1. Navigation keeps the specified bright blue; white-on-blue action surfaces use blue-action. The registry tests those roles independently. Dark green is #248837 on #010409 tint. Legacy paper/accent/status tokens map to the new roles for existing readers.
+- Existing table preferences with four columns reset to the new five-column schema, preventing old widths from shifting to the wrong columns. New widths, visibility and sorting still persist.
+- Six review images only. Default light/dark Styleguide goldens are intentionally refreshed; compact/comfortable cases retain axe and explicit density checks instead of taking additional images. Other old visual baselines were not refreshed in this task.
+- Search, Recent, Favorites, Collections, alternate views and write actions remain disabled with milestone explanations. The address remains the editable canonical provider reference; Up is the existing Parent folder button. Command Sort focuses the working sort selector rather than duplicating its state.
 
 - UI repair: the high and medium findings in docs/ui-critique.md are addressed through tokens, CSS and presentation markup. Existing handlers, data and dependencies remain in place. The prior matched screenshot matrix is retained; no new capture set was made on resumption.
 
@@ -38,6 +45,8 @@ The approved analysis governs ambiguities. The requested M1 implementation is co
 
 ## Not done
 
+M1.5 does not activate M3 shortcuts or M5 search/views/collections. Chrome/Edge/Firefox shortcut conflict checks belong to M3 and are unverified here. Older non-default visual baselines outside the focused suite are retained, not claimed as current v2 evidence.
+
 UI Grid view remains scheduled for M5. Saved column widths may require horizontal table scrolling. Independent visual and device review remains open.
 
 | Item | Reason / next gate |
@@ -51,6 +60,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Manual steps
 
+[HUMAN] Review docs/m15 and the M1.5 notes in docs/design-qa.md. Approve M2 separately. Real GitHub verification remains in docs/manual-test-m1.md; sample screenshots do not establish it.
+
 [HUMAN] Review docs/ui-comparison.md and docs/ui-critique.md, including the light and dark repaired screens. Perform browser-menu zoom and physical-device review separately.
 
 [HUMAN] Follow docs/manual-test-m1.md with a throwaway initialized repo and short-lived fine-grained PAT. Verify public/private browsing, a real PDF, page/zoom persistence after reconnection, deep links, keyboard and mobile width. Never send the token in chat or commit it. Revoke it afterward and record the result without credentials.
@@ -58,6 +69,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 [HUMAN] Review the new Explorer/Inspector/PDF/360px captures and intentional Styleguide baselines in docs/design-qa.md. Review the bounded-preview and scriptless-HTML choices above. Configure a Git remote if CI should run remotely. Authorize M2 separately when ready.
 
 ## Known issues and limits
+
+- A1's dark white-on-blue requirement needs a separate action fill role; README records this numerical incompatibility. Native selects and media controls retain platform appearance. The address uses a canonical ref rather than clickable breadcrumb segments.
 
 - Native controls retain browser/platform styling. A prior full Playwright run reported a light Styleguide tooltip focus timeout; this is recorded pending verification, without claiming the full suite passed for this repair.
 
@@ -68,6 +81,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 - Screenshot baselines depend on Windows Chromium. Changes were reviewed locally; independent owner visual approval remains pending.
 
 ## Validation
+
+M1.5: npm run check passes with 84 tests (including both A1 semantic registries), typecheck, lint, CSS policy, production build and a 142053-byte gzip shell under the unchanged budget. Nine focused Chromium cases pass: three Explorer width/theme flows and six Styleguide theme/density accessibility cases. Two default Styleguide goldens were intentionally refreshed. Six unique review images are linked in design QA. The full historical browser suite and cross-browser shortcut matrix are not claimed as verified.
 
 UI repair: npm run check passed on 2026-11-17 (117 tests, typecheck, lint, CSS policy, build and 140302-byte gzip shell). The previous full browser run had one Styleguide tooltip visibility timeout; its full-suite result is not claimed as passing. See docs/design-qa.md for visual evidence and review limits.
 

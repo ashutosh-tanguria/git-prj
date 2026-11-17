@@ -4,6 +4,8 @@ import { library, type Repo } from "../services/library";
 import { explorerRoute, parseRef } from "../lib/refs";
 import { t } from "../i18n";
 import styles from "./Locations.module.css";
+import { LaterAction } from "./CommandBar";
+import v2 from "./ExplorerV2.module.css";
 export function Locations({ repos }: { repos: Repo[] }) {
   return (
     <LocationTree
@@ -161,6 +163,15 @@ function LocationTree({ repos }: { repos: Repo[] }) {
   return (
     <nav aria-label={t("locations")}>
       <h2>{t("locations")}</h2>
+      <section className={v2.navGroup}>
+        <h3>{t("quickAccess")}</h3>
+        <LaterAction action="recent" milestone="M5" />
+        <LaterAction action="favorites" milestone="M5" />
+        <LaterAction action="pending" />
+      </section>
+      <section className={v2.navGroup}>
+        <h3>{t("thisLibrary")}</h3>
+      </section>
       <div
         ref={host}
         className={styles.tree}
@@ -170,6 +181,10 @@ function LocationTree({ repos }: { repos: Repo[] }) {
         {render(nodes)}
       </div>
       {error && <p role="alert">{error}</p>}
+      <section className={v2.navGroup}>
+        <h3>{t("collections")}</h3>
+        <LaterAction action="collections" milestone="M5" />
+      </section>
     </nav>
   );
 }

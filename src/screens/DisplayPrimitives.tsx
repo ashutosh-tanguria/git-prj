@@ -57,7 +57,19 @@ export function DisplayPrimitives() {
       <section>
         <h3>{t("glyphs")}</h3>
         <div className={styles.inline}>
-          {["PDF", "MD", "PNG", "MP4", "ZIP", "TS", "?"].map((ext) => (
+          {[
+            "PDF",
+            "DOCX",
+            "CSV",
+            "PPTX",
+            "MD",
+            "PNG",
+            "MP4",
+            "WAV",
+            "ZIP",
+            "TS",
+            "?",
+          ].map((ext) => (
             <FileGlyph key={ext} extension={ext} />
           ))}
           <FileGlyph extension="PDF" compact />

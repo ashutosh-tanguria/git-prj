@@ -46,6 +46,26 @@ export function FileTable(props: {
       }}
     >
       <div className={styles.tableToolbar}>
+        <label>
+          {t("sortMenu")}{" "}
+          <select
+            id="sort-options"
+            value={layout.sort}
+            onChange={(e) =>
+              setLayout({
+                ...layout,
+                sort: e.target.value as (typeof columns)[number],
+                reverse: false,
+              })
+            }
+          >
+            {columns.map((column) => (
+              <option key={column} value={column}>
+                {t(column)}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className={styles.tools}>
           <button
             type="button"

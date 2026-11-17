@@ -147,6 +147,18 @@ export function FileRow({
           )}
         </button>
       </div>
+      {!hidden.includes("modified") && (
+        <div role="gridcell" title={row.modified ?? undefined}>
+          {row.modified ? relativeTime(row.modified) : t("unknown")}
+        </div>
+      )}
+      {!hidden.includes("fileType") && (
+        <div role="gridcell">
+          {row.kind === "dir"
+            ? t("folder")
+            : row.name.split(".").at(-1)?.toUpperCase()}
+        </div>
+      )}
       <div
         role="gridcell"
         className={styles.sizeCell}
@@ -168,11 +180,6 @@ export function FileRow({
           </span>
         )}
       </div>
-      {!hidden.includes("modified") && (
-        <div role="gridcell" title={row.modified ?? undefined}>
-          {row.modified ? relativeTime(row.modified) : t("unknown")}
-        </div>
-      )}
       {!hidden.includes("lastChange") && (
         <div role="gridcell" title={row.lastChange ?? undefined}>
           <span className={styles.cellText}>

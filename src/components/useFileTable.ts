@@ -18,7 +18,7 @@ interface Layout {
   hidden: Column[];
 }
 const initial: Layout = {
-  widths: [380, 120, 160, 240],
+  widths: [280, 140, 100, 100, 180],
   sort: "name",
   reverse: false,
   hidden: [],
@@ -74,7 +74,7 @@ export function useFileTable({
     anchor.current = 0;
     void preference("table:" + locationKey, initial).then((value) => {
       if (active) {
-        setLayout(value);
+        setLayout(value.widths.length === 5 ? value : initial);
         setReady(true);
       }
     });
@@ -112,7 +112,7 @@ export function useFileTable({
     };
   }, []);
   const rows = entries
-    .map((entry) => ({ ...entry, ...metadata[entry.ref] }))
+    .map((entry) => ({ ...entry, ...metadata[entry.ref], fileType: entry.kind === "dir" ? "" : entry.name.split(".").at(-1)?.toUpperCase() || "" }))
     .sort(
       (a, b) =>
         Number(b.kind === "dir") -

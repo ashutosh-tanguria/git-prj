@@ -301,7 +301,9 @@
     font-size: var(--text-meta);
   }
   .row > [data-size] {
-    display: flex;
+    display: flex !important;
+    grid-column: 2;
+    grid-row: 2;
   }
   .row > .sizeCell {
     padding-inline-start: calc(var(--file-tag-lane) + var(--space-4));
@@ -321,5 +323,17 @@
 @media (width < 640px) {
   .fileBase {
     white-space: nowrap;
+  }
+}
+
+.row:hover {
+  background: var(--hover);
+}
+.row[aria-selected="true"] {
+  background: var(--blue-tint);
+}
+@media (width < 640px) {
+  .row > [role="gridcell"]:nth-child(n + 3):not([data-size]) {
+    display: none;
   }
 }

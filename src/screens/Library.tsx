@@ -1,4 +1,5 @@
 import { useLibrary } from "./useLibrary";
+import { CommandBar } from "../components/CommandBar";
 import { library } from "../services/library";
 import { explorerRoute, parseRef } from "../lib/refs";
 import { ReadShell } from "../components/ReadShell";
@@ -13,6 +14,7 @@ import { t } from "../i18n";
 import styles from "../components/Library.module.css";
 export default function Library() {
   const {
+    refresh,
     previewError,
     visibility,
     previewOrder,
@@ -43,6 +45,7 @@ export default function Library() {
   } = useLibrary();
   return (
     <div className={styles.shell}>
+      <CommandBar />
       <header className={styles.brand}>
         <h1>Shelf</h1>
         {account && (
@@ -64,6 +67,7 @@ export default function Library() {
         )}
       </header>
       <AddressBar
+        onRefresh={refresh}
         key={key}
         value={key}
         onGo={(value) => {
@@ -128,7 +132,7 @@ export default function Library() {
       </ReadShell>
       <PendingTray />
       <GuardStrip />
-      <StatusBar account={account} />
+      <StatusBar account={account} entries={entries} selection={selection} />
       {preview && (
         <QuickLook
           title={preview.name}

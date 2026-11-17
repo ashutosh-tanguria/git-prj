@@ -463,3 +463,72 @@
   border-inline-start: var(--border-width) solid var(--rule);
   padding-inline-start: var(--space-3);
 }
+
+/* M1.5: separate command and address rows. */
+.shell {
+  grid-template-rows: auto var(--mobile-address-height) minmax(
+      var(--zero),
+      1fr
+    ) auto auto auto;
+}
+.shell > nav {
+  grid-column: 2 / -1;
+  grid-row: 1;
+}
+.shell > .toolbar {
+  grid-column: 1 / 3;
+  grid-row: 2;
+}
+.shell > .paneControls {
+  grid-column: 3;
+  grid-row: 2;
+}
+.shell > .readBody {
+  grid-row: 3;
+}
+.shell > .pendingStrip {
+  grid-row: 4;
+}
+.shell > .guardStrip {
+  grid-row: 5;
+}
+.shell > .statusStrip {
+  grid-row: 6;
+}
+.row:hover {
+  background: var(--hover);
+}
+@media (width < 900px) {
+  .shell {
+    grid-template-rows: var(--mobile-brand-height) auto var(
+        --mobile-address-height
+      ) var(--mobile-tools-height) minmax(var(--zero), 1fr) auto auto auto;
+  }
+  .shell > .brand {
+    grid-row: 1;
+  }
+  .shell > nav {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .shell > .toolbar {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .shell > .paneControls {
+    grid-column: 1;
+    grid-row: 4;
+  }
+  .shell > .readBody {
+    grid-row: 5;
+  }
+  .shell > .pendingStrip {
+    grid-row: 6;
+  }
+  .shell > .guardStrip {
+    grid-row: 7;
+  }
+  .shell > .statusStrip {
+    grid-row: 8;
+  }
+}

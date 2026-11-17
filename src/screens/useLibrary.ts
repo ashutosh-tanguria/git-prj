@@ -18,6 +18,7 @@ export function useLibrary() {
   const [roots, setRoots] = useState<Repo[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [hash, setHash] = useState(location.hash);
+  const [refreshVersion, refresh] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [blob, setBlob] = useState<Blob>();
@@ -84,7 +85,7 @@ export function useLibrary() {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [account, key, hash]);
+  }, [account, key, hash, refreshVersion]);
   async function connect() {
     setLoading(true);
     setError("");
@@ -134,6 +135,7 @@ export function useLibrary() {
     }
   }
   return {
+    refresh: () => refresh((version) => version + 1),
     visibility:
       roots.find((repo) => repo.full_name === ref?.owner + "/" + ref?.repo)
         ?.private === undefined

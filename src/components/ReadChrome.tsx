@@ -9,13 +9,32 @@ const subscribe = (notify: () => void) => {
 };
 import { t } from "../i18n";
 import styles from "./Library.module.css";
+import type { Entry } from "../services/library";
 export function GuardStrip() {
   return <aside className={styles.guardStrip}>{t("guardCopy")}</aside>;
 }
-export function StatusBar({ account }: { account: string }) {
+export function StatusBar({
+  account,
+  entries = [],
+  selection = [],
+}: {
+  account: string;
+  entries?: Entry[];
+  selection?: Entry[];
+}) {
   const online = useSyncExternalStore(subscribe, () => navigator.onLine);
   return (
     <footer className={styles.statusStrip}>
+      <span>
+        {entries.length} {t("items")}, {selection.length} {t("selectedCount")},{" "}
+        {new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(
+          (selection.length ? selection : entries).reduce(
+            (sum, row) => sum + row.size,
+            0,
+          ) / 1048576,
+        )}{" "}
+        MB
+      </span>
       <span>{t(online ? "online" : "offline")}</span> <span>{account}</span>
     </footer>
   );

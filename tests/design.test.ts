@@ -32,33 +32,27 @@ describe("semantic contrast registry", () => {
         m[2],
       ]),
     );
-    const papers = ["paper-0", "paper-1", "paper-2"];
+    const papers = ["pane", "canvas"];
     const pairs: [string, string, number][] = [];
-    for (const fg of [
-      "ink-1",
-      "ink-2",
-      "ink-3",
-      "accent",
-      "ok",
-      "warn",
-      "danger",
-    ])
+    for (const fg of ["ink-1", "ink-2", "ink-3"])
       for (const bg of papers) pairs.push([fg, bg, 4.5]);
     for (const bg of papers)
-      for (const fg of [
-        "rule-strong",
-        "provider-github",
-        "provider-gdrive",
-        "provider-dropbox",
-        "provider-onedrive",
-        "provider-local",
-      ])
-        pairs.push([fg, bg, 3]);
-    for (const fg of ["ink-1", "ink-2", "ink-3", "accent"])
-      pairs.push([fg, "accent-tint", 4.5]);
-    for (const status of ["ok", "warn", "danger"])
-      pairs.push([status, status + "-tint", 4.5]);
-    pairs.push(["accent-ink", "accent", 4.5], ["ink-2", "paper-0", 4.5]);
+      pairs.push(["rule-control", bg, 3], ["blue", bg, 4.5]);
+    pairs.push(
+      ["blue", "blue-tint", 4.5],
+      ["white", "green", 4.5],
+      ["white", "blue-action", 4.5],
+      ["green", "green-tint", 4.5],
+      ["red", "pane", 4.5],
+      ["red", "red-tint", 4.5],
+      ["amber", "amber-tint", 4.5],
+      ["violet", "pane", 4.5],
+      ["violet-ink", "violet-tint", 4.5],
+      ["orange", "orange-tint", 4.5],
+      ["folder", "pane", 3],
+    );
+    for (const key of Object.keys(tokens).filter((key) => key.startsWith("t-")))
+      pairs.push([key, "pane", 4.5]);
     for (const [fg, bg, minimum] of pairs)
       it(index + " " + fg + "/" + bg, () =>
         expect(ratio(tokens[fg], tokens[bg])).toBeGreaterThanOrEqual(minimum),

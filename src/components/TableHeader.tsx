@@ -2,7 +2,7 @@
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import styles from "./Table.module.css";
-export const columns = ["name", "size", "modified", "lastChange"] as const;
+export const columns = ["name", "modified", "fileType", "size", "lastChange"] as const;
 export type Column = (typeof columns)[number];
 export function TableHeader({
   widths,

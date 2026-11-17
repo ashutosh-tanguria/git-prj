@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import styles from "./Library.module.css";
+import v2 from "./ExplorerV2.module.css";
 export function AddressBar({
   value,
   onGo,
+  onRefresh,
 }: {
   value: string;
   onGo: (value: string) => void;
+  onRefresh?: () => void;
 }) {
   const [draft, setDraft] = useState(value),
     [editing, setEditing] = useState(false);
@@ -90,6 +93,21 @@ export function AddressBar({
         <option value={value.slice(0, value.lastIndexOf("/"))} />
       </datalist>
       <Button type="submit">{t("go")}</Button>
+      <Button
+        variant="quiet"
+        aria-label={t("refresh")}
+        onPress={onRefresh}
+        isDisabled={!onRefresh}
+      >
+        {t("refresh")}
+      </Button>
+      <label className={v2.search} title={t("searchLater")}>
+        <input
+          aria-label={t("searchFolder")}
+          placeholder={t("searchFolder")}
+          disabled
+        />
+      </label>
     </form>
   );
 }

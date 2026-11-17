@@ -1,4 +1,5 @@
 import { SampleViewers } from "./SampleViewers";
+import { CommandBar } from "../components/CommandBar";
 import { PaneLayer } from "../components/PaneLayer";
 import { Inspector } from "../components/Inspector";
 import { ConnectPanel } from "../components/ConnectPanel";
@@ -17,6 +18,7 @@ export function ReadStyleguide() {
   return (
     <section>
       <h2>{t("sample")}</h2>
+      <CommandBar />
       <AddressBar value="gh:ada/notes@main/" onGo={() => {}} />
       <ConnectPanel
         token=""
