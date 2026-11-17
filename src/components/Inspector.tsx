@@ -1,3 +1,7 @@
+import { lazy, Suspense } from "react";
+const FileHistory = lazy(() =>
+  import("./FileHistory").then((m) => ({ default: m.FileHistory })),
+);
 import { VisibilityBadge } from "./VisibilityBadge";
 import { Button } from "../ui/Button";
 import { useEffect, useState, useId } from "react";
@@ -135,7 +139,12 @@ export function Inspector({
                   <dt>{t("modified")}</dt>
                   <dd>{entry.modified ?? t("unknown")}</dd>
                   <dt>{t("lastChange")}</dt>
-                  <dd>{entry.lastChange ?? t("unknown")}</dd>
+                  <dd>
+                    {entry.lastChange ?? t("unknown")}
+                    <Suspense fallback={null}>
+                      <FileHistory entry={entry} />
+                    </Suspense>
+                  </dd>
                   <dt>{t("visibility")}</dt>
                   <dd>
                     <VisibilityBadge visibility={visibility} />

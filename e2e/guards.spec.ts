@@ -51,7 +51,7 @@ for (const theme of ["light", "dark"])
     ).toBe(true);
     await expect(
       page.getByRole("button", {
-        name: "Stage (available in M3)",
+        name: "Stage files",
         exact: true,
       }),
     ).toBeDisabled();

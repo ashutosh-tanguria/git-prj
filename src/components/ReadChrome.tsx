@@ -1,3 +1,7 @@
+import { lazy, Suspense } from "react";
+const WorkingCopy = lazy(() =>
+  import("./WorkingCopy").then((m) => ({ default: m.WorkingCopy })),
+);
 import { useSyncExternalStore } from "react";
 const subscribe = (notify: () => void) => {
   window.addEventListener("online", notify);
@@ -75,9 +79,8 @@ export function StatusBar({
 }
 export function PendingTray() {
   return (
-    <div id="pending" tabIndex={-1} className={styles.pendingStrip}>
-      <strong>{t("pending")}</strong>
-      <span>{t("noPending")}</span>
-    </div>
+    <Suspense fallback={null}>
+      <WorkingCopy />
+    </Suspense>
   );
 }

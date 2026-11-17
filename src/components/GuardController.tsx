@@ -1,3 +1,5 @@
+import { stageUploads } from "../services/stageUploads";
+import type { GitRef } from "../lib/refs";
 import { useEffect, useRef, useState } from "react";
 import { Modal, Dialog, Heading } from "react-aria-components";
 import { GuardReview } from "./GuardReview";
@@ -10,9 +12,11 @@ import styles from "./Library.module.css";
 export function GuardController({
   repo,
   entries,
+  current,
 }: {
   repo: Repo;
   entries: Entry[];
+  current: GitRef;
 }) {
   const [files, setFiles] = useState<File[]>(),
     [ledger, setLedger] = useState(false);
@@ -100,6 +104,10 @@ export function GuardController({
               <GuardReview
                 key={files?.map((f) => f.name + f.size).join("|")}
                 files={files || []}
+                onStage={async () => {
+                  await stageUploads(current, files || [], entries);
+                  setFiles(undefined);
+                }}
                 repo={repo}
               />
             )}

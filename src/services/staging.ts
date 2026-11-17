@@ -8,6 +8,7 @@ export interface Change {
   oldPath?: string;
   blobKey?: string;
   size: number;
+  baseSize?: number;
   createdAt: number;
   groupId?: string;
   verdict: Verdict;
@@ -23,6 +24,13 @@ export function createStaging(storage: WorkingStorage) {
     redo: Change[][] = [],
     tail = Promise.resolve();
   const undo: Change[][] = [];
+  let initialized = false;
+  const initialize = async () => {
+    if (!initialized) {
+      rows = await storage.load();
+      initialized = true;
+    }
+  };
   const listeners = new Set<() => void>();
   const publish = () => listeners.forEach((fn) => fn());
   const serial = <T>(fn: () => Promise<T>): Promise<T> => {
@@ -53,10 +61,12 @@ export function createStaging(storage: WorkingStorage) {
     load: () =>
       serial(async () => {
         rows = await storage.load();
+        initialized = true;
         publish();
       }),
     stage: (changes: (Omit<Change, "blobKey"> & { blob?: Blob })[]) =>
       serial(async () => {
+        await initialize();
         const next: Change[] = [];
         for (const { blob, ...change } of changes) {
           if (blob && evaluateFile(blob.size).level === "block")
@@ -67,7 +77,6 @@ export function createStaging(storage: WorkingStorage) {
           } else next.push(change);
         }
         await replace([...rows, ...next]);
-        void navigator.storage?.persist?.();
       }),
     discard: (ids: string[]) =>
       serial(() => replace(rows.filter((row) => !ids.includes(row.id)))),

@@ -653,5 +653,94 @@
 }
 
 /* The sash owns the single pane boundary rule. */
-.locationPane { border-inline-end:0; }
-.inspectorPane { border-inline-start:0; }
+.locationPane {
+  border-inline-end: 0;
+}
+.inspectorPane {
+  border-inline-start: 0;
+}
+
+.workingPanel {
+  position: fixed;
+  inset: var(--space-6);
+  z-index: var(--layer-dialog);
+  background: var(--raised);
+  color: var(--ink-1);
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--rule-control);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--elevation);
+}
+.pendingStrip:has(.workingPanel) {
+  overflow: visible;
+}
+.pendingStrip {
+  flex-wrap: wrap;
+  block-size: auto;
+}
+
+.workingPanel {
+  inline-size: min(
+    calc(var(--full) - var(--space-6) * 2),
+    calc(var(--palette-width) + var(--thumb-large))
+  );
+  inset-inline: 50% auto;
+  transform: translateX(-50%);
+}
+.workingPanel > [role="dialog"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.workingPanel label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.workingPanel input:not([type="checkbox"]):not([type="radio"]),
+.workingPanel select {
+  border: var(--border-width) solid var(--rule-control);
+  background: var(--pane);
+  color: var(--ink-1);
+  border-radius: var(--radius-control);
+  padding: var(--space-1) var(--space-2);
+  min-block-size: var(--control-height);
+}
+.workingPanel article {
+  padding-block: var(--space-3);
+  border-block-end: var(--border-width) solid var(--rule);
+}
+.workingPanel h3 {
+  font-size: var(--text-ui);
+  margin-block-end: var(--space-2);
+}
+.workingPanel p {
+  margin-block-end: var(--space-2);
+  overflow-wrap: anywhere;
+}
+.workingPanel [data-verdict] {
+  display: inline-block;
+  background: var(--hover);
+  padding: var(--space-1);
+  border-radius: var(--radius-control);
+  font-size: var(--text-meta);
+}
+.workingPanel [data-verdict="warn"] {
+  background: var(--amber-tint);
+  color: var(--amber);
+}
+.workingPanel [data-verdict="block"] {
+  background: var(--red-tint);
+  color: var(--red);
+}
+.workingPanel fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--rule-control);
+}

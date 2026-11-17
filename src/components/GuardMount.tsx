@@ -22,7 +22,7 @@ export function GuardMount({
   };
   return (
     <Suspense fallback={null}>
-      <Controller repo={repo} entries={entries} />
+      <Controller repo={repo} entries={entries} current={current} />
     </Suspense>
   );
 }

@@ -108,3 +108,13 @@ Six final review images: [Explorer light](m2/explorer-light.png), [dark](m2/expl
 The blocked dialog focuses its container, with no default action. Public and sensitive-name checks start unchecked and successful review still leaves Stage disabled for M3. Component tests verify confirmation gating and that a 150 MiB file cannot be approved. Browser tests cover dropped-file review, ledger opening, focus and serious/critical axe checks in both themes. Styleguide specimens cover file tiers and repository warn/block states.
 
 Deviations: the ledger lists the largest files in the current directory rather than claiming a recursive repository scan. Move and split actions remain unavailable until M4; splitting is an estimate only. Advanced LFS is not offered without a configured, verified capability. No staging or push is implemented, and historical full-page snapshots were not regenerated under the six-image limit.
+
+## M3a working copy and push review, 2026-11-17
+
+Four final sample captures: [Pending light](m3a/pending-light.png), [dark](m3a/pending-dark.png), [conflict light](m3a/conflict-light.png), [dark](m3a/conflict-dark.png). Pending and conflict review use the shared modal, controls and theme tokens. Linked records share a discard row; verdicts retain text labels. Conflict choices start unselected and Keep mine requires a second checkbox.
+
+The mocked browser flow stages files through guards, reloads and reconnects, exports a ZIP, discards and restores it, pushes three uploads plus one deletion as one commit, then detects an upstream collision without overwriting. Axe serious/critical checks cover Pending and conflict review. Core mocked tests cover rename reuse, empty initialization, protected refs, cancellation and batching. No real-account verification is claimed; docs/manual-test-m3a.md is the owner checklist.
+
+Known limits: protected-branch recovery/retargeting is manual; conflict checking occurs at Push rather than background refresh; history is the default recent API page; ZIP backup is store-only and bounded by classic ZIP limits, with large-file memory/performance unverified. Historical full-page visual baselines were not regenerated. M3b and M3.5 were not started.
+
+Validation: npm run check passes (139 tests; static shell 148658 bytes gzip). The focused Chromium working-copy flow and Pending/conflict axe gates pass. Source checks pass after splitting UI helpers to keep components small.

@@ -1,3 +1,4 @@
+import "../i18n/working";
 import { useState } from "react";
 import {
   evaluateFile,
@@ -14,9 +15,11 @@ import styles from "./Guards.module.css";
 export function GuardReview({
   files,
   repo,
+  onStage,
 }: {
   files: readonly { name: string; size: number }[];
   repo: Repo;
+  onStage?: () => Promise<void>;
 }) {
   const [ack, setAck] = useState<string[]>([]),
     [publicConfirmed, setPublic] = useState(false),
@@ -28,6 +31,8 @@ export function GuardReview({
       files.reduce((sum, f) => sum + f.size, 0),
     ),
     batch = evaluateBatch(files.map((f) => f.size));
+  const [saving, setSaving] = useState(false),
+    [saveError, setSaveError] = useState(false);
   const confirm = (key: string) => ack.includes(key);
   const hasBlock =
     files.some((f) => evaluateFile(f.size).level === "block") ||
@@ -151,7 +156,19 @@ export function GuardReview({
         </label>
       )}
       {!hasBlock && !pending && <p role="status">{t("checksPassed")}</p>}
-      <button disabled>{t("stageM3")}</button>
+      <button
+        disabled={!onStage || hasBlock || pending || saving}
+        onClick={() => {
+          setSaving(true);
+          setSaveError(false);
+          void onStage?.()
+            .catch(() => setSaveError(true))
+            .finally(() => setSaving(false));
+        }}
+      >
+        {t(saving ? "workingBusy" : onStage ? "workingStage" : "stageM3")}
+      </button>
+      {saveError && <p role="alert">{t("workingError")}</p>}
       <p>{t("nothingStaged")}</p>
     </section>
   );

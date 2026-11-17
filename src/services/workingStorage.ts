@@ -29,9 +29,18 @@ async function read<T>(store: string, key: string): Promise<T> {
     req.onerror = () => reject(req.error);
   });
 }
+let persistenceRequested = false;
 const storage: WorkingStorage = {
   load: async () => (await read<Change[]>("meta", "current")) || [],
-  save: (rows) => write("meta", "current", rows),
+  save: async (rows) => {
+    await write("meta", "current", rows);
+    if (rows.length && !persistenceRequested) {
+      persistenceRequested = true;
+      const granted =
+        (await navigator.storage?.persist?.().catch(() => false)) ?? false;
+      await write("meta", "persistence", granted);
+    }
+  },
   put: async (key, blob) => {
     if (navigator.storage?.getDirectory) {
       const directory = await navigator.storage.getDirectory(),

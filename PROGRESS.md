@@ -4,7 +4,7 @@ Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic and UI are implemented locally, with the ledger listing-scope deviation below.
+The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic and UI are implemented locally, with the ledger listing-scope deviation below. M3 part A now has local implementation and mocked validation; remaining limits are listed below.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M1 Shell and GitHub read | Implementation done; real-account verification pending | Full selection/grid, tree/keyboard, PDF reader, Inspector, responsive panes, local preferences and mocked browser tests. Owner follows docs/manual-test-m1.md. |
 | M1.5 UI v2 | Done locally | Amendment merged in place; colour roles, command/address rows, navigation groups, revised columns, preview and counts, glyph families, Styleguide and focused accessibility tests. |
 | M2 Guards | Implemented locally with documented limits | Guard review, badges, meter and read-only ledger; real-account checks remain pending. |
-| M3 Staging and push | Part A in progress | Persistent core, atomic push and backup primitives implemented; UI integration follows. |
+| M3 Staging and push | Part A implemented locally with limits; Part B not started | Persistent staging, Pending review, atomic push, conflict choices, history restore and ZIP recovery; manual account verification pending. |
 | M3.5 Preview Plus | Not started | Spikes, isolated preview origin and mock managed tiers follow M3. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
@@ -21,6 +21,10 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- M3a UI replaces the M2 Stage placeholder only after guards pass. Working copy rows retain destination owner/repo/branch/folder, base versions, byte keys, verdict and optional linked group. Pending review groups linked changes, supports discard/undo/redo and confirms public/sensitive/large-file risks again at push. History restores run guard review before staging. No M3b creation/destination conveniences or M3.5 work was added.
+- Working-copy ZIPs are store-only with CRC checking and a versioned manifest. Persistence is requested on first save and recorded; age warning refreshes every minute, beforeunload warns while pending, and the iOS hint is recorded once in preferences. Cache eviction does not touch staged bytes.
+- The size check now follows the build manifest for bootstrap plus Explorer static dependencies instead of summing every lazy feature except named PDF chunks. The 150 KB shell threshold is unchanged, and a separate 250 KB lazy-chunk check is enforced per README section 11.
 
 - M3a core checkpoint: working-copy metadata is committed to IndexedDB only after OPFS bytes close successfully, with IndexedDB byte fallback when OPFS is unavailable. Undo/redo retains referenced bytes for this session. Store-only ZIP backups include the manifest and CRC-checked byte entries. GitHub writes share a one-second mutation scheduler and force-false ref updates; conflicts retain local work. No M3b or M3.5 work is included.
 
@@ -58,6 +62,8 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Not done
 
+M3a limitations: protected branches fail safely and retain work, with recovery branch creation/retargeting still manual; background listing refresh does not yet mark conflicts before Push. No real account, physical-device memory or browser matrix result is claimed. ZIP64/streaming large backups are not supported; classic ZIP export refuses over-limit archives. Undo retains unreferenced staged byte files for session safety; garbage collection is deferred. M3b and M3.5 remain unstarted.
+
 Preview Plus, the sandbox, broker, managed vendor adapters, cost controls and their tests are documentation requirements only; implementation and owner setup remain outstanding.
 
 M2 review UI is implemented. Repository-wide recursive largest-file enumeration remains outstanding; the ledger explicitly limits its claim to the current listing. Actual staging and push remain M3, and transfers/splitting remain M4.
@@ -76,6 +82,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 | Script-enabled HTML preview | Disabled under the stronger security policy; documented deviation. |
 
 ## Manual steps
+
+[HUMAN] Follow docs/manual-test-m3a.md using an initialized disposable repository and a short-lived Contents read/write token. Confirm atomic commit, conflicts, protected branches, history and ZIP recovery. Never share the token in chat.
 
 ### SETUP: Preview Plus and optional managed rendering
 
@@ -99,11 +107,13 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Known issues and limits
 
+- History currently lists the API default page of recent commits. Branch recovery after protection rejection remains manual. Partial sequential push success can leave earlier batches on GitHub while pending work is retained after a later failure; inspect GitHub before retrying. No silent force push is used.
+
 - Vendor prices, retention, licences, browser support, host site boundaries, CSP hosts and cloud preview permissions are unverified until the required spikes and adapter research. M2 recursive-ledger scope remains open.
 
-- Ledger largest-files scope is the current listing, not the whole repository. Unknown repo size blocks approval. No real-account verification is claimed. Stage remains a disabled M3 placeholder, so confirmation success means only that checks passed.
+- Ledger largest-files scope is the current listing, not the whole repository. Unknown repo size blocks approval. No real-account verification is claimed. Stage now persists bytes and metadata after guard approval; real-account checks remain owner-run.
 
-- Guard functions are connected to the review UI; staging and push enforcement remain M3 integration work. Repo estimates use GitHub reported KB and may lag.
+- Guard functions are connected to review, staging and push revalidation. Repo estimates use GitHub reported KB and may lag.
 
 - Four new review captures are in docs/polish. Focused Chromium tests cover persistence, keyboard and pointer sash behavior, narrow panes, breadcrumbs and disabled tooltips; independent device and screen-reader review remain pending.
 
@@ -136,3 +146,5 @@ Historical c40ca6f checkpoint validation: npm run check passes with 85 tests and
 Completed UI polish validation: npm run check passes with 85 tests, type/lint/CSS checks, production build and 148518-byte gzip shell under the unchanged budget. Three focused Chromium cases pass, including light/dark Styleguide axe and the shell interaction flow. Four review images are in docs/polish. The full historical browser snapshot suite was not run or refreshed. M2 remains unstarted.
 
 M2 UI validation: npm run check passes with 130 tests and a 153416-byte gzip shell (below 153600). Two focused Chromium/axe guard flows pass in light and dark. Six review images are retained. The recursive-ledger scope deviation remains open; no real-account or M3 result is claimed.
+
+M3a validation: core commit 5336e63 passed npm run check with 133 tests. Final integrated check passes with 139 tests, type/lint/CSS checks, build and 148658-byte gzip static Explorer shell. The focused Chromium/MSW-backed flow verifies durable reload, ZIP export/discard/restore, one commit for three uploads plus a deletion, and explicit upstream-conflict gating; Pending/conflict axe checks pass. Four light/dark review captures are in docs/m3a. No real-account result is claimed.

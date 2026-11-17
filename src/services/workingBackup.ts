@@ -28,6 +28,14 @@ export async function exportWorking(
         })),
     )),
   ];
+  if (
+    files.length > 65535 ||
+    files.reduce(
+      (sum, file) => sum + file.data.length + file.name.length + 100,
+      0,
+    ) > 0xffffffff
+  )
+    throw Error("workingInvalid");
   let offset = 0;
   const parts: BlobPart[] = [],
     central: BlobPart[] = [];
@@ -101,6 +109,14 @@ export async function parseWorking(blob: Blob) {
     throw Error("workingInvalid");
   for (const c of parsed.changes)
     if (
+      typeof c.id !== "string" ||
+      !/^[a-zA-Z0-9-]+$/.test(c.id) ||
+      !["add", "modify", "delete", "rename"].includes(c.kind) ||
+      typeof c.target?.owner !== "string" ||
+      typeof c.target?.repo !== "string" ||
+      typeof c.target?.branch !== "string" ||
+      typeof c.target?.path !== "string" ||
+      !Number.isSafeInteger(c.createdAt) ||
       !c.id ||
       !c.target?.path ||
       !Number.isSafeInteger(c.size) ||

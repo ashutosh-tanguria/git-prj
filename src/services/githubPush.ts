@@ -206,7 +206,9 @@ export async function pushChanges(
           );
           return c.kind === "add"
             ? !!existing
-            : existing?.sha !== c.baseVersion ||
+            : !existing ||
+                !c.baseVersion ||
+                existing.sha !== c.baseVersion ||
                 existing?.mode === "120000" ||
                 existing?.mode === "160000" ||
                 !!(
@@ -302,4 +304,3 @@ export async function pushChanges(
   }
   return results;
 }
-

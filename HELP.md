@@ -27,4 +27,6 @@ PDF में पृष्ठ मोड, ज़ूम, खोज, थंबन�
 
 At narrow or short heights, expand PDF controls to change fit/search/sidebar settings and collapse them again for reading. The / shortcut opens the controls and focuses search. HTML preview is sanitized before sandbox creation so even attempted external image loads are removed, in addition to the frame CSP. Local media uses only the README-approved self/blob media policy.
 
-Guard review: focus the file grid and press U, or drop local files into Shelf. Review checks only; Stage remains disabled until M3. Click the repository size in the guard strip for the read-only Size ledger, which currently covers the current listing.
+Guard review: focus the file grid and press U, or drop local files into Shelf. Review checks only; Stage saves the working copy only after guard approval. Click the repository size in the guard strip for the read-only Size ledger, which currently covers the current listing.
+
+Pending review now saves staged bytes before confirmation, supports Undo/Redo and Discard, and can download or restore a working-copy ZIP. Push always checks remote versions and guards again. Protected branches retain pending work; use an allowed branch on GitHub before recovery. History restores are staged for review rather than pushed immediately.

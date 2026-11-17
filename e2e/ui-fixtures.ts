@@ -12,7 +12,7 @@ export function releaseConnect() {
 const items = [
   ["empty", "tree", "empty-tree", 0],
   ["seminars", "tree", "seminar-tree", 0],
-  ["distributed-systems.pdf", "blob", "pdf", 14.2 * 1048576],
+  ["distributed-systems.pdf", "blob", "pdf", Math.round(14.2 * 1048576)],
   [
     "operating-systems.week-03.memory-and-concurrency-reading-notes.pdf",
     "blob",
@@ -22,7 +22,7 @@ const items = [
   ["operating-systems.md", "blob", "markdown", 12800],
   ["replication-notes.ts", "blob", "code", 7400],
   ["replication-diagram.svg", "blob", "svg", 23000],
-  ["research-archive.zip", "blob", "archive", 92.8 * 1048576],
+  ["research-archive.zip", "blob", "archive", Math.round(92.8 * 1048576)],
   ["reading-list.csv", "blob", "csv", 10240],
   ["seminar-recording.wav", "blob", "audio", 32044],
 ] as const;

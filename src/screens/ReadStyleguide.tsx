@@ -1,3 +1,5 @@
+import "../i18n/working";
+import { WorkingConflict } from "../components/WorkingConflict";
 import { GuardReview } from "../components/GuardReview";
 import { SizeLedger } from "../components/GuardViews";
 import { SampleViewers } from "./SampleViewers";
@@ -159,6 +161,7 @@ export function ReadStyleguide() {
           }}
         />
       ))}
+      <WorkingConflict paths={["sample-week3.pdf"]} onClose={() => {}} />
       <SampleViewers />
       <PendingTray />
       {[undefined, 0, 500 * 1024, 1024 * 1024].map((size, i) => (
