@@ -1,3 +1,7 @@
+import type { CollisionChoice } from "../services/folderTypes";
+import { OperationReview, type OperationJob } from "./OperationReview";
+import { directoryFiles } from "../services/folderUpload";
+import { planFolderUpload } from "../services/folderOperations";
 import { useEffect, useState } from "react";
 import { preference } from "../services/preferences";
 import type { GitRef } from "../lib/refs";
@@ -11,16 +15,19 @@ import { t } from "../i18n";
 export function HomeUpload({
   roots,
   onClose,
+  directory = false,
 }: {
   roots: Repo[];
   onClose: () => void;
+  directory?: boolean;
 }) {
+  const [job, setJob] = useState<OperationJob>();
   const [repository, setRepository] = useState(roots[0]?.full_name || ""),
     [folder, setFolder] = useState(""),
     [branch, setBranch] = useState(roots[0]?.default_branch || "main"),
     [files, setFiles] = useState<File[]>(),
     [repo, setRepo] = useState<Repo>(),
-    [error, setError] = useState(false);
+    [error, setError] = useState("");
   useEffect(() => {
     let active = true;
     void preference<GitRef | undefined>("pinnedDestination", undefined).then(
@@ -50,6 +57,7 @@ export function HomeUpload({
   };
   return (
     <section>
+      {directory && <p>{t("folderUploadHelp")}</p>}
       <label>
         {t("destination")}{" "}
         <select
@@ -76,20 +84,35 @@ export function HomeUpload({
           onChange={(e) => setFolder(e.target.value)}
         />
       </label>
-      {!files && (
+      {!files && !job && (
         <label>
           {t("uploadFiles")}{" "}
           <input
             type="file"
+            ref={(node) => {
+              if (directory) node?.setAttribute("webkitdirectory", "");
+            }}
             multiple
             disabled={!selected}
             onChange={(e) => {
               const files = Array.from(e.target.files || []);
-              setError(false);
+              if (directory) {
+                try {
+                  const items = directoryFiles(files);
+                  setJob(
+                    () => (choice?: CollisionChoice) =>
+                      planFolderUpload(target, items, choice),
+                  );
+                } catch (error) {
+                  setError((error as Error).message);
+                }
+                return;
+              }
+              setError("");
               try {
                 folderPath(folder);
               } catch {
-                setError(true);
+                setError("destinationInvalid");
                 return;
               }
               void request(
@@ -103,11 +126,12 @@ export function HomeUpload({
                   setRepo(repo);
                   setFiles(files);
                 })
-                .catch(() => setError(true));
+                .catch(() => setError("destinationInvalid"));
             }}
           />
         </label>
       )}
+      {job && <OperationReview job={job} onClose={onClose} />}
       {files && repo && (
         <GuardReview
           files={files}
@@ -129,7 +153,7 @@ export function HomeUpload({
           }}
         />
       )}
-      {error && <p role="alert">{t("destinationInvalid")}</p>}
+      {error && <p role="alert">{t(error)}</p>}
     </section>
   );
 }

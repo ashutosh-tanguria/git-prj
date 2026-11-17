@@ -1,3 +1,5 @@
+import { FolderUpload } from "./FolderUpload";
+import { droppedFiles } from "../services/folderUpload";
 import { preference } from "../services/preferences";
 import { library } from "../services/library";
 import { request } from "../providers/github/client";
@@ -25,12 +27,12 @@ export function GuardController({
     [target, setTarget] = useState(current),
     [targetRepo, setTargetRepo] = useState(repo),
     [targetEntries, setTargetEntries] = useState(entries),
-    [error, setError] = useState(false),
+    [error, setError] = useState(""),
     [ledger, setLedger] = useState(false);
   const input = useRef<HTMLInputElement>(null),
     dialog = useRef<HTMLElement>(null);
   const chooseFiles = async (files: File[]) => {
-    setError(false);
+    setError("");
     try {
       const target = await preference("pinnedDestination", current);
       const root =
@@ -49,7 +51,7 @@ export function GuardController({
       setTargetEntries(listing);
       setFiles(files);
     } catch {
-      setError(true);
+      setError("workingError");
     }
   };
   useEffect(() => {
@@ -57,7 +59,18 @@ export function GuardController({
       if (e.dataTransfer?.types.includes("Files")) {
         e.preventDefault();
         if (e.type === "drop")
-          void chooseFiles(Array.from(e.dataTransfer.files));
+          void droppedFiles(e.dataTransfer)
+            .then((result) => {
+              if (result.folders)
+                window.dispatchEvent(
+                  new CustomEvent("shelf-folder-items", {
+                    detail: result.items,
+                  }),
+                );
+              else
+                void chooseFiles(result.items.map((item) => item.blob as File));
+            })
+            .catch((error) => setError((error as Error).message));
       }
     };
     const upload = () => input.current?.click();
@@ -78,7 +91,8 @@ export function GuardController({
   }, [files, ledger]);
   return (
     <>
-      {error && <p role="alert">{t("workingError")}</p>}
+      <FolderUpload current={current} />
+      {error && <p role="alert">{t(error)}</p>}
       <input
         ref={input}
         hidden

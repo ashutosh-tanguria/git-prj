@@ -1,3 +1,5 @@
+import { GuardFile } from "./GuardFile";
+import type { GuardApproval } from "../services/folderTypes";
 import "../i18n/working";
 import { useState } from "react";
 import {
@@ -16,10 +18,12 @@ export function GuardReview({
   files,
   repo,
   onStage,
+  stagedBytes = 0,
 }: {
   files: readonly { name: string; size: number }[];
   repo: Repo;
-  onStage?: () => Promise<void>;
+  onStage?: (approval: GuardApproval) => Promise<void>;
+  stagedBytes?: number;
 }) {
   const [ack, setAck] = useState<string[]>([]),
     [publicConfirmed, setPublic] = useState(false),
@@ -28,11 +32,11 @@ export function GuardReview({
   const visibility = repo.private ? "private" : "public",
     repoVerdict = evaluateRepo(
       repo.size ?? null,
-      files.reduce((sum, f) => sum + f.size, 0),
+      stagedBytes + files.reduce((sum, f) => sum + f.size, 0),
     ),
     batch = evaluateBatch(files.map((f) => f.size));
   const [saving, setSaving] = useState(false),
-    [saveError, setSaveError] = useState(false);
+    [saveError, setSaveError] = useState("");
   const confirm = (key: string) => ack.includes(key);
   const hasBlock =
     files.some((f) => evaluateFile(f.size).level === "block") ||
@@ -93,57 +97,15 @@ export function GuardReview({
           </label>
         </>
       )}
-      {files.map((file, i) => {
-        const v = evaluateFile(file.size, /\.pdf$/i.test(file.name)),
-          name = evaluateName(file.name, visibility);
-        return (
-          <article key={i} data-level={v.level}>
-            <h3>{file.name}</h3>
-            <p>
-              {file.size} {t("bytes")}
-            </p>
-            {v.level === "block" ? (
-              <>
-                <h3>{t("fileTooLarge")}</h3>
-                <p>{t("guardFileBlock")}</p>
-                {/\.pdf$/i.test(file.name) && (
-                  <p>
-                    {t("splitPlan")} {Math.ceil(file.size / (94 * 1024 * 1024))}{" "}
-                    ×{" "}
-                    {Math.ceil(
-                      file.size /
-                        Math.ceil(file.size / (94 * 1024 * 1024)) /
-                        1024 /
-                        1024,
-                    )}{" "}
-                    MB. {t("availableAfter")} M4
-                  </p>
-                )}
-                <p>{t("providersUnavailable")}</p>
-              </>
-            ) : v.level === "warn" ? (
-              <>
-                {check("file" + i, t("stageAnyway"))}
-                <p>{t("guardFileWarn")}</p>
-                <p>{t("providersUnavailable")}</p>
-              </>
-            ) : v.level === "info" ? (
-              <span className={styles.chip}>{t("large")}</span>
-            ) : (
-              <p>{t("guardFileOk")}</p>
-            )}
-            {name.level === "warn" && (
-              <>
-                <p>
-                  {t("sensitiveWarning")} {String(name.params.match)} (
-                  {visibility})
-                </p>
-                {check("name" + i, t("sensitiveConfirm"))}
-              </>
-            )}
-          </article>
-        );
-      })}
+      {files.map((file, i) => (
+        <GuardFile
+          key={i}
+          file={file}
+          i={i}
+          visibility={visibility}
+          check={check}
+        />
+      ))}
       <p>{t(batch.code)}</p>
       {!repo.private && (
         <label className={styles.confirm}>
@@ -160,15 +122,37 @@ export function GuardReview({
         disabled={!onStage || hasBlock || pending || saving}
         onClick={() => {
           setSaving(true);
-          setSaveError(false);
-          void onStage?.()
-            .catch(() => setSaveError(true))
+          setSaveError("");
+          void onStage?.({
+            publicConfirmed,
+            warningsConfirmed:
+              (files.some((f) => evaluateFile(f.size).level === "warn") ||
+                repoVerdict.level === "warn") &&
+              !files.some(
+                (f, i) =>
+                  evaluateFile(f.size).level === "warn" && !confirm("file" + i),
+              ) &&
+              (repoVerdict.level !== "warn" || confirm("repo")),
+            sensitiveConfirmed: !files.some(
+              (f, i) =>
+                evaluateName(f.name, visibility).level === "warn" &&
+                !confirm("name" + i),
+            ),
+            repoOverride: override ? explanation : undefined,
+          })
+            .catch((error) =>
+              setSaveError(
+                error instanceof Error && t(error.message) !== error.message
+                  ? error.message
+                  : "workingError",
+              ),
+            )
             .finally(() => setSaving(false));
         }}
       >
         {t(saving ? "workingBusy" : onStage ? "workingStage" : "stageM3")}
       </button>
-      {saveError && <p role="alert">{t("workingError")}</p>}
+      {saveError && <p role="alert">{t(saveError)}</p>}
       <p>{t("nothingStaged")}</p>
     </section>
   );

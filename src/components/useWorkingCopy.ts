@@ -1,3 +1,4 @@
+import { filterLinkedChanges } from "../services/groupedChanges";
 import "../i18n/m3b";
 import { usePushChoice } from "./usePushChoice";
 import { commitMessage } from "../services/commitMessage";
@@ -195,12 +196,7 @@ export function useWorkingCopy() {
       setRepoOverride("");
     }
   };
-  const shown = rows.filter(
-      (row) =>
-        filter === "all" ||
-        row.kind === filter ||
-        (filter === "blocked" && row.verdict.level === "block"),
-    ),
+  const shown = filterLinkedChanges(rows, filter),
     groups = new Map<string, typeof rows>();
   for (const row of shown) {
     const key =

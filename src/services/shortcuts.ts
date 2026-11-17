@@ -6,6 +6,8 @@ export const defaultShortcuts = {
   cut: "Control+x",
   copy: "Control+c",
   paste: "Control+v",
+  rename: "F2",
+  delete: "Delete",
 };
 export type ShortcutAction = keyof typeof defaultShortcuts;
 function normalized(binding: string) {
@@ -13,7 +15,7 @@ function normalized(binding: string) {
     key = parts.pop();
   if (
     !key ||
-    !/^(?:[a-z0-9]|f(?:[1-9]|1[0-2]))$/.test(key) ||
+    !/^(?:[a-z0-9]|delete|f(?:[1-9]|1[0-2]))$/.test(key) ||
     new Set(parts).size !== parts.length ||
     parts.some((part) => !["alt", "control", "shift"].includes(part))
   )

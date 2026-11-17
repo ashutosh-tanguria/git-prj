@@ -1,3 +1,4 @@
+import { completeTree, repositoryTree } from "./githubTree";
 import { conflictingPaths } from "./conflictingPaths";
 import { request } from "../providers/github/client";
 import type { Change } from "./staging";
@@ -14,7 +15,7 @@ export class ConflictError extends Error {
   }
 }
 interface Tree {
-  tree: { path: string; sha: string; mode: string }[];
+  tree: { path: string; sha: string; mode: string; size?: number }[];
   truncated?: boolean;
 }
 export interface PushOptions {
@@ -110,7 +111,25 @@ export async function pushChanges(
     ).level === "block"
   )
     throw Error("guardVisibilityConfirm");
-  const blobs = new Map<string, Blob>();
+  const blobs = new Map<string, Blob>(),
+    reusedSizes = new Map<string, number>();
+  if (changes.some((c) => c.blobSha)) {
+    const remote = await repositoryTree(target, options.signal);
+    for (const c of changes.filter((c) => c.blobSha)) {
+      const node = remote.tree.find(
+        (n) => n.sha === c.blobSha && ["100644", "100755"].includes(n.mode),
+      );
+      if (!node || !Number.isSafeInteger(node.size))
+        throw Error("folderSourceChanged");
+      const guard = evaluateFile(node.size!);
+      if (
+        guard.level === "block" ||
+        (guard.level === "warn" && !options.warningsConfirmed)
+      )
+        throw Error(guard.code);
+      reusedSizes.set(c.id, node.size!);
+    }
+  }
   for (const c of changes) {
     valid(c.target.path);
     if (c.oldPath) valid(c.oldPath);
@@ -133,7 +152,8 @@ export async function pushChanges(
   }
   const repoGuard = evaluateRepo(
     repo.size,
-    [...blobs.values()].reduce((sum, b) => sum + b.size, 0),
+    [...blobs.values()].reduce((sum, b) => sum + b.size, 0) +
+      [...reusedSizes.values()].reduce((a, b) => a + b, 0),
   );
   if (
     (repoGuard.level === "block" && !options.repoOverride?.trim()) ||
@@ -144,7 +164,7 @@ export async function pushChanges(
   let current: Change[] = [],
     bytes = 0;
   for (const c of changes) {
-    const size = blobs.get(c.id)?.size || 0;
+    const size = blobs.get(c.id)?.size ?? reusedSizes.get(c.id) ?? 0;
     if (bytes + size > GITHUB.BATCH_CAP) {
       batches.push(current);
       current = [];
@@ -155,6 +175,11 @@ export async function pushChanges(
   }
   if (current.length) batches.push(current);
   const results: string[] = [];
+  const expectedRoots = new Map<string, string | undefined>(
+    changes.flatMap((c) =>
+      c.replaceTree ? [[c.replaceTree.path, c.replaceTree.sha] as const] : [],
+    ),
+  );
   let completed = 0;
   for (const batch of batches) {
     let head: string, tree: Tree;
@@ -166,9 +191,7 @@ export async function pushChanges(
       const commit = await get<{ tree: { sha: string } }>(
         root + "/git/commits/" + head,
       );
-      tree = await get<Tree>(
-        root + "/git/trees/" + commit.tree.sha + "?recursive=1",
-      );
+      tree = await completeTree(root, commit.tree.sha, options.signal);
     } catch (error) {
       if ((error as Error).message !== "EMPTY_REPO") throw error;
       const first = batch[0],
@@ -194,12 +217,41 @@ export async function pushChanges(
       const commit = await get<{ tree: { sha: string } }>(
         root + "/git/commits/" + head,
       );
-      tree = await get<Tree>(
-        root + "/git/trees/" + commit.tree.sha + "?recursive=1",
-      );
+      tree = await completeTree(root, commit.tree.sha, options.signal);
     }
     if (tree.truncated) throw Error("pushTruncated");
-    const conflicts = (remote: Tree) => conflictingPaths(batch, remote);
+    const conflicts = (remote: Tree) =>
+      conflictingPaths(
+        batch.map((c) =>
+          c.replaceTree
+            ? {
+                ...c,
+                replaceTree: {
+                  path: c.replaceTree.path,
+                  sha: expectedRoots.get(c.replaceTree.path),
+                },
+              }
+            : c,
+        ),
+        remote,
+      );
+    for (const c of batch.filter((c) => c.blobSha)) {
+      const original = tree.tree.find(
+        (n) => n.sha === c.blobSha && ["100644", "100755"].includes(n.mode),
+      );
+      if (
+        !original ||
+        !("size" in original) ||
+        !Number.isSafeInteger(original.size)
+      )
+        throw Error("folderSourceChanged");
+      const guard = evaluateFile(original.size as number);
+      if (
+        guard.level === "block" ||
+        (guard.level === "warn" && !options.warningsConfirmed)
+      )
+        throw Error(guard.code);
+    }
     const bad = conflicts(tree);
     if (bad.length) throw new ConflictError(bad);
     const entries: {
@@ -209,7 +261,7 @@ export async function pushChanges(
       sha: string | null;
     }[] = [];
     for (const c of batch) {
-      let sha = c.baseVersion || null;
+      let sha = c.blobSha || c.baseVersion || null;
       const blob = blobs.get(c.id);
       if (blob)
         sha = (
@@ -229,8 +281,10 @@ export async function pushChanges(
         path: c.target.path,
         mode:
           tree.tree.find((e) => e.path === (c.oldPath || c.target.path))
-            ?.mode || "100644",
-        type: "blob",
+            ?.mode ||
+          c.fileMode ||
+          "100644",
+        type: c.treeDelete ? "tree" : "blob",
         sha: c.kind === "delete" ? null : sha,
       });
     }
@@ -265,6 +319,14 @@ export async function pushChanges(
         );
         results.push(commit.sha);
         options.onProgress?.(++completed);
+        if (expectedRoots.size && batch !== batches.at(-1)) {
+          const after = await completeTree(root, next.sha, options.signal);
+          for (const path of expectedRoots.keys())
+            expectedRoots.set(
+              path,
+              after.tree.find((n) => n.path === path)?.sha,
+            );
+        }
         break;
       } catch (error) {
         if ((error as Error).message !== "CONFLICT" || attempt) throw error;
@@ -276,10 +338,12 @@ export async function pushChanges(
         const latest = await get<{ tree: { sha: string } }>(
           root + "/git/commits/" + head,
         );
-        const remote = await get<Tree>(
-          root + "/git/trees/" + latest.tree.sha + "?recursive=1",
+        const remote = await completeTree(
+          root,
+          latest.tree.sha,
+          options.signal,
         );
-        if (remote.truncated) throw Error("pushTruncated");
+
         const paths = conflicts(remote);
         if (paths.length) throw new ConflictError(paths);
       }

@@ -127,3 +127,10 @@ Six sample review images: [creation light](m3b/create-light.png), [dark](m3b/cre
 Historical snapshot review and final validation results are recorded in PROGRESS.md. The manual account checklist is docs/manual-test-m3b.md. M3.5 remains unstarted.
 
 Validation recovery: reviewed and refreshed only light-default, dark-default, hindi-360 and both tooltip goldens. Fixed narrow command accessible names, hover glyph text contrast, meter wrapping and zoomed command-bar overflow. All initially failing browser cases passed on targeted reruns. Final npm run check passes with 161 tests and a 149269-byte gzip shell. Native menus, Firefox and real accounts remain unverified.
+
+
+## M3c folder operations, 2026-11-17
+
+Three final sample review captures: [linked group light](m3c/linked-light.png), [dark](m3c/linked-dark.png), [collision choice](m3c/collision-light.png). A three-file rename occupies one Pending row with a count, verdict text, expandable paths and one discard action. Undo/Redo restores the complete group. Collision review names the destination and explains subtree replacement; its three choices have no preselected action. Focus moves to the review container when planning finishes. Long paths wrap inside lists.
+
+Four focused browser flows and axe pass. All ten Styleguide cases pass in light/dark and three densities, including Hindi/360px, forced colors and 200 percent simulation. The five intentional goldens were refreshed together once after development for the folder command, shortcut rows and folder specimens. Native OS/browser, screen-reader and real GitHub-account checks remain owner-run; full historical browser coverage was not repeated. Final npm run check passes with 178 tests and a 149328-byte gzip shell.

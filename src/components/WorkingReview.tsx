@@ -125,6 +125,10 @@ export function WorkingReview({
           checked={overrideConfirmed}
           onChecked={setOverrideConfirmed}
         />
+        {!!conflicts.length &&
+          rows.some((c) => c.folderBase || c.replaceTree) && (
+            <p>{t("folderConflictRestart")}</p>
+          )}
         {!!conflicts.length && (
           <WorkingConflict paths={conflicts} onClose={() => setConflicts([])} />
         )}

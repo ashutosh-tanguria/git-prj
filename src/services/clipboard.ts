@@ -5,6 +5,15 @@ import { read } from "../providers/github/client";
 import { evaluateFile } from "./guards";
 import { folderPath } from "./destinations";
 import type { Change } from "./staging";
+import { planEntries } from "./folderOperations";
+import type { CollisionChoice } from "./folderTypes";
+export function clipboardJob(destination: GitRef) {
+  const selection = clipboard;
+  return (choice?: CollisionChoice) => {
+    if (!selection?.entries.length) throw Error("clipboardEmpty");
+    return planEntries(selection.entries, destination, selection.cut, choice);
+  };
+}
 let clipboard: { entries: Entry[]; cut: boolean } | undefined;
 export function setFileClipboard(entries: Entry[], cut: boolean) {
   clipboard = { entries: [...entries], cut };

@@ -773,6 +773,10 @@ This panel is the signature screen; polish it.
 
 Entry points: context menu "Move to...", drag between Split panes, the command palette, and the Size ledger. A move is a linked pair: copy to the target, verify, then delete the source. Both appear as one row in the Pending list. At push time: write to target, read back and compare SHA-256 against the source bytes, and only then delete the source. If verification fails the source is untouched and the row shows "Not verified, source kept". Cross-provider copy follows the same path without the delete.
 
+M3c folder operations: Rename, Delete, Copy and Cut/Paste expand a selected GitHub subtree into one linked, undoable staged group with a file count. Rename and same-repository, same-branch moves reuse existing blob SHAs. Same-repository copies also reuse SHAs; cross-repository copies read immutable source blobs and stage guarded adds. Cross-repository or cross-branch Cut remains refused until M4. Symlinks and submodules stop the whole operation rather than being omitted.
+
+Upload folder supports directory-entry drops and a webkitdirectory picker, preserving the selected folder prefix. Empty directories use the disclosed .gitkeep marker. The cap is 2,000 files including markers; over-cap or incomplete enumeration stages nothing. A picker that reports no files offers New folder for an empty root. Destination collisions offer Keep both with a (shelf copy) suffix, Replace the destination subtree, or Cancel, with no default. Folder tree versions protect source completeness and destination replacement at push.
+
 ### 6.12 Search and command palette
 
 `Ctrl+K` opens one palette (a floating layer, 560px wide, results list with keyboard navigation). Prefixes switch mode: `>` commands, `/` file names, `?` full text, `@` locations, `#` tags. With no prefix it blends commands, recent files and names.
@@ -1193,6 +1197,8 @@ Edge cases to handle explicitly:
 - **Cancellation**: allowed until step 7; orphaned blobs are harmless and garbage collected by GitHub.
 - **Secondary rate limits**: at least one second between mutating requests; honour `Retry-After`.
 
+M3c subtree reads use recursive trees only when complete. A truncated response is discarded and every directory is traversed non-recursively using immutable tree SHAs. A truncated non-recursive response or inaccessible/special entry stops the entire operation. Source and replacement-root SHA checks detect upstream additions as well as changed files. During sequential replacement commits, expected destination roots advance only after Shelf's own successful ref update. Executable file modes are preserved.
+
 ### 10.4 Data model and storage layout
 
 ```ts
@@ -1371,6 +1377,7 @@ Each milestone ends green: `npm run check` passes, `PROGRESS.md` is updated, and
 | M1.5 UI v2 | 5.3 colour tokens and contrast tests, File Explorer command/address bars, navigation, details columns, preview, counts, colourful glyphs, Styleguide and snapshots. Later features remain disabled with milestone tooltips | Contrast registry passes both themes; responsive Explorer and Styleguide snapshots reviewed |
 | M2 Guards | `limits.ts`, all verdicts, repo meter, visibility badge, sensitive-name warning, Size ledger (read-only), all guard dialogs, locale keys en and hi | All boundary tests pass; 150 MB file blocked; public push needs the checkbox |
 | M3 Staging and push | Create repository with capability detection and fallback (6.17), destination/folder picker, automatic messages, push popover, quick push, cut/copy/paste, remappable shortcut registry; Staging store, OPFS persistence, Pending tray and review, atomic GitHub push, conflict dialog, history and restore, working-copy export and restore, undo and redo | 3 uploads plus 1 delete become one commit; conflict never overwrites |
+| M3c Folder operations | Linked subtree rename/delete/copy/move, guarded cross-repository copy, directory upload, complete tree fallback and explicit collision review | Three-file rename is one commit with zero blob uploads; group undo and cap/truncation/collision tests pass |
 | M3.5 Preview Plus | Office and project spikes, isolated sandbox, virtual site, Office quick view, media verification, hand-off and conditional local heavy tiers; mock vendor adapters, consent and cost controls | Spike decisions documented; isolation and mock-vendor acceptance tests pass; no real accounts required |
 | M4 Other providers and moves | Drive, Dropbox, OneDrive providers, consented provider cloud-render Tier 3, Local folder import and export, cross-provider move and copy with verification, Split view, PDF split | Contract suite green for every provider; move verifies hash |
 | M5 Library features | Cache with LRU and pinning, offline open, full-text search, command palette, Collections and tags, duplicate finder, ZIP export, Grid and Column views | Offline PDF reopens at the saved page; search returns page numbers |
@@ -1427,6 +1434,13 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 40. A file with a sensitive name always asks for fresh confirmation before any cloud send.
 41. A Tier E sandbox for a public repo shows a countdown, stops at 15 minutes, and is deleted on tab close or by the watchdog (verified against the mock).
 42. `docs/costs.md` states the monthly ceiling, how it is enforced, and where to change it.
+43. Renaming a folder containing three files stages one linked group with a three-file count; Undo/Redo affects the whole group, and Push creates one commit with zero blob uploads.
+44. Delete folder stages every file deletion. A new upstream file or changed subtree SHA raises a conflict before mutation, with nothing silently omitted.
+45. Folder Copy and Cut/Paste within a repository preserve subtree paths and reuse blob SHAs. Cross-repository Copy reads immutable file bytes and runs file, repository, visibility, name and 500 MB batch guards; cross-repository Cut is refused explicitly until M4.
+46. Upload folder works through directory-entry drops and the directory picker, preserving the folder prefix and .gitkeep markers. More than 2,000 files yields a clear error and stages nothing.
+47. A truncated recursive tree falls back to complete per-folder enumeration. A truncated non-recursive response, inaccessible child or unsupported special entry fails the whole operation without publishing a partial group.
+48. Rename or Paste onto an existing path requires an explicit Keep both, Replace or Cancel choice. No option is selected; Keep both generates a free (shelf copy) suffix and Replace checks the destination tree version again at Push.
+49. Pending filters retain complete linked groups; discard and undo do not leave half a folder operation. Add-only destination changes retain nested paths. Case and Unicode normalization collisions are warned about without changing Git paths.
 
 ---
 

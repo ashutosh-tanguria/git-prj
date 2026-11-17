@@ -4,14 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Modal, Dialog, Heading } from "react-aria-components";
 import { CreateRepository } from "./CreateRepository";
 import { ShortcutSettings } from "./ShortcutSettings";
-import { GuardReview } from "./GuardReview";
-import { staging } from "../services/workingStorage";
-import { setFileClipboard, planPaste } from "../services/clipboard";
+import { OperationReview, type OperationJob } from "./OperationReview";
+import "../i18n/m3c";
+import { selectionJob } from "../services/selectionJob";
+import { setFileClipboard, clipboardJob } from "../services/clipboard";
 import { defaultShortcuts } from "../services/shortcuts";
 import { useCommandRegistry } from "./useCommandRegistry";
 import { preference } from "../services/preferences";
-import { prepareFileCommand } from "../services/fileCommands";
-import type { Change } from "../services/staging";
 import type { Repo, Entry } from "../services/library";
 import type { GitRef } from "../lib/refs";
 import { Button } from "../ui/Button";
@@ -35,15 +34,18 @@ export function LibraryCommands({
   const [action, setAction] = useState(""),
     [name, setName] = useState(""),
     [error, setError] = useState(""),
-    [plan, setPlan] = useState<(Change & { blob?: Blob })[]>(),
+    [job, setJob] = useState<OperationJob>(),
+    [notice, setNotice] = useState(""),
     [bindings, setBindings] = useState(defaultShortcuts);
   useEffect(() => {
-    void preference("shortcuts", defaultShortcuts).then(setBindings);
+    void preference("shortcuts", defaultShortcuts).then((saved) =>
+      setBindings({ ...defaultShortcuts, ...saved }),
+    );
   }, []);
   const dispatch = async (action: string) => {
     setError("");
     setName("");
-    setPlan(undefined);
+    setJob(undefined);
     if (action === "push") {
       window.dispatchEvent(new Event("working-review"));
       return;
@@ -52,35 +54,24 @@ export function LibraryCommands({
       setAction("uploadFiles");
       return;
     }
+    if (action === "uploadFolder" && current) {
+      window.dispatchEvent(new Event("shelf-upload-folder"));
+      return;
+    }
     if (action === "uploadFiles") {
       window.dispatchEvent(new Event("shelf-upload"));
       return;
     }
     if (action === "cut" || action === "copy") {
       setFileClipboard(selection, action === "cut");
+      setNotice(action === "cut" ? t("folderCutNote") : "");
       return;
     }
     if (action === "rename" && selection.length === 1)
       setName(selection[0].name);
     setAction(action);
     if (action === "settings") location.hash = "#/settings/keyboard";
-    if (action === "paste" && current) {
-      try {
-        setPlan(await planPaste(current));
-      } catch (e) {
-        setError(
-          [
-            "clipboardEmpty",
-            "clipboardFilesOnly",
-            "clipboardSamePath",
-            "clipboardCrossRepository",
-            "destinationInvalid",
-          ].includes((e as Error).message)
-            ? (e as Error).message
-            : "commandError",
-        );
-      }
-    }
+    if (action === "paste" && current) setJob(() => clipboardJob(current));
   };
   useCommandRegistry(bindings, dispatch);
   useEffect(() => {
@@ -107,7 +98,7 @@ export function LibraryCommands({
             previous.current.path
           : "#/";
       setAction("");
-      setPlan(undefined);
+      setJob(undefined);
     };
   const prepare = () => {
     if (!current || !repo) {
@@ -115,7 +106,7 @@ export function LibraryCommands({
       return;
     }
     try {
-      setPlan(prepareFileCommand(action, current, selection, name));
+      setJob(() => selectionJob(action, current, selection, name));
     } catch (e) {
       setError((e as Error).message);
     }
@@ -128,7 +119,7 @@ export function LibraryCommands({
         onRefresh={onRefresh}
       />
     );
-  if (!action) return null;
+  if (!action) return notice ? <p role="status">{notice}</p> : null;
   return (
     <Modal
       isOpen
@@ -141,8 +132,12 @@ export function LibraryCommands({
         <Heading slot="title">
           {t(action === "settings" ? "commandSettings" : action)}
         </Heading>
-        {action === "uploadFiles" ? (
-          <HomeUpload roots={roots} onClose={close} />
+        {action === "uploadFiles" || action === "uploadFolder" ? (
+          <HomeUpload
+            roots={roots}
+            onClose={close}
+            directory={action === "uploadFolder"}
+          />
         ) : action === "settings" ? (
           <ShortcutSettings
             bindings={bindings}
@@ -151,18 +146,8 @@ export function LibraryCommands({
               close();
             }}
           />
-        ) : plan && repo ? (
-          <GuardReview
-            files={plan.map((c) => ({
-              name: c.target.path,
-              size: c.kind === "delete" || c.kind === "rename" ? 0 : c.size,
-            }))}
-            repo={repo}
-            onStage={async () => {
-              await staging.stage(plan);
-              close();
-            }}
-          />
+        ) : job ? (
+          <OperationReview job={job} onClose={close} />
         ) : action !== "paste" ? (
           <>
             {action !== "delete" && (

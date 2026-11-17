@@ -118,6 +118,10 @@ function CommandActions() {
           action="uploadFiles"
           icon="M8 12V2m-4 4 4-4 4 4M2 11v3h12v-3"
         />
+        <CommandAction
+          action="uploadFolder"
+          icon="M2 4h5l2 2h5v8H2ZM8 12V7m-2 2 2-2 2 2"
+        />
         <CommandAction action="newRepository" />
       </div>
       <div>

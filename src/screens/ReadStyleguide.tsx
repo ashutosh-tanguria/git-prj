@@ -1,3 +1,4 @@
+import { FolderSpecimens } from "./FolderSpecimens";
 import { M3bSpecimens } from "./M3bSpecimens";
 import "../i18n/working";
 import { WorkingConflict } from "../components/WorkingConflict";
@@ -164,6 +165,7 @@ export function ReadStyleguide() {
       ))}
       <WorkingConflict paths={["sample-week3.pdf"]} onClose={() => {}} />
       <M3bSpecimens />
+      <FolderSpecimens />
       <SampleViewers />
       <PendingTray />
       {[undefined, 0, 500 * 1024, 1024 * 1024].map((size, i) => (

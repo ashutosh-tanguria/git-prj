@@ -4,7 +4,7 @@ Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic and UI are implemented locally, with the ledger listing-scope deviation below. M3 parts A and B have local implementation and mocked validation; remaining limits are listed below. M3.5 is not started.
+The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic and UI are implemented locally, with the ledger listing-scope deviation below. M3 parts A and B have local implementation and mocked validation; remaining limits are listed below. M3c folder operations are implemented locally with mocked validation. M3.5 is not started.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
@@ -14,6 +14,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M1.5 UI v2 | Done locally | Amendment merged in place; colour roles, command/address rows, navigation groups, revised columns, preview and counts, glyph families, Styleguide and focused accessibility tests. |
 | M2 Guards | Implemented locally with documented limits | Guard review, badges, meter and read-only ledger; real-account checks remain pending. |
 | M3 Staging and push | Parts A and B implemented locally with documented limits | Durable staging and recovery, creation, destination paths, pinned and guarded quick push, file clipboard commands and shortcut Settings; manual account and native-browser checks pending. |
+| M3c Folder operations | Implemented locally; owner account/device checks pending | Complete subtree plans, linked groups, collision choices, guarded folder copy and directory import. README acceptance 43 to 49. |
 | M3.5 Preview Plus | Not started | Spikes, isolated preview origin and mock managed tiers follow M3. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
@@ -22,7 +23,14 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Decisions
 
-- M3b UI: active New repository, New folder, Upload, Rename, Delete, Cut, Copy, Paste and Push controls use durable guard-reviewed staging. New folder uses a disclosed .gitkeep marker. Copy keeps the source and stages read bytes; the same-repository rename rule applies to Cut/Paste. Cross-repository Cut remains refused until M4 verified transfers. Directory-wide clipboard/rename/delete remain explicitly refused.
+- M3c: source folders use immutable tree SHAs. Recursive responses marked truncated are discarded and each directory is read non-recursively; a truncated or inaccessible child fails the whole operation. Special entries are never silently omitted. Source tree stamps detect newly added upstream files at Push, and replacement stamps protect the whole destination. Expected replacement roots advance only after Shelf's own successful sequential commit.
+- Same-repository, same-branch folder Cut/rename reuses blob SHAs and preserves executable modes. Same-repository Copy reuses SHAs; cross-repository Copy reads immutable raw blobs one at a time through durable persistence. No metadata is published until the complete group and its guards succeed. Failed byte materialization can leave unreferenced byte files, as with existing staging; it never publishes a partial pending group.
+- Collision choices have no default. Keep both generates a free (shelf copy) sibling name; Replace removes the existing destination subtree, including superseded pending work, in the same undoable stage action. Source folders with existing pending changes must be reviewed/discarded before a remote-subtree operation, preventing silent omission of local work. Filtering Pending retains every member of a linked group.
+- Folder imports preserve the top-level directory prefix. Directory readers are drained through every batch, and empty directories get disclosed .gitkeep markers. The cap is 2,000 entries including markers, checked before publication. A directory picker cannot identify an empty root if the browser returns no files; the UI explicitly directs the owner to New folder.
+- F2 and Delete now use the remappable registry and respect file-list focus, text editing and open dialogs. Add-only retargeting preserves nested group paths. SHA-only pending copies cannot be retargeted across repositories; copy the original into the intended repository to materialize bytes. Cross-repository or cross-branch Cut remains refused until M4.
+- Confirmed the tree truncation/non-recursive fallback and immutable raw-blob endpoint against primary GitHub documentation: [Git trees](https://docs.github.com/en/rest/git/trees), [Git blobs](https://docs.github.com/en/rest/git/blobs). No real-account writes or additional runtime host/dependency were introduced.
+
+- M3b UI: active New repository, New folder, Upload, Rename, Delete, Cut, Copy, Paste and Push controls use durable guard-reviewed staging. New folder uses a disclosed .gitkeep marker. Copy keeps the source and stages read bytes; the same-repository rename rule applies to Cut/Paste. Cross-repository Cut remains refused until M4 verified transfers. Directory-wide clipboard/rename/delete were enabled in M3c.
 - Destination changes apply atomically to all pending additions, preserving byte keys and undo history. Mixed plans with existing-file operations cannot be retargeted, to preserve their base versions. Folder and branch suggestions use the provider; new folder paths become commit paths. Home uploads ask for a destination before choosing files, allowing the correct visibility and size guards before staging. A pin applies to later uploads and can be removed by unchecking and applying it.
 - Push opens full review on first use, changed destination, public visibility, non-OK guards, sensitive names, unknown preflight or conflicts. Quick push checks the current remote tree before opening and still re-runs every push guard. Public/warning confirmations reset on changed pending work. Destination editing and pending mutations are unavailable while pushing, and cancellation remains available before the ref update. Successful pushes expose commit links.
 - New repository uses actual POST authorization as capability detection, private and README defaults, live validation and debounced availability. Owner memberships are candidates subject to server policy, not a promise of creation permission. Creation 422 is not falsely classified as permission or duplicate name when the existing provider abstraction cannot distinguish them. The fallback guide and repository refresh remain available.
@@ -71,7 +79,9 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Not done
 
-M3b manual real-account checks, native browser menus, Firefox, screen readers and physical devices are not verified. Directory-wide operations and cross-repository Cut are not enabled. Destination retargeting is limited to add-only plans. Owner and branch suggestions currently cover the first 100 API results; an exact branch/repository can still be entered. Historical Styleguide goldens were reviewed and intentionally refreshed in the validation recovery task. The initial full-suite failure count and subsequent targeted results are recorded below. No M3.5 work was started.
+M3c real-account and native OS directory-drop verification are owner-run. Repository/branch changes involving Cut remain M4. Cross-repository Git LFS pointer copying is refused to avoid orphaning LFS data. Unsupported symlinks/submodules fail the entire operation. No M3.5 work was started.
+
+M3b manual real-account checks, native browser menus, Firefox, screen readers and physical devices are not verified. Directory-wide operations are implemented in M3c; cross-repository Cut remains disabled. Destination retargeting is limited to add-only plans. Owner and branch suggestions currently cover the first 100 API results; an exact branch/repository can still be entered. Historical Styleguide goldens were reviewed and intentionally refreshed in the validation recovery task. The initial full-suite failure count and subsequent targeted results are recorded below. No M3.5 work was started.
 
 M3a limitations: protected branches fail safely and retain work, with recovery branch creation/retargeting still manual; background listing refresh does not yet mark conflicts before Push. No real account, physical-device memory or browser matrix result is claimed. ZIP64/streaming large backups are not supported; classic ZIP export refuses over-limit archives. Undo retains unreferenced staged byte files for session safety; garbage collection is deferred. M3b local implementation is described below. M3.5 remains unstarted.
 
@@ -93,6 +103,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 | Script-enabled HTML preview | Disabled under the stronger security policy; documented deviation. |
 
 ## Manual steps
+
+[HUMAN] M3c: use a disposable GitHub repository and short-lived Contents read/write token. Rename and delete a three-file folder, verify the single commit and blob SHA reuse, Undo/Redo and group discard. Copy to a second disposable repository and inspect bytes, public/sensitive confirmations and collision choices. Try a native OS directory drop, the directory picker, an empty folder and a folder over 2,000 files in your browsers. Verify case-only names and an upstream added file. Revoke tokens afterward; no real-account verification is claimed here.
 
 [HUMAN] Follow docs/manual-test-m3b.md with disposable repositories and short-lived fine-grained tokens. Use the recommended selected-repository Contents read/write preset for reading and push; add authorized Repository creation write or Administration write only when creation is needed. For a non-main owner default, branch rename additionally needs Contents write and Administration write. Organization approval/resource coverage is owner-managed. Test Firefox and native Chrome/Edge menus; revoke tokens after inspection. No token, OAuth app or secret needs to be committed.
 
@@ -119,6 +131,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 [HUMAN] Review the new Explorer/Inspector/PDF/360px captures and intentional Styleguide baselines in docs/design-qa.md. Review the bounded-preview and scriptless-HTML choices above. Configure a Git remote if CI should run remotely. Authorize M2 separately when ready.
 
 ## Known issues and limits
+
+- M3c: a changed source/replacement tree requires discarding and restaging the complete folder. Per-file conflict choices cannot waive the subtree completeness check. SHA-only copies redirected to another repository must be recreated from the original selection. Existing first-100 repository/branch suggestion limits, physical-device performance and native browser/OS checks remain. OS directory drops operate in an open repository; the library-home Upload folder action asks for a destination first.
 
 - M3b browser record: Chrome 157.0.8103.78 and Edge 157.0.4341.60 passed automated headless Alt+N/M/P delivery. This does not verify native browser menu conflicts. Firefox was not found in the standard Program Files or per-user installation paths, so its check is unverified. See docs/m3b-browser-checks.json and the owner checklist.
 - Repository creation with a non-main owner default can require broader branch-rename permission than creation itself. Unknown or refused branch normalization produces a warning and retains the created repository; refresh before retrying a creation after an uncertain network result. No real account was used.
@@ -177,3 +191,11 @@ M3a validation: core commit 5336e63 passed npm run check with 133 tests. Final i
 - Remaining limits: no real-account verification, native browser-menu conflict check, Firefox executable, screen-reader or physical-device result is claimed. Add-only destination retargeting, file-only clipboard commands, first-100 suggestions and cross-repository Cut restrictions remain as documented. AGENTS.md and untracked amendment files were left untouched.
 
 Final recovery validation: npm run check passes with 161 tests, typecheck, lint, CSS policy, build and a 149269-byte gzip shell. All 14 initially failing browser cases passed in subsequent targeted runs; no known browser failure remains from this audit. The complete suite was run once (initially 25/39), not repeated as a single final run. Focused unit coverage is 30 tests across the six requested files, and all five focused M3b/browser cases passed.
+
+
+### M3c validation
+
+- npm run check passes with 178 tests, typecheck, lint, CSS policy, production build and a 149328-byte gzip shell. The first check caught two legacy Boolean error assignments in HomeUpload; both were corrected before the passing run.
+- Focused development coverage: 34 unit/component tests across folder planning, staging, push, guard review, shortcut parsing and existing M3b UI. Folder-specific MSW cases include rename/delete, zero-blob SHA reuse, cross-repository file limits and LFS refusal, 500 MB sequential replacement copies, truncated-tree fallback during planning and push, collision choices, group undo, empty markers, all directory-reader batches and the over-cap rejection.
+- Four folder browser flows pass, covering F2 rename, linked Pending/Undo/Redo, one atomic commit and zero blob uploads, Keep both/Replace/Cancel, OS entry enumeration over the cap, directory-picker prefixes, axe and Hindi/light/dark reflow. All ten Styleguide cases pass, including three densities, forced colors and 200 percent simulation. The full historical browser suite was not rerun. No tests were skipped or deleted.
+- Playwright goldens were updated in one final update run, only for intentional changes: light-default.png, dark-default.png, hindi-360.png, tooltip-light.png and tooltip-dark.png. Changes are the Upload folder command, the F2/Delete shortcut rows and folder group/collision specimens. Three final sample review captures are retained in docs/m3c; incidental historical docs captures were restored. No real-account verification or M3.5 work is claimed.

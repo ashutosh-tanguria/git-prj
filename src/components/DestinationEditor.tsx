@@ -28,7 +28,8 @@ export function DestinationEditor({
     ),
     [branch, setBranch] = useState(first?.branch || "main"),
     [folder, setFolder] = useState(
-      first?.path.split("/").slice(0, -1).join("/") || "",
+      (rows[0]?.groupLabel || first?.path)?.split("/").slice(0, -1).join("/") ||
+        "",
     ),
     [folders, setFolders] = useState<string[]>([]),
     [branches, setBranches] = useState<string[]>([]),

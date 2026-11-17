@@ -26,7 +26,9 @@ export function useCommandRegistry(
       for (const action of Object.keys(bindings) as ShortcutAction[]) {
         if (!shortcutMatches(event, bindings[action])) continue;
         if (
-          ["cut", "copy", "paste", "uploadFiles"].includes(action) &&
+          ["cut", "copy", "paste", "uploadFiles", "rename", "delete"].includes(
+            action,
+          ) &&
           !(event.target as HTMLElement).closest('[role="grid"]')
         )
           return;

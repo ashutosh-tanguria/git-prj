@@ -5,6 +5,13 @@ export interface Change {
   target: GitRef;
   kind: "add" | "modify" | "delete" | "rename";
   baseVersion?: string;
+  blobSha?: string;
+  treeDelete?: boolean;
+  fileMode?: string;
+  replaceVersion?: string;
+  folderBase?: { path: string; sha: string };
+  replaceTree?: { path: string; sha?: string };
+  groupLabel?: string;
   oldPath?: string;
   blobKey?: string;
   size: number;
@@ -64,11 +71,19 @@ export function createStaging(storage: WorkingStorage) {
         initialized = true;
         publish();
       }),
-    stage: (changes: (Omit<Change, "blobKey"> & { blob?: Blob })[]) =>
+    stage: (
+      changes: (Omit<Change, "blobKey"> & {
+        blob?: Blob;
+        loadBlob?: () => Promise<Blob>;
+      })[],
+      replaceIds: string[] = [],
+      validate?: (next: Change[]) => void,
+    ) =>
       serial(async () => {
         await initialize();
         const next: Change[] = [];
-        for (const { blob, ...change } of changes) {
+        for (const { blob: existingBlob, loadBlob, ...change } of changes) {
+          const blob = existingBlob || (await loadBlob?.());
           if (blob && evaluateFile(blob.size).level === "block")
             throw Error("guardFileBlock");
           if (blob) {
@@ -76,7 +91,12 @@ export function createStaging(storage: WorkingStorage) {
             next.push({ ...change, blobKey: change.id, size: blob.size });
           } else next.push(change);
         }
-        await replace([...rows, ...next]);
+        const combined = [
+          ...rows.filter((c) => !replaceIds.includes(c.id)),
+          ...next,
+        ];
+        validate?.(combined);
+        await replace(combined);
       }),
     discard: (ids: string[]) =>
       serial(() => replace(rows.filter((row) => !ids.includes(row.id)))),
