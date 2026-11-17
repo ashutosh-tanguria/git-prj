@@ -144,6 +144,7 @@ for (const theme of ["light", "dark"])
       (theme) => (document.documentElement.dataset.theme = theme),
       theme,
     );
+    await page.getByRole("button", { name: "Connect", exact: true }).click();
     await page.getByLabel("GitHub token").fill("sample-token");
     await page.getByRole("button", { name: "Validate token" }).click();
     await page.getByRole("grid").focus();
@@ -179,7 +180,7 @@ for (const theme of ["light", "dark"])
     });
     const url = page.url();
     await page.reload();
-    await expect(page.getByLabel("GitHub token")).toBeVisible();
+    await page.getByRole("button", { name: "Connect", exact: true }).click();
     await page.getByLabel("GitHub token").fill("sample-token");
     await page.getByRole("button", { name: "Validate token" }).click();
     await expect(page.getByLabel("PDF page", { exact: true })).toBeVisible();
@@ -208,6 +209,7 @@ async function mockedConnect(
     });
   });
   await page.goto("/" + hash);
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
   await page.getByLabel("GitHub token").fill("sample-token");
   await page.getByRole("button", { name: "Validate token" }).click();
   await expect(page.getByRole("grid")).toBeVisible();
@@ -243,6 +245,7 @@ test("selection, roving focus, typeahead, resize and persisted sort", async ({
     .getByRole("button")
     .click();
   await page.reload();
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
   await page.getByLabel("GitHub token").fill("sample-token");
   await page.getByRole("button", { name: "Validate token" }).click();
   await expect(
@@ -350,6 +353,7 @@ for (const theme of ["light", "dark"])
     );
     expect(violations).toEqual([]);
     await page.reload();
+    await page.getByRole("button", { name: "Connect", exact: true }).click();
     await page.getByLabel("GitHub token").fill("sample-token");
     await page.getByRole("button", { name: "Validate token" }).click();
     await expect(page.getByLabel("Page", { exact: true })).toHaveValue("7");
@@ -482,6 +486,8 @@ test("keyboard-only connect, browse, Quick Look, tree, address, parent and histo
     });
   });
   await page.goto("/#/gh/ada/notes@main/");
+  await tabTo(page, page.getByRole("button", { name: "Connect", exact: true }));
+  await page.keyboard.press("Enter");
   await tabTo(page, page.getByLabel("GitHub token"));
   await page.keyboard.type("sample-token");
   await page.keyboard.press("Tab");

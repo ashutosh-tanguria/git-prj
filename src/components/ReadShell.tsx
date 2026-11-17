@@ -4,7 +4,7 @@ import { Locations } from "./Locations";
 import { Inspector } from "./Inspector";
 import { PaneLayer } from "./PaneLayer";
 import { usePanels } from "./usePanels";
-import { Button } from "../ui/Button";
+import { ActionIcon } from "../ui/ActionIcon";
 import { t } from "../i18n";
 import type { Entry, Repo } from "../services/library";
 import styles from "./Library.module.css";
@@ -24,8 +24,7 @@ export function ReadShell({
   onParent: () => void;
 }) {
   const panels = usePanels(),
-    main = useRef<HTMLElement>(null),
-    trigger = useRef<HTMLButtonElement>(null);
+    main = useRef<HTMLElement>(null);
   const restore = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -60,7 +59,9 @@ export function ReadShell({
     requestAnimationFrame(() =>
       (restore.current?.isConnected
         ? restore.current
-        : trigger.current
+        : document.querySelector<HTMLButtonElement>(
+            '[aria-label="' + t(kind) + '"]',
+          )
       )?.focus(),
     );
   };
@@ -83,27 +84,24 @@ export function ReadShell({
         ))}
       </div>
       <div className={styles.paneControls}>
-        <button
-          ref={trigger}
-          className={styles.paneButton}
-          onClick={() => {
+        <ActionIcon
+          name="locations"
+          label={t("locations")}
+          aria-pressed={panels.locations}
+          onPress={() => {
             restore.current = document.activeElement as HTMLElement;
             panels.setLocations(!panels.locations);
           }}
-          aria-expanded={panels.locations}
-        >
-          {t("locations")}
-        </button>
-        <Button onPress={onParent}>{t("parent")}</Button>
-        <Button
+        />
+        <ActionIcon
+          name="inspector"
+          label={t("inspector")}
+          aria-pressed={panels.inspector}
           onPress={() => {
             restore.current = document.activeElement as HTMLElement;
             panels.setInspector(!panels.inspector);
           }}
-          aria-expanded={panels.inspector}
-        >
-          {t("inspector")}
-        </Button>
+        />
       </div>
       <div
         className={styles.readBody}

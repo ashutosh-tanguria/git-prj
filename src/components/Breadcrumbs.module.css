@@ -1,0 +1,69 @@
+.bar {
+  display: flex;
+  flex: 1;
+  min-inline-size: 0;
+  background: var(--pane);
+  border: var(--border-width) solid var(--rule-control);
+  border-radius: var(--radius-control);
+}
+.bar nav {
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+}
+.bar button,
+.bar summary {
+  border: 0;
+  background: transparent;
+  color: var(--ink-1);
+  min-block-size: var(--control-height);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  font: inherit;
+  white-space: nowrap;
+  max-inline-size: var(--thumb-large);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ancestor {
+  display: flex;
+  align-items: center;
+  color: var(--ink-3);
+}
+.bar .empty {
+  flex: 1;
+  min-inline-size: var(--space-6);
+}
+.bar details {
+  display: none;
+  position: relative;
+}
+.bar[data-deep] .ancestor {
+  display: none;
+}
+.bar[data-deep] details {
+  display: block;
+}
+.bar details > div {
+  position: absolute;
+  inset-block-start: var(--full);
+  z-index: var(--layer-menu);
+  display: flex;
+  flex-direction: column;
+  background: var(--raised);
+  border: var(--border-width) solid var(--rule-control);
+  border-radius: var(--radius-layer);
+  box-shadow: var(--elevation);
+}
+.bar button:hover,
+.bar summary:hover {
+  background: var(--hover);
+}
+@media (width < 1400px) {
+  .bar .ancestor {
+    display: none;
+  }
+  .bar details {
+    display: block;
+  }
+}

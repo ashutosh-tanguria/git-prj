@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "../ui/Button";
+import { ActionIcon } from "../ui/ActionIcon";
+import { Breadcrumbs } from "./Breadcrumbs";
 import { t } from "../i18n";
+import { parseRef, refString } from "../lib/refs";
 import styles from "./Library.module.css";
-import v2 from "./ExplorerV2.module.css";
 export function AddressBar({
   value,
   onGo,
@@ -14,100 +15,94 @@ export function AddressBar({
 }) {
   const [draft, setDraft] = useState(value),
     [editing, setEditing] = useState(false);
-  const field = useRef<HTMLInputElement>(null);
-  useEffect(() => {
+  const field = useRef<HTMLInputElement>(null),
+    editButton = useRef<HTMLButtonElement>(null);
+  const edit = () => {
     setDraft(value);
-  }, [value]);
+    setEditing(true);
+    requestAnimationFrame(() => {
+      field.current?.focus();
+      field.current?.select();
+    });
+  };
+  const finish = () => {
+    setEditing(false);
+    requestAnimationFrame(() => editButton.current?.focus());
+  };
   useEffect(() => {
-    const listener = (e: KeyboardEvent) => {
+    const key = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
         e.preventDefault();
-        setEditing(true);
-        requestAnimationFrame(() => {
-          field.current?.focus();
-          field.current?.select();
-        });
+        edit();
       }
     };
-    window.addEventListener("keydown", listener);
-    return () => window.removeEventListener("keydown", listener);
-  }, []);
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [value]);
+  const parent = () => {
+    try {
+      const r = parseRef(value);
+      onGo(
+        refString({
+          ...r,
+          path: r.path.replace(/\/$/, "").split("/").slice(0, -1).join("/"),
+        }),
+      );
+    } catch {
+      /* Connect has no parent location. */
+    }
+  };
   return (
     <form
       className={styles.toolbar}
       onSubmit={(e) => {
         e.preventDefault();
         onGo(draft);
-        setEditing(false);
+        finish();
       }}
     >
-      <Button
-        variant="quiet"
-        aria-label={t("back")}
+      <ActionIcon
+        name="back"
+        label={t("back")}
         onPress={() => history.back()}
-      >
-        <svg
-          className={styles.actionGlyph}
-          viewBox="0 0 16 16"
-          aria-hidden="true"
-        >
-          <path d="m9 3-5 5 5 5M4 8h9" />
-        </svg>
-        <span className={styles.historyText}>{t("back")}</span>
-      </Button>
-      <Button
-        variant="quiet"
-        aria-label={t("forward")}
+      />
+      <ActionIcon
+        name="forward"
+        label={t("forward")}
         onPress={() => history.forward()}
-      >
-        <svg
-          className={styles.actionGlyph}
-          viewBox="0 0 16 16"
-          aria-hidden="true"
-        >
-          <path d="m7 3 5 5-5 5M3 8h9" />
-        </svg>
-        <span className={styles.historyText}>{t("forward")}</span>
-      </Button>
-      <label className={styles.address}>
-        <span className={styles.addressLabel}>{t("address")}</span>
-        <input
-          ref={field}
-          aria-label={t("address")}
-          value={draft}
-          onFocus={() => setEditing(true)}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setDraft(value);
-              setEditing(false);
-              e.currentTarget.blur();
-            }
-          }}
-          readOnly={!editing}
-          list="address-completion"
-        />
-      </label>
-      <datalist id="address-completion">
-        <option value={value} />
-        <option value={value.slice(0, value.lastIndexOf("/"))} />
-      </datalist>
-      <Button type="submit">{t("go")}</Button>
-      <Button
-        variant="quiet"
-        aria-label={t("refresh")}
+      />
+      <ActionIcon name="parent" label={t("parent")} onPress={parent} />
+      <ActionIcon
+        name="refresh"
+        label={t("refresh")}
         onPress={onRefresh}
-        isDisabled={!onRefresh}
-      >
-        {t("refresh")}
-      </Button>
-      <label className={v2.search} title={t("searchLater")}>
-        <input
-          aria-label={t("searchFolder")}
-          placeholder={t("searchFolder")}
-          disabled
+        aria-disabled={!onRefresh || undefined}
+      />
+      {editing ? (
+        <label className={styles.address}>
+          <span className={styles.addressLabel}>{t("address")}</span>
+          <input
+            ref={field}
+            aria-label={t("address")}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                setDraft(value);
+                finish();
+              }
+            }}
+          />
+        </label>
+      ) : (
+        <Breadcrumbs
+          value={value}
+          onGo={onGo}
+          onEdit={edit}
+          editRef={editButton}
         />
-      </label>
+      )}
     </form>
   );
 }

@@ -1,0 +1,8 @@
+.icon {
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke);
+  flex-shrink: 0;
+}

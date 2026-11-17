@@ -139,5 +139,12 @@
   "itemSummary_one": "{{count}} वस्तु",
   "itemSummary_other": "{{count}} वस्तुएँ",
   "selectionSummary_one": "{{count}} चयनित, {{size}} MB",
-  "selectionSummary_other": "{{count}} चयनित, {{size}} MB"
+  "selectionSummary_other": "{{count}} चयनित, {{size}} MB",
+  "connectAction": "कनेक्ट करें",
+  "breadcrumbs": "फ़ोल्डर पथ",
+  "moreFolders": "और फ़ोल्डर",
+  "repoSize": "रिपॉज़िटरी का आकार",
+  "gdrive": "Google Drive",
+  "dropbox": "Dropbox",
+  "onedrive": "OneDrive"
 }

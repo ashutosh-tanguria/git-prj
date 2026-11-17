@@ -21,13 +21,13 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Decisions
 
-- Current M2 request checkpoint: Part A is partial. Width sliders are replaced with pointer/keyboard sashes using existing persisted widths; status summaries use en/hi plurals; disabled-action tooltip CSS now distinguishes keyboard focus from pointer focus. The sash has a Styleguide specimen and a keyboard/reset component test. M2 logic has not started because the requested Part A-first order is retained.
+- UI polish completion supersedes the c40ca6f partial checkpoint. Sashes keep persisted widths and now clear drag styling on lost capture. Breadcrumbs edit on Ctrl+L or empty-area click, submit with Enter and revert with Escape. Address history/Up/Refresh and pane toggles use shared outline icons; later actions have focusable aria-disabled buttons with portal tooltips. Connect shows provider rows and opens the PAT form only from GitHub. The guard strip displays reported repository size and presentation tints, without M2 evaluation.
 
 - M1.5: merged README-AMENDMENT-1.md into README sections 5.3, 5.6, 5.7, 5.9, 6.7, 6.16, 14 and 15, adding 6.17 without renumbering existing sections. The amendment source is retained. M3 owns repository creation, destinations/messages/push, clipboard staging and shortcut registration; no write API or guard implementation was added.
 - A1 contrast resolution: the exact dark navigation blue cannot meet both white-on-blue and blue-on-selection-tint at 4.5:1. Navigation keeps the specified bright blue; white-on-blue action surfaces use blue-action. The registry tests those roles independently. Dark green is #248837 on #010409 tint. Legacy paper/accent/status tokens map to the new roles for existing readers.
 - Existing table preferences with four columns reset to the new five-column schema, preventing old widths from shifting to the wrong columns. New widths, visibility and sorting still persist.
 - Six review images only. Default light/dark Styleguide goldens are intentionally refreshed; compact/comfortable cases retain axe and explicit density checks instead of taking additional images. Other old visual baselines were not refreshed in this task.
-- Search, Recent, Favorites, Collections, alternate views and write actions remain disabled with milestone explanations. The address remains the editable canonical provider reference; Up is the existing Parent folder button. Command Sort focuses the working sort selector rather than duplicating its state.
+- Search, Recent, Favorites, Collections, alternate views and write actions remain disabled with milestone explanations. The later polish replaces the visible canonical field with breadcrumbs and moves Up into the address icons. Command Sort focuses the working sort selector rather than duplicating its state.
 
 - UI repair: the high and medium findings in docs/ui-critique.md are addressed through tokens, CSS and presentation markup. Existing handlers, data and dependencies remain in place. The prior matched screenshot matrix is retained; no new capture set was made on resumption.
 
@@ -42,12 +42,12 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 - Closed the earlier image/code/Markdown gaps: image fit/100 percent/zoom/pan/sibling keys, code line numbers/wrap/copy, same-provider relative links and image blobs, and common viewer actions/help. The approved analysis P14 also places CSV/media/HTML baseline reading in M1, so those readers are included.
 - Security takes precedence over HTML's requested script execution. Run preview is opaque and scriptless, with scripts, forms and network resources denied. The UI explicitly says so. This is a deliberate deviation from executing scripts in an isolated frame.
 - Bounded text previews stop at 10 MiB and relative Markdown images at ten per document. Above 2 MiB, code uses plain text. Download remains available. These safety limits are explicit in HELP.md; they are additional limits beyond README 6.5.
-- Viewer controls reflow with the shared shell instead of forcing every action into one fixed 40px toolbar. Pane resizing uses named width sliders rather than draggable pane-edge handles. Table dividers do support drag and keyboard resizing. These are remaining presentation differences, not hidden functionality claims.
+- Viewer controls reflow with the shared shell instead of forcing every action into one fixed 40px toolbar. Pane resizing now uses accessible sashes (this supersedes the earlier slider deviation). Table dividers do support drag and keyboard resizing. These are remaining presentation differences, not hidden functionality claims.
 - All new composites and reader specimens are in the development/test Styleguide. Samples are labelled and excluded from production. Fonts remain self-hosted. No dependency, runtime host, credential mode, budget exception or subsequent milestone was added.
 
 ## Not done
 
-Current request remaining: Part A breadcrumbs/address icons, command-bar pane icons, provider Connect rows, navigation glyphs, live repo meter/limit glyph, complete interaction/axe/browser regression coverage and review captures. Parts B logic, boundary tests, ledger/dialog UI and upload/drop guard entry points remain unimplemented. The three-commit M2 delivery is not complete.
+Current UI polish request is complete locally. M2 guard logic, dialogs, ledger, upload/drop guard entry points and M3 staging remain unimplemented and out of scope for this task.
 
 M1.5 does not activate M3 shortcuts or M5 search/views/collections. Chrome/Edge/Firefox shortcut conflict checks belong to M3 and are unverified here. Older non-default visual baselines outside the focused suite are retained, not claimed as current v2 evidence.
 
@@ -64,6 +64,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Manual steps
 
+[HUMAN] Review the four docs/polish images and try pane resizing, breadcrumb editing and first-run Connect. No new account setup is needed. M2 remains unstarted.
+
 [HUMAN] Review docs/m15 and the M1.5 notes in docs/design-qa.md. Approve M2 separately. Real GitHub verification remains in docs/manual-test-m1.md; sample screenshots do not establish it.
 
 [HUMAN] Review docs/ui-comparison.md and docs/ui-critique.md, including the light and dark repaired screens. Perform browser-menu zoom and physical-device review separately.
@@ -74,9 +76,9 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Known issues and limits
 
-- Current sash checkpoint has unit/component coverage only; pointer collapse, persisted resizing and axe still require browser verification. No new screenshot evidence is claimed.
+- Four new review captures are in docs/polish. Focused Chromium tests cover persistence, keyboard and pointer sash behavior, narrow panes, breadcrumbs and disabled tooltips; independent device and screen-reader review remain pending.
 
-- A1's dark white-on-blue requirement needs a separate action fill role; README records this numerical incompatibility. Native selects and media controls retain platform appearance. The address uses a canonical ref rather than clickable breadcrumb segments.
+- A1's dark white-on-blue requirement needs a separate action fill role; README records this numerical incompatibility. Native selects and media controls retain platform appearance. Breadcrumb editing continues to use the canonical ref.
 
 - Native controls retain browser/platform styling. A prior full Playwright run reported a light Styleguide tooltip focus timeout; this is recorded pending verification, without claiming the full suite passed for this repair.
 
@@ -98,4 +100,6 @@ Completion QA note: narrow/short-height PDFs start with a collapsible controls d
 
 Final evidence: Windows Chromium screenshots for selection/Inspector, PDF, 360px list/sheet/PDF, grayscale, squint and 200% layout are in docs/design-qa.md. No real-account or physical-device verification is claimed. A conventional local commit completes this task; no remote push or M2 work.
 
-Current partial checkpoint validation: npm run check passes with 85 tests and a 142456-byte gzip shell. No browser results or screenshot review are claimed for this checkpoint.
+Historical c40ca6f checkpoint validation: npm run check passes with 85 tests and a 142456-byte gzip shell. No browser results or screenshot review are claimed for this checkpoint.
+
+Completed UI polish validation: npm run check passes with 85 tests, type/lint/CSS checks, production build and 148518-byte gzip shell under the unchanged budget. Three focused Chromium cases pass, including light/dark Styleguide axe and the shell interaction flow. Four review images are in docs/polish. The full historical browser snapshot suite was not run or refreshed. M2 remains unstarted.

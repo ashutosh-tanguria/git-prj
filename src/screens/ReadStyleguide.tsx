@@ -1,4 +1,5 @@
 import { SampleViewers } from "./SampleViewers";
+import { ActionIcon } from "../ui/ActionIcon";
 import { Sash } from "../components/Sash";
 import { CommandBar } from "../components/CommandBar";
 import { PaneLayer } from "../components/PaneLayer";
@@ -21,7 +22,17 @@ export function ReadStyleguide() {
     <section>
       <h2>{t("sample")}</h2>
       <CommandBar />
-      <div style={{ display:"flex", height:80 }}><Sash label={t("locationsWidth")} value={sampleWidth} min={160} max={360} initial={220} onChange={setSampleWidth} onCollapse={()=>setSampleWidth(220)} /></div>
+      <div style={{ display: "flex", height: 80 }}>
+        <Sash
+          label={t("locationsWidth")}
+          value={sampleWidth}
+          min={160}
+          max={360}
+          initial={220}
+          onChange={setSampleWidth}
+          onCollapse={() => setSampleWidth(220)}
+        />
+      </div>
       <AddressBar value="gh:ada/notes@main/" onGo={() => {}} />
       <ConnectPanel
         token=""
@@ -89,10 +100,18 @@ export function ReadStyleguide() {
         ]}
         visibility={t("private")}
       />
-      <Button onPress={() => setPanel("locations")}>
-        {t("openLocations")}
-      </Button>
-      <Button onPress={() => setPanel("inspector")}>{t("inspector")}</Button>
+      <ActionIcon
+        name="locations"
+        label={t("openLocations")}
+        aria-pressed={panel === "locations"}
+        onPress={() => setPanel("locations")}
+      />
+      <ActionIcon
+        name="inspector"
+        label={t("inspector")}
+        aria-pressed={panel === "inspector"}
+        onPress={() => setPanel("inspector")}
+      />
       {panel && (
         <PaneLayer kind={panel} onClose={() => setPanel(null)}>
           {panel === "locations" ? (
@@ -104,7 +123,21 @@ export function ReadStyleguide() {
       )}
       <SampleViewers />
       <PendingTray />
-      <GuardStrip />
+      {[undefined, 0, 500 * 1024, 1024 * 1024].map((size, i) => (
+        <GuardStrip
+          key={i}
+          repo={
+            i === 0
+              ? undefined
+              : {
+                  full_name: "ada/sample-notes",
+                  private: true,
+                  default_branch: "main",
+                  size,
+                }
+          }
+        />
+      ))}
       <StatusBar account="ada (sample)" />
       <ReadViewer
         blob={new Blob(["Sample reading notes"], { type: "text/plain" })}

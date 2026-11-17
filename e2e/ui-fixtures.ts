@@ -63,6 +63,7 @@ export const uiServer = setupServer(
       return HttpResponse.json([
         {
           full_name: "ada/sample-reading-library",
+          size: 612 * 1024,
           default_branch: "main",
           private: true,
         },

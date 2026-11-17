@@ -19,10 +19,11 @@ it("submits an edited address", () => {
       },
     }),
   );
+  fireEvent.click(view.getByRole("button", { name: "Address" }));
   fireEvent.change(view.getByLabelText("Address"), {
     target: { value: "gh:ada/books@main/" },
   });
-  fireEvent.submit(view.getByRole("button", { name: "Go" }).closest("form")!);
+  fireEvent.submit(view.getByLabelText("Address").closest("form")!);
   expect(address).toBe("gh:ada/books@main/");
 });
 it("opens a named Quick Look dialog and closes explicitly", () => {

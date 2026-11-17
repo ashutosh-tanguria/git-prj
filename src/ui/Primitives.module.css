@@ -1,4 +1,7 @@
 .button {
+  transition:
+    background 80ms,
+    color 80ms;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -12,6 +15,11 @@
   color: var(--ink-1);
   cursor: pointer;
   font-weight: var(--weight-medium);
+}
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
 }
 .button[data-variant="primary"] {
   background: var(--green);

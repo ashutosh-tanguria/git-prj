@@ -1,3 +1,5 @@
+import { Glyph } from "../ui/ActionIcon";
+import { ProviderMark } from "../ui/ProviderMark";
 import { initial, visible, type Node } from "./locationsModel";
 import { useState, useRef, useId } from "react";
 import { library, type Repo } from "../services/library";
@@ -143,14 +145,12 @@ function LocationTree({ repos }: { repos: Repo[] }) {
             }
           }}
         >
-          <span aria-hidden="true">
-            {!node.loaded || node.children.length
-              ? node.expanded
-                ? "−"
-                : "+"
-              : " "}
-          </span>{" "}
-          {node.label}
+          <Glyph name={node.expanded ? "collapse" : "expand"} />
+          {node.id === "github" ? (
+            <ProviderMark provider="github" label={node.label} />
+          ) : (
+            node.label
+          )}
         </div>
         {node.expanded && node.children.length > 0 && (
           <div id={prefix + node.id} role="group">

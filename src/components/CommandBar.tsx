@@ -1,34 +1,72 @@
+import { useState, useRef, useId } from "react";
+import { iconPaths } from "../ui/ActionIcon";
 import { t } from "../i18n";
-import { useId } from "react";
+import { Button } from "../ui/Button";
+import { createPortal } from "react-dom";
 import styles from "./ExplorerV2.module.css";
 export function LaterAction({
   action,
   milestone = "M3",
-  icon = "M3 8h10M8 3v10",
+  icon,
 }: {
   action: string;
   milestone?: string;
   icon?: string;
 }) {
-  const reason = t("availableAfter") + " " + milestone;
+  const [open, setOpen] = useState(false);
+  const anchor = useRef<HTMLSpanElement>(null);
   const id = useId();
+  const rect = anchor.current?.getBoundingClientRect();
+  const reason = t("availableAfter") + " " + milestone;
   return (
     <span
-      className={styles.later}
-      tabIndex={0}
-      role="button"
-      aria-disabled="true"
-      aria-label={t(action) + ": " + reason}
+      ref={anchor}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onFocusCapture={(e) => {
+        if (e.target.matches(":focus-visible")) setOpen(true);
+      }}
+      onBlurCapture={() => setOpen(false)}
+      onKeyDownCapture={(e) => {
+        if (e.key === "Escape") setOpen(false);
+      }}
     >
-      <button disabled aria-describedby={id}>
+      <Button
+        data-later="true"
+        data-action={action}
+        aria-disabled="true"
+        aria-describedby={open ? id : undefined}
+        aria-label={
+          t(action) + (action === "pending" ? " 0" : "") + ": " + reason
+        }
+      >
         <svg viewBox="0 0 16 16" aria-hidden="true">
-          <path d={icon} />
+          <path d={icon || iconPaths[action] || "M3 8h10M8 3v10"} />
         </svg>
         <span>{t(action)}</span>
-      </button>
-      <span role="tooltip" id={id}>
-        {reason}
-      </span>
+        {action === "pending" && (
+          <>
+            {" "}
+            <span className={styles.count}>0</span>
+          </>
+        )}
+      </Button>
+      {open &&
+        rect &&
+        createPortal(
+          <div
+            className={styles.disabledTooltip}
+            role="tooltip"
+            id={id}
+            style={{
+              left: Math.max(4, Math.min(rect.left, innerWidth - 240)),
+              top: rect.bottom + 4,
+            }}
+          >
+            {reason}
+          </div>,
+          document.body,
+        )}
     </span>
   );
 }

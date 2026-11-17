@@ -131,7 +131,7 @@ export default function Library() {
         {error && <p role="alert">{error}</p>}
       </ReadShell>
       <PendingTray />
-      <GuardStrip />
+      <GuardStrip repo={roots.find(repo=>repo.full_name === ref?.owner+"/"+ref?.repo)} />
       <StatusBar account={account} entries={entries} selection={selection} />
       {preview && (
         <QuickLook

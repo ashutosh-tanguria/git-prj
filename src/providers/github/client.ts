@@ -8,6 +8,7 @@ export class ProviderError extends Error {
   }
 }
 export interface Repo {
+  size?: number;
   full_name: string;
   default_branch: string;
   private: boolean;

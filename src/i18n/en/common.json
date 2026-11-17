@@ -139,5 +139,12 @@
   "itemSummary_one": "{{count}} item",
   "itemSummary_other": "{{count}} items",
   "selectionSummary_one": "{{count}} selected, {{size}} MB",
-  "selectionSummary_other": "{{count}} selected, {{size}} MB"
+  "selectionSummary_other": "{{count}} selected, {{size}} MB",
+  "connectAction": "Connect",
+  "breadcrumbs": "Folder path",
+  "moreFolders": "More folders",
+  "repoSize": "Repository size",
+  "gdrive": "Google Drive",
+  "dropbox": "Dropbox",
+  "onedrive": "OneDrive"
 }

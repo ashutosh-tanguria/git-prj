@@ -32,6 +32,9 @@ export function Sash({
       aria-valuemin={min}
       aria-valuemax={max}
       tabIndex={0}
+      onLostPointerCapture={(e) => {
+        delete e.currentTarget.dataset.dragging;
+      }}
       onDoubleClick={() => resize(initial)}
       onKeyDown={(e) => {
         const step = e.shiftKey ? 64 : 16;

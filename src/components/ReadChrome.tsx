@@ -9,9 +9,42 @@ const subscribe = (notify: () => void) => {
 };
 import { t } from "../i18n";
 import styles from "./Library.module.css";
-import type { Entry } from "../services/library";
-export function GuardStrip() {
-  return <aside className={styles.guardStrip}>{t("guardCopy")}</aside>;
+import { Glyph } from "../ui/ActionIcon";
+import type { Entry, Repo } from "../services/library";
+export function GuardStrip({ repo }: { repo?: Repo }) {
+  const mb = repo?.size === undefined ? undefined : repo.size / 1024;
+  return (
+    <aside
+      className={styles.guardStrip}
+      data-repo-tier={
+        mb === undefined
+          ? "neutral"
+          : mb >= 1024
+            ? "red"
+            : mb >= 500
+              ? "amber"
+              : "neutral"
+      }
+    >
+      <Glyph name="limit" />
+      <span>{t("guardCopy")}</span>
+      {repo && (
+        <span className={styles.repoMeter}>
+          {repo.full_name}:{" "}
+          {mb === undefined
+            ? t("unknown")
+            : new Intl.NumberFormat(undefined, {
+                maximumFractionDigits: 1,
+              }).format(mb) + " MB / 1 GB"}
+          {mb !== undefined && (
+            <meter aria-label={t("repoSize")} min={0} max={1024} value={mb}>
+              {mb} MB
+            </meter>
+          )}
+        </span>
+      )}
+    </aside>
+  );
 }
 export function StatusBar({
   account,

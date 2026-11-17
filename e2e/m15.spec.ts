@@ -22,6 +22,7 @@ for (const [width, theme] of [
       });
     });
     await page.goto("/#/gh/ada/sample-reading-library@main/");
+    await page.getByRole("button", { name: "Connect", exact: true }).click();
     await page.getByLabel("GitHub token").fill("sample-ui-review-token");
     await page.getByRole("button", { name: "Validate token" }).click();
     await expect(page.getByRole("grid")).toBeVisible();
@@ -54,14 +55,12 @@ for (const [width, theme] of [
     ).toEqual([]);
     await page.screenshot({ path: `docs/m15/explorer-${width}-${theme}.png` });
     if (width === 1440 && theme === "light") {
-      const row = page
-        .getByRole("row")
-        .filter({
-          has: page.getByRole("button", {
-            name: "distributed-systems.pdf",
-            exact: true,
-          }),
-        });
+      const row = page.getByRole("row").filter({
+        has: page.getByRole("button", {
+          name: "distributed-systems.pdf",
+          exact: true,
+        }),
+      });
       await row.focus();
       await page.keyboard.press("Enter");
       await expect(page).toHaveURL(/#\/view\//);

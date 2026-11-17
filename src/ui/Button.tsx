@@ -27,7 +27,7 @@ export function Button({
       data-variant={variant}
       data-preview={previewState}
       aria-busy={loading || undefined}
-      aria-pressed={selected}
+      aria-pressed={selected ?? props["aria-pressed"]}
       isDisabled={props.isDisabled || loading}
     >
       {selected && <span aria-hidden="true">✓</span>}
