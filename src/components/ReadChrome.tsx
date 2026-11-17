@@ -26,14 +26,12 @@ export function StatusBar({
   return (
     <footer className={styles.statusStrip}>
       <span>
-        {entries.length} {t("items")}, {selection.length} {t("selectedCount")},{" "}
-        {new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(
-          (selection.length ? selection : entries).reduce(
-            (sum, row) => sum + row.size,
-            0,
-          ) / 1048576,
-        )}{" "}
-        MB
+        {t(selection.length ? "selectionSummary" : "itemSummary", {
+          count: selection.length || entries.length,
+          size: new Intl.NumberFormat(undefined, {
+            maximumFractionDigits: 1,
+          }).format(selection.reduce((n, r) => n + r.size, 0) / 1048576),
+        })}
       </span>
       <span>{t(online ? "online" : "offline")}</span> <span>{account}</span>
     </footer>

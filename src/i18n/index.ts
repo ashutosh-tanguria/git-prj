@@ -7,10 +7,14 @@ void i18next.init({
   resources: { en: { translation: en }, hi: { translation: hi } },
   interpolation: { escapeValue: false },
 });
-export function t(key: string): string {
-  return i18next.t(key);
+export function t(
+  key: string,
+  options?: { count?: number; size?: string },
+): string {
+  return i18next.t(key, options ?? {});
 }
 export function setLanguage(language: string) {
   void i18next.changeLanguage(language);
   document.documentElement.lang = language;
 }
+

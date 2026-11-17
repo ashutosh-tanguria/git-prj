@@ -1,5 +1,7 @@
 # Design QA
 
+M2 request checkpoint (partial): pane sliders were replaced by sashes with existing width persistence, keyboard increments and reset; status plurals and disabled tooltip focus styling were adjusted. Browser/axe verification and the remaining Part A polish are outstanding. No M2 guard UI or new screenshots are claimed by this checkpoint.
+
 Reviewed 2026-11-16 (Asia/Calcutta). The M0 record and initial M1 checkpoint below are historical; the M1 completion review is the current result. Reviewer: Codex, by inspection of actual Chromium captures. This is not an independent human, screen-reader or device sign-off.
 
 ## Scope and state specification

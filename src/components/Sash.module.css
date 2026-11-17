@@ -1,0 +1,23 @@
+.sash {
+  position: relative;
+  inline-size: 6px;
+  margin-inline: -3px;
+  flex-shrink: 0;
+  z-index: var(--layer-sticky);
+  cursor: col-resize;
+  touch-action: none;
+}
+.sash::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 3px;
+  inline-size: 1px;
+  background: var(--rule);
+}
+.sash:hover::after,
+.sash[data-dragging]::after,
+.sash:focus-visible::after {
+  inline-size: 2px;
+  background: var(--blue);
+}

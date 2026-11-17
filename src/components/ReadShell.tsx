@@ -1,3 +1,4 @@
+import { Sash } from "./Sash";
 import { useEffect, useRef, type ReactNode, type CSSProperties } from "react";
 import { Locations } from "./Locations";
 import { Inspector } from "./Inspector";
@@ -116,20 +117,18 @@ export function ReadShell({
         {panels.locations && panels.width >= 900 && (
           <aside id="locations" tabIndex={-1} className={styles.locationPane}>
             <Locations repos={roots} />
-            <label className={styles.paneResize}>
-              <span>{t("locationsWidth")}</span>
-              <input
-                type="range"
-                aria-label={t("locationsWidth")}
-                min={160}
-                max={360}
-                value={panels.locationsWidth}
-                onChange={(e) =>
-                  panels.setLocationsWidth(Number(e.target.value))
-                }
-              />
-            </label>
           </aside>
+        )}
+        {panels.locations && panels.width >= 900 && (
+          <Sash
+            label={t("locationsWidth")}
+            value={panels.locationsWidth}
+            min={160}
+            max={360}
+            initial={220}
+            onChange={panels.setLocationsWidth}
+            onCollapse={() => panels.setLocations(false)}
+          />
         )}
         {panels.width >= 640 && panels.width < 900 && !panels.locations && (
           <aside className={styles.rail}>
@@ -147,20 +146,19 @@ export function ReadShell({
           {children}
         </main>
         {panels.inspector && panels.width >= 900 && (
+          <Sash
+            label={t("inspectorWidth")}
+            value={panels.inspectorWidth}
+            min={240}
+            max={520}
+            initial={320}
+            reverse
+            onChange={panels.setInspectorWidth}
+            onCollapse={() => panels.setInspector(false)}
+          />
+        )}
+        {panels.inspector && panels.width >= 900 && (
           <aside id="inspector" tabIndex={-1} className={styles.inspectorPane}>
-            <label className={styles.paneResize}>
-              <span>{t("inspectorWidth")}</span>
-              <input
-                type="range"
-                aria-label={t("inspectorWidth")}
-                min={240}
-                max={520}
-                value={panels.inspectorWidth}
-                onChange={(e) =>
-                  panels.setInspectorWidth(Number(e.target.value))
-                }
-              />
-            </label>
             <Inspector
               key={selectionBlob ? "viewer" : "selection"}
               defaultTab={selectionBlob ? "details" : "preview"}

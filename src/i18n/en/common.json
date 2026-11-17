@@ -135,5 +135,9 @@
   "fileType": "Type",
   "searchFolder": "Search folder",
   "searchLater": "Folder search available after M5",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "itemSummary_one": "{{count}} item",
+  "itemSummary_other": "{{count}} items",
+  "selectionSummary_one": "{{count}} selected, {{size}} MB",
+  "selectionSummary_other": "{{count}} selected, {{size}} MB"
 }

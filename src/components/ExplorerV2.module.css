@@ -157,3 +157,27 @@
     display: none;
   }
 }
+
+.later:not(:hover):not(:focus-visible) [role="tooltip"] {
+  display: none;
+}
+.later:focus:not(:focus-visible) [role="tooltip"] {
+  display: none;
+}
+.sort:focus:not(:focus-visible) {
+  outline: none;
+}
+.later button {
+  min-block-size: 28px;
+  transition:
+    background 80ms,
+    color 80ms;
+}
+.later:hover {
+  background: var(--hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .later button {
+    transition: none;
+  }
+}

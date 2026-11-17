@@ -21,6 +21,8 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Decisions
 
+- Current M2 request checkpoint: Part A is partial. Width sliders are replaced with pointer/keyboard sashes using existing persisted widths; status summaries use en/hi plurals; disabled-action tooltip CSS now distinguishes keyboard focus from pointer focus. The sash has a Styleguide specimen and a keyboard/reset component test. M2 logic has not started because the requested Part A-first order is retained.
+
 - M1.5: merged README-AMENDMENT-1.md into README sections 5.3, 5.6, 5.7, 5.9, 6.7, 6.16, 14 and 15, adding 6.17 without renumbering existing sections. The amendment source is retained. M3 owns repository creation, destinations/messages/push, clipboard staging and shortcut registration; no write API or guard implementation was added.
 - A1 contrast resolution: the exact dark navigation blue cannot meet both white-on-blue and blue-on-selection-tint at 4.5:1. Navigation keeps the specified bright blue; white-on-blue action surfaces use blue-action. The registry tests those roles independently. Dark green is #248837 on #010409 tint. Legacy paper/accent/status tokens map to the new roles for existing readers.
 - Existing table preferences with four columns reset to the new five-column schema, preventing old widths from shifting to the wrong columns. New widths, visibility and sorting still persist.
@@ -44,6 +46,8 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 - All new composites and reader specimens are in the development/test Styleguide. Samples are labelled and excluded from production. Fonts remain self-hosted. No dependency, runtime host, credential mode, budget exception or subsequent milestone was added.
 
 ## Not done
+
+Current request remaining: Part A breadcrumbs/address icons, command-bar pane icons, provider Connect rows, navigation glyphs, live repo meter/limit glyph, complete interaction/axe/browser regression coverage and review captures. Parts B logic, boundary tests, ledger/dialog UI and upload/drop guard entry points remain unimplemented. The three-commit M2 delivery is not complete.
 
 M1.5 does not activate M3 shortcuts or M5 search/views/collections. Chrome/Edge/Firefox shortcut conflict checks belong to M3 and are unverified here. Older non-default visual baselines outside the focused suite are retained, not claimed as current v2 evidence.
 
@@ -70,6 +74,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Known issues and limits
 
+- Current sash checkpoint has unit/component coverage only; pointer collapse, persisted resizing and axe still require browser verification. No new screenshot evidence is claimed.
+
 - A1's dark white-on-blue requirement needs a separate action fill role; README records this numerical incompatibility. Native selects and media controls retain platform appearance. The address uses a canonical ref rather than clickable breadcrumb segments.
 
 - Native controls retain browser/platform styling. A prior full Playwright run reported a light Styleguide tooltip focus timeout; this is recorded pending verification, without claiming the full suite passed for this repair.
@@ -91,3 +97,5 @@ Local completion results: npm run check passes with 117 unit/component checks, t
 Completion QA note: narrow/short-height PDFs start with a collapsible controls disclosure so document pages retain usable space. The / shortcut opens search; fit actions collapse controls on those viewports. At short desktop heights the shared chrome becomes compact without hiding controls or bottom status bands.
 
 Final evidence: Windows Chromium screenshots for selection/Inspector, PDF, 360px list/sheet/PDF, grayscale, squint and 200% layout are in docs/design-qa.md. No real-account or physical-device verification is claimed. A conventional local commit completes this task; no remote push or M2 work.
+
+Current partial checkpoint validation: npm run check passes with 85 tests and a 142456-byte gzip shell. No browser results or screenshot review are claimed for this checkpoint.
