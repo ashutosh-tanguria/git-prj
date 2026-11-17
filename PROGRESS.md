@@ -13,7 +13,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M1 Shell and GitHub read | Implementation done; real-account verification pending | Full selection/grid, tree/keyboard, PDF reader, Inspector, responsive panes, local preferences and mocked browser tests. Owner follows docs/manual-test-m1.md. |
 | M1.5 UI v2 | Done locally | Amendment merged in place; colour roles, command/address rows, navigation groups, revised columns, preview and counts, glyph families, Styleguide and focused accessibility tests. |
 | M2 Guards | Implemented locally with documented limits | Guard review, badges, meter and read-only ledger; real-account checks remain pending. |
-| M3 Staging and push | Not started | M2 exit and authorization required. |
+| M3 Staging and push | Part A in progress | Persistent core, atomic push and backup primitives implemented; UI integration follows. |
 | M3.5 Preview Plus | Not started | Spikes, isolated preview origin and mock managed tiers follow M3. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
@@ -21,6 +21,8 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- M3a core checkpoint: working-copy metadata is committed to IndexedDB only after OPFS bytes close successfully, with IndexedDB byte fallback when OPFS is unavailable. Undo/redo retains referenced bytes for this session. Store-only ZIP backups include the manifest and CRC-checked byte entries. GitHub writes share a one-second mutation scheduler and force-false ref updates; conflicts retain local work. No M3b or M3.5 work is included.
 
 - Documentation merge: verified Amendment 1 content is already incorporated in README sections 5.3, 5.6, 5.7, 5.9, 6.7, 6.16 and 6.17, milestone M1.5 and acceptance 19 to 26. Kept the existing M1.5 rather than duplicating it. Merged Amendments 2 and 3 into 6.5b, 9.3, 9.4, 9.8, 10, 11, 13.4, 14 and acceptance 27 to 42; corrected Amendment 1 cross references to their in-place section numbers. No feature is marked implemented by this documentation update.
 - Conflict resolutions: isolated origin B replaces the prior scriptless-only preview for opt-in executable sites, while the existing scriptless implementation may remain until isolation is proven. Origin A retains strict CSP; verified preview, Turnstile and vendor origins are added only to the appropriate policy when enabled. Managed cloud rendering is opt-in and supplements local tiers, and changes the earlier no-third-party-transfer claim: consented bytes go directly to the vendor, never through the metadata-only worker. Tier E extends the earlier hand-off-only option for server-dependent projects; a failed local spike does not remove optional managed tiers, which remain subject to consent, budget and M6 availability. The 100 MB default local-conversion cap and stricter managed per-file cap apply independently. Tier 3 provider rendering waits for M4; M3.5 uses mock paid vendors and M6 wires real adapters. Unverified pricing, host, vendor and licence claims remain explicitly conditional on verification.

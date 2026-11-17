@@ -31,6 +31,7 @@ export async function request(
   path: string,
   signal?: AbortSignal,
   raw = false,
+  init: RequestInit = {},
 ): Promise<Response> {
   const url = new URL(path, "https://api.github.com");
   if (url.origin !== "https://api.github.com")
@@ -38,9 +39,11 @@ export async function request(
   let res: Response;
   try {
     res = await fetch(url, {
+      ...init,
       signal,
       redirect: "error",
       headers: {
+        ...(init.body ? { "Content-Type": "application/json" } : {}),
         Accept: raw
           ? "application/vnd.github.raw+json"
           : "application/vnd.github+json",
@@ -54,7 +57,7 @@ export async function request(
   if (!res.ok) {
     if (res.status === 401) clearToken();
     throw new ProviderError(
-      res.status === 429
+      res.status === 409 ? "EMPTY_REPO" : res.status === 422 ? "CONFLICT" : res.status === 429
         ? "RATE_LIMITED"
         : res.status === 401
           ? "AUTH_EXPIRED"

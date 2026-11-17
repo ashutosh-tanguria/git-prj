@@ -1,0 +1,13 @@
+import { afterAll,beforeAll,expect,it } from "vitest";
+import { setupServer } from "msw/node";
+import { http,HttpResponse } from "msw";
+import { pushChanges,ConflictError } from "../src/services/githubPush";
+import { evaluateFile } from "../src/services/guards";
+import type { Change } from "../src/services/staging";
+let collision=false;const writes:{path:string;body:Record<string,unknown>}[]=[];
+const server=setupServer(http.all("https://api.github.com/*",async({request})=>{const path=new URL(request.url).pathname;if(request.method!=="GET"){writes.push({path,body:await request.json() as Record<string,unknown>});return HttpResponse.json({sha:"next",object:{sha:"next"}});}if(path==="/user")return HttpResponse.json({login:"ada",id:42});if(path.endsWith("/notes"))return HttpResponse.json({size:0,private:true});if(path.includes("/git/ref/"))return HttpResponse.json({object:{sha:"head"}});if(path.includes("/git/commits/"))return HttpResponse.json({tree:{sha:"tree"}});return HttpResponse.json({tree:[{path:"old.txt",sha:"old",mode:"100644"},...(collision?[{path:"a.txt",sha:"upstream",mode:"100644"}]:[])]});}));
+beforeAll(()=>server.listen({onUnhandledFrame:"error"}));afterAll(()=>server.close());
+const change=(path:string):Change=>({id:path,target:{owner:"ada",repo:"notes",branch:"main",path},kind:"add",blobKey:path,size:1,createdAt:0,verdict:evaluateFile(1)});
+const options={message:"Add sample files",publicConfirmed:false,warningsConfirmed:false,sensitiveConfirmed:false};
+it("makes three uploads and a deletion one atomic commit with force false",async()=>{collision=false;writes.length=0;const removed={...change("old.txt"),kind:"delete" as const,blobKey:undefined,baseVersion:"old"};await pushChanges([change("a.txt"),change("b.txt"),change("c.txt"),removed],async()=>new Blob(["x"]),options,async()=>{});expect(writes.filter(w=>w.path.endsWith("/git/commits"))).toHaveLength(1);expect(writes.at(-1)?.body.force).toBe(false);expect((writes.find(w=>w.path.endsWith("/git/commits"))?.body.author as {email:string}).email).toBe("42+ada@users.noreply.github.com");expect(removed.kind).toBe("delete");});
+it("detects a colliding add before any mutation",async()=>{collision=true;writes.length=0;await expect(pushChanges([change("a.txt")],async()=>new Blob(["x"]),options,async()=>{})).rejects.toBeInstanceOf(ConflictError);expect(writes).toHaveLength(0);});
