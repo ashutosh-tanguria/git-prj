@@ -1,3 +1,4 @@
+import styles from "./Library.module.css";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
@@ -13,7 +14,7 @@ export function ConnectPanel({
   loading: boolean;
 }) {
   return (
-    <section>
+    <section className={styles.connect}>
       <h2>{t("connectTitle")}</h2>
       <p>{t("patHelp")}</p>
       <Input
@@ -23,7 +24,11 @@ export function ConnectPanel({
         onChange={(e) => onToken(e.target.value)}
         autoComplete="off"
       />
-      <Button onPress={onConnect} isDisabled={!token || loading}>
+      <Button
+        variant="primary"
+        onPress={onConnect}
+        isDisabled={!token || loading}
+      >
         {t("validate")}
       </Button>
     </section>

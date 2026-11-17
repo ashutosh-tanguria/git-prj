@@ -81,7 +81,7 @@ export function ReadShell({
           </a>
         ))}
       </div>
-      <div className={styles.toolbar}>
+      <div className={styles.paneControls}>
         <button
           ref={trigger}
           className={styles.paneButton}
@@ -116,14 +116,19 @@ export function ReadShell({
         {panels.locations && panels.width >= 900 && (
           <aside id="locations" tabIndex={-1} className={styles.locationPane}>
             <Locations repos={roots} />
-            <input
-              type="range"
-              aria-label={t("locationsWidth")}
-              min={160}
-              max={360}
-              value={panels.locationsWidth}
-              onChange={(e) => panels.setLocationsWidth(Number(e.target.value))}
-            />
+            <label className={styles.paneResize}>
+              <span>{t("locationsWidth")}</span>
+              <input
+                type="range"
+                aria-label={t("locationsWidth")}
+                min={160}
+                max={360}
+                value={panels.locationsWidth}
+                onChange={(e) =>
+                  panels.setLocationsWidth(Number(e.target.value))
+                }
+              />
+            </label>
           </aside>
         )}
         {panels.width >= 640 && panels.width < 900 && !panels.locations && (
@@ -143,14 +148,19 @@ export function ReadShell({
         </main>
         {panels.inspector && panels.width >= 900 && (
           <aside id="inspector" tabIndex={-1} className={styles.inspectorPane}>
-            <input
-              type="range"
-              aria-label={t("inspectorWidth")}
-              min={240}
-              max={520}
-              value={panels.inspectorWidth}
-              onChange={(e) => panels.setInspectorWidth(Number(e.target.value))}
-            />
+            <label className={styles.paneResize}>
+              <span>{t("inspectorWidth")}</span>
+              <input
+                type="range"
+                aria-label={t("inspectorWidth")}
+                min={240}
+                max={520}
+                value={panels.inspectorWidth}
+                onChange={(e) =>
+                  panels.setInspectorWidth(Number(e.target.value))
+                }
+              />
+            </label>
             <Inspector
               key={selectionBlob ? "viewer" : "selection"}
               defaultTab={selectionBlob ? "details" : "preview"}

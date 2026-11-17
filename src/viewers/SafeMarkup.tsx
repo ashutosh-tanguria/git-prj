@@ -100,7 +100,7 @@ export default function SafeMarkup({
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [text, fileRef]);
-  return <div ref={node} />;
+  return <div ref={node} className={styles.documentText} />;
 }
 
 export function SafeCode({
@@ -138,7 +138,7 @@ export function SafeCode({
   }, [text, language, plain]);
   const [wrap, setWrap] = useState(false);
   return (
-    <section>
+    <section className={styles.codeViewer}>
       <div className={styles.imageControls}>
         <Button onPress={() => setWrap(!wrap)} selected={wrap}>
           {t("wrap")}

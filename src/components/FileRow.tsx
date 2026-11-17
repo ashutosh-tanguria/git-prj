@@ -153,13 +153,15 @@ export function FileRow({
         data-size
         data-hidden={hidden.includes("size")}
       >
-        {row.kind === "file"
-          ? new Intl.NumberFormat(undefined, {
-              maximumFractionDigits: 1,
-            }).format(
-              row.size < 1048576 ? row.size / 1024 : row.size / 1048576,
-            ) + (row.size < 1048576 ? " KB" : " MB")
-          : ""}
+        <span className={styles.sizeValue}>
+          {row.kind === "file"
+            ? new Intl.NumberFormat(undefined, {
+                maximumFractionDigits: 1,
+              }).format(
+                row.size < 1048576 ? row.size / 1024 : row.size / 1048576,
+              ) + (row.size < 1048576 ? " KB" : " MB")
+            : ""}
+        </span>
         {row.kind === "file" && (
           <span className={styles.weightRule} aria-hidden="true">
             <Meter label={row.name} value={row.size / 1048576} />
@@ -173,7 +175,9 @@ export function FileRow({
       )}
       {!hidden.includes("lastChange") && (
         <div role="gridcell" title={row.lastChange ?? undefined}>
-          {row.lastChange ?? t("unknown")}
+          <span className={styles.cellText}>
+            {row.lastChange ?? t("unknown")}
+          </span>
         </div>
       )}
     </div>

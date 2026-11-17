@@ -99,22 +99,24 @@ export function ColumnChooser({
       }}
     >
       <summary>{t("columns")}</summary>
-      {columns.slice(1).map((c) => (
-        <label key={c}>
-          <input
-            type="checkbox"
-            checked={!hidden.includes(c)}
-            onChange={() =>
-              onHidden(
-                hidden.includes(c)
-                  ? hidden.filter((x) => x !== c)
-                  : [...hidden, c],
-              )
-            }
-          />
-          {t(c)}
-        </label>
-      ))}
+      <div className={styles.columnOptions}>
+        {columns.slice(1).map((c) => (
+          <label key={c}>
+            <input
+              type="checkbox"
+              checked={!hidden.includes(c)}
+              onChange={() =>
+                onHidden(
+                  hidden.includes(c)
+                    ? hidden.filter((x) => x !== c)
+                    : [...hidden, c],
+                )
+              }
+            />
+            {t(c)}
+          </label>
+        ))}
+      </div>
     </details>
   );
 }

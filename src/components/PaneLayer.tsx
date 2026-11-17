@@ -22,8 +22,12 @@ export function PaneLayer({
       className={kind === "locations" ? styles.drawer : styles.sheet}
     >
       <Dialog aria-label={t(kind)}>
-        <Heading slot="title">{t(kind)}</Heading>
-        <Button onPress={onClose}>{t("close")}</Button>
+        <header className={styles.layerHeader}>
+          <Heading slot="title">{t(kind)}</Heading>
+          <Button variant="quiet" onPress={onClose}>
+            {t("close")}
+          </Button>
+        </header>
         {children}
       </Dialog>
     </Modal>

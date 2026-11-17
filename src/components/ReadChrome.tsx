@@ -10,20 +10,21 @@ const subscribe = (notify: () => void) => {
 import { t } from "../i18n";
 import styles from "./Library.module.css";
 export function GuardStrip() {
-  return <aside className={styles.strip}>{t("guardCopy")}</aside>;
+  return <aside className={styles.guardStrip}>{t("guardCopy")}</aside>;
 }
 export function StatusBar({ account }: { account: string }) {
   const online = useSyncExternalStore(subscribe, () => navigator.onLine);
   return (
-    <footer className={styles.strip}>
-      {t(online ? "online" : "offline")} | {account}
+    <footer className={styles.statusStrip}>
+      <span>{t(online ? "online" : "offline")}</span> <span>{account}</span>
     </footer>
   );
 }
 export function PendingTray() {
   return (
-    <div id="pending" tabIndex={-1} className={styles.strip}>
-      {t("noPending")}
+    <div id="pending" tabIndex={-1} className={styles.pendingStrip}>
+      <strong>{t("pending")}</strong>
+      <span>{t("noPending")}</span>
     </div>
   );
 }

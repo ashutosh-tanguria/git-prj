@@ -1,0 +1,1192 @@
+{
+  "stage": "after",
+  "width": 360,
+  "theme": "dark",
+  "fixture": "Labelled sample GitHub library; no real account",
+  "unavailable": [
+    "Explorer Grid view is not implemented. The existing list uses the ARIA grid pattern. No new view was added."
+  ],
+  "captures": [
+    {
+      "state": "connect",
+      "file": "connect.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "connect-focus",
+      "file": "connect-focus.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "connect-error",
+      "file": "connect-error.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "connect-busy",
+      "file": "connect-busy.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "explorer-list",
+      "file": "explorer-list.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "explorer-hover",
+      "file": "explorer-hover.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "explorer-focus",
+      "file": "explorer-focus.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "selection-single",
+      "file": "selection-single.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "selection-multiple",
+      "file": "selection-multiple.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "columns-open",
+      "file": "columns-open.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "inspector-details",
+      "file": "inspector-details.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "inspector-preview",
+      "file": "inspector-preview.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "inspector-empty",
+      "file": "inspector-empty.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "locations-open",
+      "file": "locations-open.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "quick-look",
+      "file": "quick-look.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 180,
+          "width": 360,
+          "height": 442
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "pdf-viewer",
+      "file": "pdf-viewer.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "pdf-controls",
+      "file": "pdf-controls.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "pdf-thumbnails",
+      "file": "pdf-thumbnails.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "pdf-outline",
+      "file": "pdf-outline.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "pdf-search",
+      "file": "pdf-search.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "markdown-viewer",
+      "file": "markdown-viewer.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "code-viewer",
+      "file": "code-viewer.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "code-wrapped",
+      "file": "code-wrapped.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "image-viewer",
+      "file": "image-viewer.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "csv-viewer",
+      "file": "csv-viewer.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "html-source",
+      "file": "html-source.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "html-preview",
+      "file": "html-preview.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "media-viewer",
+      "file": "media-viewer.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "unsupported-viewer",
+      "file": "unsupported-viewer.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "empty-folder",
+      "file": "empty-folder.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 281.796875,
+          "width": 360,
+          "height": 0
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "listing-error",
+      "file": "listing-error.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": {
+          "x": 0,
+          "y": 281.796875,
+          "width": 360,
+          "height": 0
+        },
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "pdf-error",
+      "file": "pdf-error.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "offline-status",
+      "file": "offline-status.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": {
+          "x": 0,
+          "y": 136,
+          "width": 360,
+          "height": 539
+        },
+        "list": null,
+        "pending": {
+          "x": 0,
+          "y": 675,
+          "width": 360,
+          "height": 32
+        },
+        "status": {
+          "x": 0,
+          "y": 776,
+          "width": 360,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "styleguide-compact",
+      "file": "styleguide-compact.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": null,
+        "list": {
+          "x": 12,
+          "y": 9274.5,
+          "width": 336,
+          "height": 400
+        },
+        "pending": {
+          "x": 12,
+          "y": 11390.9375,
+          "width": 336,
+          "height": 32
+        },
+        "status": {
+          "x": 12,
+          "y": 11491.9375,
+          "width": 336,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "styleguide-default",
+      "file": "styleguide-default.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": null,
+        "list": {
+          "x": 12,
+          "y": 9458.5,
+          "width": 336,
+          "height": 400
+        },
+        "pending": {
+          "x": 12,
+          "y": 11602.265625,
+          "width": 336,
+          "height": 32
+        },
+        "status": {
+          "x": 12,
+          "y": 11703.265625,
+          "width": 336,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    },
+    {
+      "state": "styleguide-comfortable",
+      "file": "styleguide-comfortable.png",
+      "metrics": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "documentWidth": 360,
+        "main": null,
+        "list": {
+          "x": 12,
+          "y": 10358.5,
+          "width": 336,
+          "height": 400
+        },
+        "pending": {
+          "x": 12,
+          "y": 12634.265625,
+          "width": 336,
+          "height": 32
+        },
+        "status": {
+          "x": 12,
+          "y": 12735.265625,
+          "width": 336,
+          "height": 24
+        },
+        "font": "\"Atkinson Hyperlegible Next Variable\", \"Noto Sans Devanagari Variable\", sans-serif"
+      }
+    }
+  ]
+}

@@ -274,10 +274,40 @@
 }
 
 .file[data-compact] {
+  inline-size: var(--file-tag-lane);
+  block-size: var(--icon-size);
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-1);
+}
+.file[data-compact] svg {
   inline-size: var(--icon-size);
   block-size: var(--icon-size);
   flex-shrink: 0;
 }
 .file[data-compact] > span {
-  display: none;
+  display: block;
+  position: static;
+  min-inline-size: var(--space-0);
+  font-size: var(--text-meta);
+  line-height: var(--space-4);
+  font-weight: var(--weight-medium);
+  background: transparent;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.button,
+.input {
+  line-height: var(--space-5);
+}
+.field > label {
+  font-size: var(--text-meta);
+  line-height: var(--space-4);
+  font-weight: var(--weight-medium);
+  color: var(--ink-2);
+}
+.button[data-variant="secondary"]:hover {
+  background: var(--paper-1);
 }

@@ -23,6 +23,7 @@
   --provider-onedrive: #875100;
   --provider-local: #5b6670;
   --elevation: 0 8px 24px rgb(20 28 22 / 18%);
+  --overlay-backdrop: rgb(20 28 22 / 24%);
 
   --font-ui:
     "Atkinson Hyperlegible Next Variable", "Noto Sans Devanagari Variable",
@@ -120,6 +121,7 @@
   --provider-onedrive: #e0b466;
   --provider-local: #a3b3c0;
   --elevation: none;
+  --overlay-backdrop: rgb(0 0 0 / 40%);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -148,6 +150,7 @@
     --provider-onedrive: #e0b466;
     --provider-local: #a3b3c0;
     --elevation: none;
+    --overlay-backdrop: rgb(0 0 0 / 40%);
   }
 }
 
@@ -217,6 +220,7 @@
     --warn-tint: Canvas;
     --danger-tint: Canvas;
     --elevation: none;
+    --overlay-backdrop: Canvas;
   }
 }
 
@@ -229,4 +233,23 @@
   --pdf-chrome: 300px;
   --pdf-sidebar: 180px;
   --pdf-sidebar-mobile: 120px;
+}
+
+/* UI repair: layout dimensions on the existing four-pixel grid. */
+:root {
+  --shell-toolbar-height: 64px;
+  --mobile-brand-height: 44px;
+  --mobile-address-height: 48px;
+  --mobile-tools-height: 44px;
+  --pane-heading-height: 44px;
+  --strip-pending-height: 32px;
+  --strip-status-height: 24px;
+  --connect-input-height: 40px;
+  --file-tag-lane: 56px;
+  --code-line-height: 24px;
+  --pane-resize-width: 96px;
+  --number-input-width: 64px;
+}
+:root {
+  --viewport-width: 100vw;
 }

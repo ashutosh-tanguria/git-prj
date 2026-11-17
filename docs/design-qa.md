@@ -70,3 +70,11 @@ The shell now reserves space for Pending, guard and status bands; file/PDF scrol
 Remaining deviations: viewer actions use reflowing shared shell chrome rather than one fixed 40px toolbar; pane widths use named sliders. HTML runs only as sanitized, scriptless, resource-free content in an opaque sandbox. Text previews are bounded at 10 MiB and Markdown images at ten. These choices and the account/device gates are recorded in PROGRESS.md and HELP.md.
 
 [HUMAN] Review these captures and perform real browser-menu 200% zoom, NVDA/VoiceOver, Hindi copy, physical touch and representative large-repository/PDF checks. The automated 83-file/16-page sample and 6,001-record table prove interaction behavior and bounded rendering, not a 60fps phone or 20 MB real-PDF performance result.
+
+## UI repair review, 2026-11-17
+
+The earlier hierarchy assessment is superseded by the [repair critique](ui-critique.md) and [matched comparison](ui-comparison.md). The 216 existing pairs cover light and dark at 1440, 1024 and 360 CSS pixels with fixture-only sample data. The list is visibly separated from the chrome and gains 269px of height at 1440 and 162px at 360. Selected rows retain checks and focus outlines. Quick Look has a flat scrim and a bounded reading area. The folded file tag, measured weight rule and Pending ledger rail provide the three specific refinements documented in the critique.
+
+Review evidence: [light squint](ui-after/reviews/light-squint.png), [dark squint](ui-after/reviews/dark-squint.png), [light grayscale](ui-after/reviews/light-grayscale.png), and [dark grayscale](ui-after/reviews/dark-grayscale.png). The existing [light](screenshots/m1-zoom-200-light.png) and [dark](screenshots/m1-zoom-200-dark.png) 720px/2x captures simulate reflow, not an independent browser-menu zoom review. Numerical contrast checks for representative text pairs range from 5.87:1 to 16.72:1 in light and 6.07:1 to 12.41:1 in dark; essential boundaries exceed 4:1. See [ratios](ui-after/contrast-ratios.json).
+
+Saved column widths may still require table scrolling. Native controls retain platform appearance, Grid view is not implemented, and real-account, physical-device, screen-reader and owner review remain open. No additional screenshot set was taken during the resumed task.

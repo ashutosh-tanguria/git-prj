@@ -50,8 +50,12 @@ export function QuickLook({
             }
           }}
         >
-          <Heading slot="title">{title}</Heading>
-          <Button onPress={onClose}>{t("close")}</Button>
+          <header className={styles.quickHeader}>
+            <Heading slot="title">{title}</Heading>
+            <Button variant="quiet" onPress={onClose}>
+              {t("close")}
+            </Button>
+          </header>
           {children}
         </div>
       </Dialog>

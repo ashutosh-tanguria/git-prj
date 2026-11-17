@@ -197,3 +197,31 @@
     flex-basis: var(--full);
   }
 }
+/* UI repair: a workbench canvas and flat, ruled sections. */
+.header {
+  min-block-size: var(--shell-toolbar-height);
+  background: var(--paper-0);
+}
+.nav {
+  background: var(--paper-1);
+  font-size: var(--text-ui);
+}
+.main {
+  background: var(--paper-2);
+}
+.main > h1 {
+  margin-block-end: var(--space-2);
+}
+.main > section:last-child > section {
+  margin-block: var(--space-6);
+}
+.section > h2 {
+  font-size: var(--text-reading);
+  line-height: var(--space-6);
+}
+.cell {
+  padding: var(--space-2);
+}
+.stateLabel {
+  line-height: var(--space-4);
+}

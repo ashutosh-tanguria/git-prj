@@ -59,3 +59,10 @@ b {
 input {
   accent-color: var(--accent);
 }
+
+.react-aria-ModalOverlay {
+  position: fixed;
+  inset: var(--space-0);
+  z-index: var(--layer-dialog);
+  background: var(--overlay-backdrop);
+}

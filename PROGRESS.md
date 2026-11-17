@@ -1,6 +1,6 @@
 # Shelf progress
 
-Updated: 2026-11-16 (Asia/Calcutta).
+Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
@@ -20,6 +20,8 @@ The approved analysis governs ambiguities. The requested M1 implementation is co
 
 ## Decisions
 
+- UI repair: the high and medium findings in docs/ui-critique.md are addressed through tokens, CSS and presentation markup. Existing handlers, data and dependencies remain in place. The prior matched screenshot matrix is retained; no new capture set was made on resumption.
+
 - The previous partial M1 checkpoint is superseded by this completion. FileTable now supports click/toggle/range/select-all/rectangle selection, type-ahead, virtual rows with the focused row retained, roving focus, sticky headers and persisted sorting/column sizes/visibility per location.
 - Locations uses the APG tree pattern with explicit group ownership, arrows, Home/End, type-ahead and sibling expansion. Inspector tabs also follow the APG pattern. Local implementations replaced general Tree/Tabs imports to meet the unchanged bundle budget; modal focus trapping remains React Aria.
 - Ctrl/Cmd+L, pane toggles, parent/history keys and Quick Look sibling/open/close keys have visible-control alternatives. Deferred row focus is cancelled or avoided when the row already exists, preventing a modal focus race. Skip links, polite selection updates and assertive errors are present.
@@ -36,6 +38,8 @@ The approved analysis governs ambiguities. The requested M1 implementation is co
 
 ## Not done
 
+UI Grid view remains scheduled for M5. Saved column widths may require horizontal table scrolling. Independent visual and device review remains open.
+
 | Item | Reason / next gate |
 | --- | --- |
 | Real GitHub account, actual 20 MB/50-page document and deep-link exit verification | Owner must supply a disposable repo/PAT through the app. Checklist is docs/manual-test-m1.md. Mock fixtures are not real-account evidence. |
@@ -47,11 +51,15 @@ The approved analysis governs ambiguities. The requested M1 implementation is co
 
 ## Manual steps
 
+[HUMAN] Review docs/ui-comparison.md and docs/ui-critique.md, including the light and dark repaired screens. Perform browser-menu zoom and physical-device review separately.
+
 [HUMAN] Follow docs/manual-test-m1.md with a throwaway initialized repo and short-lived fine-grained PAT. Verify public/private browsing, a real PDF, page/zoom persistence after reconnection, deep links, keyboard and mobile width. Never send the token in chat or commit it. Revoke it afterward and record the result without credentials.
 
 [HUMAN] Review the new Explorer/Inspector/PDF/360px captures and intentional Styleguide baselines in docs/design-qa.md. Review the bounded-preview and scriptless-HTML choices above. Configure a Git remote if CI should run remotely. Authorize M2 separately when ready.
 
 ## Known issues and limits
+
+- Native controls retain browser/platform styling. A prior full Playwright run reported a light Styleguide tooltip focus timeout; this is recorded pending verification, without claiming the full suite passed for this repair.
 
 - Real provider CORS/large-file/font/codec combinations remain unverified until the checklist is run. Password-protected, damaged or unsupported PDFs show an error plus Download; no password prompt is implemented.
 - GitHub per-item commit metadata can consume API quota. Only mounted rows request it, results are briefly cached, and unavailable metadata stays Unknown. Deep-link metadata failure does not discard successfully loaded bytes.
@@ -60,6 +68,8 @@ The approved analysis governs ambiguities. The requested M1 implementation is co
 - Screenshot baselines depend on Windows Chromium. Changes were reviewed locally; independent owner visual approval remains pending.
 
 ## Validation
+
+UI repair: npm run check passed on 2026-11-17 (117 tests, typecheck, lint, CSS policy, build and 140302-byte gzip shell). The previous full browser run had one Styleguide tooltip visibility timeout; its full-suite result is not claimed as passing. See docs/design-qa.md for visual evidence and review limits.
 
 Local completion results: npm run check passes with 117 unit/component checks, type/lint/style/contrast/policy checks, production build and the unchanged 153,600-byte gzip shell limit. The full 25-scenario Chromium suite passed without snapshot updates. Subsequent focused mobile PDF runs passed after strengthening render-completion, pixel, visible-text and focus assertions. The fixed-date Hindi/360px baseline was also verified. npm audit found zero vulnerabilities and the locked-licence check passed. No test was skipped or deleted to get green. Acceptance 5, the M1 portion of 11/13/14/15/16/18, and the read-only exit flow are covered locally. Acceptance 8's offline reload is M5 and is not claimed by merely remembering a page.
 

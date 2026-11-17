@@ -133,3 +133,71 @@
     min-block-size: var(--target-touch);
   }
 }
+/* UI repair: leave PDF coordinates and text-layer transforms unchanged. */
+.controls {
+  padding: var(--space-2) var(--space-3);
+}
+.controls label {
+  color: var(--ink-2);
+  font-size: var(--text-meta);
+  line-height: var(--space-4);
+}
+.controls input {
+  max-inline-size: var(--number-input-width);
+  min-block-size: max(var(--target-min), var(--control-height));
+  font-size: var(--text-ui);
+  line-height: var(--space-5);
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-control);
+}
+.controls label > input:not([type]) {
+  inline-size: var(--thumb-large);
+  max-inline-size: var(--full);
+}
+.controls label:has(> input:not([type])) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.controls [role="status"] {
+  font-size: var(--text-meta);
+  color: var(--ink-3);
+  min-block-size: var(--control-height);
+  display: inline-flex;
+  align-items: center;
+}
+.disclosure {
+  border-block-end: var(--border-width) solid var(--rule);
+  background: var(--paper-1);
+}
+.disclosure summary {
+  min-block-size: max(var(--target-min), var(--control-height));
+  padding: var(--space-1) var(--space-3);
+  color: var(--ink-2);
+  line-height: var(--space-5);
+  font-size: var(--text-ui);
+}
+.pages {
+  padding: var(--space-3);
+  background: var(--paper-0);
+}
+.page {
+  margin-inline: auto;
+  outline: var(--border-width) solid var(--rule);
+}
+.sidebar {
+  background: var(--paper-1);
+  border-inline-end: var(--border-width) solid var(--rule);
+  padding: var(--space-2);
+}
+.sidebar button {
+  padding: var(--space-2);
+  font-size: var(--text-ui);
+  font-family: var(--font-ui);
+  border-radius: var(--radius-control);
+}
+@media (pointer: coarse) {
+  .disclosure summary {
+    min-block-size: var(--target-touch);
+  }
+}

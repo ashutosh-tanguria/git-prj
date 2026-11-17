@@ -43,10 +43,11 @@ export default function Library() {
   } = useLibrary();
   return (
     <div className={styles.shell}>
-      <header>
+      <header className={styles.brand}>
         <h1>Shelf</h1>
         {account && (
           <Button
+            variant="quiet"
             onPress={() => {
               previewRequest.current?.abort();
               setPreview(undefined);
@@ -100,7 +101,7 @@ export default function Library() {
           />
         ) : (
           <>
-            <h2>{ref?.repo}</h2>
+            <h2 className={styles.locationHeading}>{ref?.repo}</h2>
             {hash.startsWith("#/view/") ? (
               blob && (
                 <ReadViewer

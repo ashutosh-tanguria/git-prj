@@ -1,17 +1,44 @@
+.tree {
+  font-size: var(--text-ui);
+}
 .item {
-  min-block-size: var(--target-touch);
+  min-block-size: var(--row-height);
   display: flex;
   gap: var(--space-2);
   align-items: center;
   cursor: pointer;
-  padding-inline: var(--space-2);
+  padding-inline: var(--space-3);
+  line-height: var(--space-5);
+  color: var(--ink-2);
 }
-.item:focus {
+.item:hover {
+  background: var(--paper-0);
+}
+.item:focus,
+.item[aria-selected="true"] {
   background: var(--accent-tint);
+  color: var(--ink-1);
 }
 .item span {
-  inline-size: var(--space-4);
+  inline-size: var(--icon-size);
+  flex-shrink: 0;
+  text-align: center;
+  color: var(--ink-3);
 }
 .tree [role="group"] {
   padding-inline-start: var(--space-3);
+}
+.tree:has([aria-expanded="true"]) {
+  padding-block-end: var(--space-3);
+}
+nav:has(> .tree) > h2 {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--pane-heading-height);
+  margin: var(--space-0);
+  padding-inline: var(--pane-padding);
+  padding-inline-end: calc(var(--pane-resize-width) + var(--space-6));
+  border-block-end: var(--border-width) solid var(--rule);
+  font-size: var(--text-reading);
+  line-height: var(--space-6);
 }

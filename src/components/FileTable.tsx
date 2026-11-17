@@ -45,32 +45,34 @@ export function FileTable(props: {
         }
       }}
     >
-      <div className={styles.tools}>
-        <button
-          type="button"
-          onClick={() => setMode(!mode)}
-          aria-pressed={mode}
-        >
-          {t("selectionMode")}
-        </button>
-        {mode && selectedEntries.length === 1 && (
-          <>
-            <button onClick={() => props.onOpen(selectedEntries[0])}>
-              {t("open")}
-            </button>
-            <button onClick={() => props.onPreview(selectedEntries[0], rows)}>
-              {t("quickLook")}
-            </button>
-          </>
-        )}
-        <span role="status" aria-live="polite">
-          {t("selectedCount")} {selectedEntries.length}
-        </span>
+      <div className={styles.tableToolbar}>
+        <div className={styles.tools}>
+          <button
+            type="button"
+            onClick={() => setMode(!mode)}
+            aria-pressed={mode}
+          >
+            {t("selectionMode")}
+          </button>
+          {mode && selectedEntries.length === 1 && (
+            <>
+              <button onClick={() => props.onOpen(selectedEntries[0])}>
+                {t("open")}
+              </button>
+              <button onClick={() => props.onPreview(selectedEntries[0], rows)}>
+                {t("quickLook")}
+              </button>
+            </>
+          )}
+          <span role="status" aria-live="polite">
+            {t("selectedCount")} {selectedEntries.length}
+          </span>
+        </div>
+        <ColumnChooser
+          hidden={layout.hidden}
+          onHidden={(hidden) => setLayout({ ...layout, hidden })}
+        />
       </div>
-      <ColumnChooser
-        hidden={layout.hidden}
-        onHidden={(hidden) => setLayout({ ...layout, hidden })}
-      />
       <div
         ref={parent}
         role="grid"

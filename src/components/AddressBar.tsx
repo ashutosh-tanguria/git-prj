@@ -38,10 +38,36 @@ export function AddressBar({
         setEditing(false);
       }}
     >
-      <Button onPress={() => history.back()}>{t("back")}</Button>
-      <Button onPress={() => history.forward()}>{t("forward")}</Button>
+      <Button
+        variant="quiet"
+        aria-label={t("back")}
+        onPress={() => history.back()}
+      >
+        <svg
+          className={styles.actionGlyph}
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+        >
+          <path d="m9 3-5 5 5 5M4 8h9" />
+        </svg>
+        <span className={styles.historyText}>{t("back")}</span>
+      </Button>
+      <Button
+        variant="quiet"
+        aria-label={t("forward")}
+        onPress={() => history.forward()}
+      >
+        <svg
+          className={styles.actionGlyph}
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+        >
+          <path d="m7 3 5 5-5 5M3 8h9" />
+        </svg>
+        <span className={styles.historyText}>{t("forward")}</span>
+      </Button>
       <label className={styles.address}>
-        {t("address")}
+        <span className={styles.addressLabel}>{t("address")}</span>
         <input
           ref={field}
           aria-label={t("address")}

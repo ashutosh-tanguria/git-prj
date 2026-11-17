@@ -1,29 +1,86 @@
 .inspector {
-  padding: var(--pane-padding);
+  padding: var(--space-0);
   min-inline-size: var(--space-0);
   overflow: auto;
+  background: var(--paper-1);
+}
+.inspector > h2 {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--pane-heading-height);
+  padding-inline: var(--pane-padding);
+  padding-inline-end: calc(var(--pane-resize-width) + var(--space-6));
+  margin: var(--space-0);
+  font-size: var(--text-reading);
+  line-height: var(--space-6);
+  border-block-end: var(--border-width) solid var(--rule);
 }
 .inspector [role="tablist"] {
   display: flex;
-  gap: var(--space-3);
-  border-block-end: var(--border-width) solid var(--rule-strong);
+  gap: var(--space-0);
+  padding-inline: var(--space-3);
+  border-block-end: var(--border-width) solid var(--rule);
 }
 .inspector [role="tab"] {
-  padding: var(--space-2);
-  min-block-size: var(--target-touch);
+  padding: var(--space-1) var(--space-3);
+  min-block-size: max(var(--target-min), var(--control-height));
   cursor: pointer;
+  border: none;
+  border-block-end: var(--focus-width) solid transparent;
+  border-radius: var(--radius-flat);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+}
+.inspector [role="tab"]:hover {
+  background: var(--paper-0);
 }
 .inspector [role="tab"][data-selected] {
-  border-block-end: var(--focus-width) solid var(--accent);
+  border-block-end-color: var(--accent);
+  color: var(--ink-1);
   font-weight: var(--weight-strong);
+}
+.inspector [role="tabpanel"] {
+  padding: var(--pane-padding);
+}
+.inspector [role="tabpanel"] > p {
+  font-size: var(--text-ui);
+  line-height: var(--space-5);
+  color: var(--ink-2);
+  margin-block-end: var(--space-3);
+}
+.inspector [role="tabpanel"] > p:first-child {
+  font-weight: var(--weight-medium);
+  color: var(--ink-1);
+}
+.inspector [role="tabpanel"] > p:nth-child(3) {
+  font-size: var(--text-meta);
+  color: var(--ink-3);
+}
+.inspector dl {
+  margin: var(--space-4) var(--space-0) var(--space-0);
 }
 .inspector dd {
-  margin-inline-start: var(--space-0);
+  margin: var(--space-1) var(--space-0) var(--space-0);
   overflow-wrap: anywhere;
+  line-height: var(--space-5);
 }
 .inspector dt {
-  font-weight: var(--weight-strong);
-  margin-block-start: var(--space-3);
+  font-size: var(--text-meta);
+  font-weight: var(--weight-medium);
+  color: var(--ink-3);
+  margin-block-start: var(--space-4);
+}
+.inspector dd code {
+  font-size: var(--text-meta);
+}
+.inspector dd button {
+  margin-inline-start: var(--space-1);
+  padding-inline: var(--space-2);
+  border-color: transparent;
+  background: transparent;
+  color: var(--accent);
+  font-size: var(--text-meta);
 }
 .drawer,
 .sheet {
@@ -33,6 +90,8 @@
   padding: var(--space-3);
   overflow: auto;
   z-index: var(--layer-dialog);
+  box-shadow: var(--elevation);
+  border-radius: var(--radius-layer);
 }
 .drawer {
   inset-block: var(--space-0);
@@ -45,10 +104,22 @@
   max-block-size: var(--quicklook-height);
   inline-size: var(--full);
 }
-
-.inspector [role="tab"] {
-  border: none;
-  background: var(--paper-1);
-  color: var(--ink-1);
-  font: inherit;
+.layerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-block-size: var(--pane-heading-height);
+  border-block-end: var(--border-width) solid var(--rule);
+  margin-block-end: var(--space-3);
+}
+.layerHeader h2 {
+  margin: var(--space-0);
+  font-size: var(--text-title);
+}
+.sheet .inspector {
+  background: var(--paper-2);
+}
+.sheet .inspector > h2 {
+  padding-inline-end: var(--pane-padding);
 }
