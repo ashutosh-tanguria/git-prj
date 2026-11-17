@@ -4,7 +4,7 @@ Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 has not started.
+The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic is implemented; its UI remains outstanding.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
@@ -12,7 +12,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M0 Foundation | Done | Tokens, fonts, primitives, Styleguide, contrast/policy checks, snapshots and CI. |
 | M1 Shell and GitHub read | Implementation done; real-account verification pending | Full selection/grid, tree/keyboard, PDF reader, Inspector, responsive panes, local preferences and mocked browser tests. Owner follows docs/manual-test-m1.md. |
 | M1.5 UI v2 | Done locally | Amendment merged in place; colour roles, command/address rows, navigation groups, revised columns, preview and counts, glyph families, Styleguide and focused accessibility tests. |
-| M2 Guards | Not started | Owner authorization required. |
+| M2 Guards | Partial: pure logic complete | Boundary and locale tests pass locally; guard UI and exit criteria remain outstanding. |
 | M3 Staging and push | Not started | M2 exit and authorization required. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
@@ -20,6 +20,8 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- M2 logic uses exact byte thresholds; repository projections include staged additions without deletion credit because Git retains history. Unknown repository size or visibility blocks approval. Batch plans preserve change order and block a change larger than the cap. Public and sensitive-name confirmations are per call and never stored. Invalid byte counts throw rather than silently producing an OK verdict. LFS detection checks the exact first line.
 
 - UI polish completion supersedes the c40ca6f partial checkpoint. Sashes keep persisted widths and now clear drag styling on lost capture. Breadcrumbs edit on Ctrl+L or empty-area click, submit with Enter and revert with Escape. Address history/Up/Refresh and pane toggles use shared outline icons; later actions have focusable aria-disabled buttons with portal tooltips. Connect shows provider rows and opens the PAT form only from GitHub. The guard strip displays reported repository size and presentation tints, without M2 evaluation.
 
@@ -47,7 +49,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Not done
 
-Current UI polish request is complete locally. M2 guard logic, dialogs, ledger, upload/drop guard entry points and M3 staging remain unimplemented and out of scope for this task.
+Current UI polish request is complete locally. M2 dialogs, ledger, upload/drop guard entry points and M3 staging remain unimplemented and out of scope for this task.
 
 M1.5 does not activate M3 shortcuts or M5 search/views/collections. Chrome/Edge/Firefox shortcut conflict checks belong to M3 and are unverified here. Older non-default visual baselines outside the focused suite are retained, not claimed as current v2 evidence.
 
@@ -59,10 +61,12 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 | Independent browser-menu zoom, mid-range phone 10,000-row/60fps and memory measurements | Automated virtualization/reflow checks do not prove physical-device performance. Release/device gate remains pending. |
 | NVDA/VoiceOver, fluent Hindi review and full Firefox/WebKit matrix | Manual/release gates; local Chromium and axe are not WCAG certification. |
 | Remote CI execution | Workflow exists, but no Git remote is configured. No push/deployment was performed. |
-| Actual guards, staging, History, push, backup, cache/offline reload, other providers and alternate views | Assigned to M2 through M6; deliberately not started. |
+| Guard UI, staging, History, push, backup, cache/offline reload, other providers and alternate views | Assigned to M2 through M6; deliberately not started. |
 | Script-enabled HTML preview | Disabled under the stronger security policy; documented deviation. |
 
 ## Manual steps
+
+[HUMAN] No setup is required for the pure guard functions. Review and authorize the remaining M2 guard UI separately.
 
 [HUMAN] Review the four docs/polish images and try pane resizing, breadcrumb editing and first-run Connect. No new account setup is needed. M2 remains unstarted.
 
@@ -75,6 +79,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 [HUMAN] Review the new Explorer/Inspector/PDF/360px captures and intentional Styleguide baselines in docs/design-qa.md. Review the bounded-preview and scriptless-HTML choices above. Configure a Git remote if CI should run remotely. Authorize M2 separately when ready.
 
 ## Known issues and limits
+
+- Guard functions are not yet connected to staging, push or any UI; they do not enforce limits until those integrations are implemented. Repo estimates use GitHub reported KB and may lag.
 
 - Four new review captures are in docs/polish. Focused Chromium tests cover persistence, keyboard and pointer sash behavior, narrow panes, breadcrumbs and disabled tooltips; independent device and screen-reader review remain pending.
 
@@ -89,6 +95,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 - Screenshot baselines depend on Windows Chromium. Changes were reviewed locally; independent owner visual approval remains pending.
 
 ## Validation
+
+M2 guard logic: file, repo, batch, public visibility, sensitive-name and LFS boundary tests plus en/hi key parity; see tests/guards.test.ts. npm run check passed with 128 tests and a 149311-byte gzip shell.
 
 M1.5: npm run check passes with 84 tests (including both A1 semantic registries), typecheck, lint, CSS policy, production build and a 142053-byte gzip shell under the unchanged budget. Nine focused Chromium cases pass: three Explorer width/theme flows and six Styleguide theme/density accessibility cases. Two default Styleguide goldens were intentionally refreshed. Six unique review images are linked in design QA. The full historical browser suite and cross-browser shortcut matrix are not claimed as verified.
 
