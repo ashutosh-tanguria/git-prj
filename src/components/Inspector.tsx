@@ -1,4 +1,4 @@
-import { Badge } from "../ui/Badge";
+import { VisibilityBadge } from "./VisibilityBadge";
 import { Button } from "../ui/Button";
 import { useEffect, useState, useId } from "react";
 import { InspectorTabList } from "./InspectorTabList";
@@ -138,7 +138,7 @@ export function Inspector({
                   <dd>{entry.lastChange ?? t("unknown")}</dd>
                   <dt>{t("visibility")}</dt>
                   <dd>
-                    <Badge>{visibility}</Badge>
+                    <VisibilityBadge visibility={visibility} />
                   </dd>
                   <dt>{t("cacheStatus")}</dt>
                   <dd>{t("notCached")}</dd>

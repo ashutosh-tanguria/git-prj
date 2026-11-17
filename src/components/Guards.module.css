@@ -1,0 +1,110 @@
+.review,
+.ledger {
+  padding: var(--pane-padding);
+  overflow: auto;
+}
+.review article {
+  padding: var(--space-3);
+  margin-block: var(--space-3);
+  border: var(--border-width) solid var(--rule);
+}
+.review [data-level="block"],
+.repo[data-level="block"] {
+  background: var(--red-tint);
+}
+.review [data-level="warn"],
+.repo[data-level="warn"] {
+  background: var(--amber-tint);
+}
+.repo {
+  padding: var(--space-3);
+  border-block-end: var(--border-width) solid var(--rule);
+}
+.repo meter {
+  inline-size: var(--full);
+}
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-2);
+  font-size: var(--text-meta);
+}
+.segments {
+  display: grid;
+  grid-template-columns: 500fr 524fr 4096fr;
+  block-size: var(--space-2);
+  gap: var(--border-width);
+}
+.segments span {
+  background: var(--green-tint);
+  border: var(--border-width) solid var(--rule);
+}
+.segments span:nth-child(2) {
+  background: var(--amber-tint);
+}
+.segments span:nth-child(3) {
+  background: var(--red-tint);
+}
+.ledgerModal.ledgerModal {
+  inset-block: 0;
+  inset-inline: auto 0;
+  inline-size: min(var(--full), var(--palette-width));
+  border-radius: 0;
+}
+.visibility,
+.chip {
+  display: inline-flex;
+  padding: var(--space-1) var(--space-2);
+  background: var(--hover);
+  border: var(--border-width) solid var(--rule);
+  border-radius: var(--radius-control);
+}
+.visibility[data-public="true"],
+.chip {
+  background: var(--amber-tint);
+  color: var(--amber);
+}
+.confirm {
+  display: flex;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+.review textarea {
+  display: block;
+  background: var(--pane);
+  color: var(--ink-1);
+}
+.ledgerRow {
+  margin-block: var(--space-3);
+  overflow-wrap: anywhere;
+}
+.bar {
+  height: var(--space-3);
+  position: relative;
+  border-inline-end: 2px solid var(--red);
+  background: var(--hover);
+}
+.bar::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  border-inline-start: var(--border-width) solid var(--rule-control);
+}
+.bar > span {
+  display: block;
+  height: var(--full);
+  background: var(--green);
+}
+.bar [data-tier="warn"] {
+  background: var(--amber);
+}
+.bar [data-tier="block"] {
+  background: var(--red);
+}
+.axis {
+  display: flex;
+  justify-content: space-between;
+  padding-inline-start: 50%;
+  font-size: var(--text-meta);
+}

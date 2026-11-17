@@ -100,3 +100,11 @@ Sashes retain the 1px rule/6px hit area and 2px blue active line. Tests cover ke
 Focused unit/component and Chromium/axe checks cover the changed interactions, Connect, light/dark empty Explorer, mobile panes and light/dark Styleguide. No tooltip is visible at first render; hover, keyboard focus, blur and Escape are tested. Historical full-page goldens were not refreshed because of the four-capture limit. Real-account, browser matrix, screen-reader and physical-device validation remain owner checks.
 
 Validation: npm run check passes (85 tests; shell 148518 bytes gzip), and three focused Chromium/axe cases pass. The final sash removes the old pane border so only its 1px rule remains.
+
+## M2 guard UI, 2026-11-17
+
+Six final review images: [Explorer light](m2/explorer-light.png), [dark](m2/explorer-dark.png), [block light](m2/block-light.png), [dark](m2/block-dark.png), [ledger light](m2/ledger-light.png), [dark](m2/ledger-dark.png). Fixtures are labelled samples; no real account was used. Badge, size-rule and amber guard-strip states remain distinguishable in both themes. The ledger has 50 MB and 100 MB reference lines and a segmented repository scale.
+
+The blocked dialog focuses its container, with no default action. Public and sensitive-name checks start unchecked and successful review still leaves Stage disabled for M3. Component tests verify confirmation gating and that a 150 MiB file cannot be approved. Browser tests cover dropped-file review, ledger opening, focus and serious/critical axe checks in both themes. Styleguide specimens cover file tiers and repository warn/block states.
+
+Deviations: the ledger lists the largest files in the current directory rather than claiming a recursive repository scan. Move and split actions remain unavailable until M4; splitting is an estimate only. Advanced LFS is not offered without a configured, verified capability. No staging or push is implemented, and historical full-page snapshots were not regenerated under the six-image limit.

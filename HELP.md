@@ -26,3 +26,5 @@ PDF में पृष्ठ मोड, ज़ूम, खोज, थंबन�
 चित्र में ज़ूम और पैन, मीडिया में मूल प्लेयर, कोड में पंक्ति संख्या/रैप/कॉपी और CSV में सीमित वर्चुअल तालिका है। HTML अपने आप नहीं चलता; अलग पूर्वावलोकन में स्क्रिप्ट और नेटवर्क बंद रहते हैं। टेक्स्ट सीमा 10 MiB और Markdown चित्र सीमा दस है। डाउनलोड हमेशा उपलब्ध है। संकीर्ण स्क्रीन पर ड्रॉअर, बॉटम शीट और चयन मोड का उपयोग करें। बाद के माइलस्टोन में स्टेजिंग, पुश, ऑफ़लाइन कैश और अन्य प्रदाता आएँगे।
 
 At narrow or short heights, expand PDF controls to change fit/search/sidebar settings and collapse them again for reading. The / shortcut opens the controls and focuses search. HTML preview is sanitized before sandbox creation so even attempted external image loads are removed, in addition to the frame CSP. Local media uses only the README-approved self/blob media policy.
+
+Guard review: focus the file grid and press U, or drop local files into Shelf. Review checks only; Stage remains disabled until M3. Click the repository size in the guard strip for the read-only Size ledger, which currently covers the current listing.

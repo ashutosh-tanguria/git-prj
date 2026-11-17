@@ -29,7 +29,10 @@ export function GuardStrip({ repo }: { repo?: Repo }) {
       <Glyph name="limit" />
       <span>{t("guardCopy")}</span>
       {repo && (
-        <span className={styles.repoMeter}>
+        <button
+          className={styles.repoMeter}
+          onClick={() => window.dispatchEvent(new Event("shelf-ledger"))}
+        >
           {repo.full_name}:{" "}
           {mb === undefined
             ? t("unknown")
@@ -41,7 +44,7 @@ export function GuardStrip({ repo }: { repo?: Repo }) {
               {mb} MB
             </meter>
           )}
-        </span>
+        </button>
       )}
     </aside>
   );

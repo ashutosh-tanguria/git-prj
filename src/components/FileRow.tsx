@@ -166,6 +166,9 @@ export function FileRow({
         data-hidden={hidden.includes("size")}
       >
         <span className={styles.sizeValue}>
+          {row.size >= 25 * 1048576 && row.size < 50 * 1048576 && (
+            <span>{t("large")} </span>
+          )}
           {row.kind === "file"
             ? new Intl.NumberFormat(undefined, {
                 maximumFractionDigits: 1,

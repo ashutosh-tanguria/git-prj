@@ -1,3 +1,5 @@
+import { GuardMount } from "../components/GuardMount";
+import { VisibilityBadge } from "../components/VisibilityBadge";
 import { useLibrary } from "./useLibrary";
 import { CommandBar } from "../components/CommandBar";
 import { library } from "../services/library";
@@ -105,7 +107,9 @@ export default function Library() {
           />
         ) : (
           <>
-            <h2 className={styles.locationHeading}>{ref?.repo}</h2>
+            <h2 className={styles.locationHeading}>
+              {ref?.repo} <VisibilityBadge visibility={visibility} />
+            </h2>
             {hash.startsWith("#/view/") ? (
               blob && (
                 <ReadViewer
@@ -130,8 +134,15 @@ export default function Library() {
         {loading && <p role="status">{t("loadingRead")}</p>}
         {error && <p role="alert">{error}</p>}
       </ReadShell>
+      {account && ref && (
+        <GuardMount key={key} roots={roots} current={ref} entries={entries} />
+      )}
       <PendingTray />
-      <GuardStrip repo={roots.find(repo=>repo.full_name === ref?.owner+"/"+ref?.repo)} />
+      <GuardStrip
+        repo={roots.find(
+          (repo) => repo.full_name === ref?.owner + "/" + ref?.repo,
+        )}
+      />
       <StatusBar account={account} entries={entries} selection={selection} />
       {preview && (
         <QuickLook

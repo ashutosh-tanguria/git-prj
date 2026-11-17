@@ -4,7 +4,7 @@ Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic is implemented; its UI remains outstanding.
+The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic and UI are implemented locally, with the ledger listing-scope deviation below.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
@@ -12,7 +12,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M0 Foundation | Done | Tokens, fonts, primitives, Styleguide, contrast/policy checks, snapshots and CI. |
 | M1 Shell and GitHub read | Implementation done; real-account verification pending | Full selection/grid, tree/keyboard, PDF reader, Inspector, responsive panes, local preferences and mocked browser tests. Owner follows docs/manual-test-m1.md. |
 | M1.5 UI v2 | Done locally | Amendment merged in place; colour roles, command/address rows, navigation groups, revised columns, preview and counts, glyph families, Styleguide and focused accessibility tests. |
-| M2 Guards | Partial: pure logic complete | Boundary and locale tests pass locally; guard UI and exit criteria remain outstanding. |
+| M2 Guards | Implemented locally with documented limits | Guard review, badges, meter and read-only ledger; real-account checks remain pending. |
 | M3 Staging and push | Not started | M2 exit and authorization required. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
@@ -20,6 +20,9 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- M2 UI uses the pure guards for file, projected repo, batch, visibility and sensitive-name review. U opens the file picker only in the file grid; OS file drops open review without reading/uploading bytes. Confirmations are per-review component state and reset on close. Stage is visibly disabled and labelled M3; no staging store or write API was added. A blocked dialog initially focuses its container, with no default action.
+- Size ledger is a right-hand read-only drawer with 50/100 MB reference lines, up to 20 largest files from the current listing, a repo-size meter and segmented threshold bar. This is explicitly labelled as a listing view, not a recursive repository scan. Move/PDF split controls are unavailable until M4; the block review shows a PDF split estimate without performing it. LFS is not offered because no advanced LFS setting/capability exists yet.
 
 - M2 logic uses exact byte thresholds; repository projections include staged additions without deletion credit because Git retains history. Unknown repository size or visibility blocks approval. Batch plans preserve change order and block a change larger than the cap. Public and sensitive-name confirmations are per call and never stored. Invalid byte counts throw rather than silently producing an OK verdict. LFS detection checks the exact first line.
 
@@ -49,7 +52,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Not done
 
-Current UI polish request is complete locally. M2 dialogs, ledger, upload/drop guard entry points and M3 staging remain unimplemented and out of scope for this task.
+M2 review UI is implemented. Repository-wide recursive largest-file enumeration remains outstanding; the ledger explicitly limits its claim to the current listing. Actual staging and push remain M3, and transfers/splitting remain M4.
 
 M1.5 does not activate M3 shortcuts or M5 search/views/collections. Chrome/Edge/Firefox shortcut conflict checks belong to M3 and are unverified here. Older non-default visual baselines outside the focused suite are retained, not claimed as current v2 evidence.
 
@@ -66,6 +69,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Manual steps
 
+[HUMAN] Review docs/m2 captures and verify U/file drops with disposable local files. No bytes are staged or sent. Follow the existing real-account M1 checklist separately.
+
 [HUMAN] No setup is required for the pure guard functions. Review and authorize the remaining M2 guard UI separately.
 
 [HUMAN] Review the four docs/polish images and try pane resizing, breadcrumb editing and first-run Connect. No new account setup is needed. M2 remains unstarted.
@@ -80,7 +85,9 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Known issues and limits
 
-- Guard functions are not yet connected to staging, push or any UI; they do not enforce limits until those integrations are implemented. Repo estimates use GitHub reported KB and may lag.
+- Ledger largest-files scope is the current listing, not the whole repository. Unknown repo size blocks approval. No real-account verification is claimed. Stage remains a disabled M3 placeholder, so confirmation success means only that checks passed.
+
+- Guard functions are connected to the review UI; staging and push enforcement remain M3 integration work. Repo estimates use GitHub reported KB and may lag.
 
 - Four new review captures are in docs/polish. Focused Chromium tests cover persistence, keyboard and pointer sash behavior, narrow panes, breadcrumbs and disabled tooltips; independent device and screen-reader review remain pending.
 
@@ -111,3 +118,5 @@ Final evidence: Windows Chromium screenshots for selection/Inspector, PDF, 360px
 Historical c40ca6f checkpoint validation: npm run check passes with 85 tests and a 142456-byte gzip shell. No browser results or screenshot review are claimed for this checkpoint.
 
 Completed UI polish validation: npm run check passes with 85 tests, type/lint/CSS checks, production build and 148518-byte gzip shell under the unchanged budget. Three focused Chromium cases pass, including light/dark Styleguide axe and the shell interaction flow. Four review images are in docs/polish. The full historical browser snapshot suite was not run or refreshed. M2 remains unstarted.
+
+M2 UI validation: npm run check passes with 130 tests and a 153416-byte gzip shell (below 153600). Two focused Chromium/axe guard flows pass in light and dark. Six review images are retained. The recursive-ledger scope deviation remains open; no real-account or M3 result is claimed.

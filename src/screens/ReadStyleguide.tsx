@@ -1,3 +1,5 @@
+import { GuardReview } from "../components/GuardReview";
+import { SizeLedger } from "../components/GuardViews";
 import { SampleViewers } from "./SampleViewers";
 import { ActionIcon } from "../ui/ActionIcon";
 import { Sash } from "../components/Sash";
@@ -121,6 +123,42 @@ export function ReadStyleguide() {
           )}
         </PaneLayer>
       )}
+      <section>
+        <h2>{t("sample")}</h2>
+        {[14, 30, 70, 150].map((size) => (
+          <GuardReview
+            key={size}
+            files={[{ name: "sample-passport.pdf", size: size * 1048576 }]}
+            repo={{
+              full_name: "ada/sample-notes",
+              private: false,
+              default_branch: "main",
+              size: 612 * 1024,
+            }}
+          />
+        ))}
+        <SizeLedger
+          repo={{
+            full_name: "ada/sample-notes",
+            private: true,
+            default_branch: "main",
+            size: 612 * 1024,
+          }}
+          entries={[]}
+        />
+      </section>
+      {[1024 * 1024, 5 * 1024 * 1024].map((size) => (
+        <GuardReview
+          key={size}
+          files={[]}
+          repo={{
+            full_name: "ada/sample-size-warning",
+            private: true,
+            default_branch: "main",
+            size,
+          }}
+        />
+      ))}
       <SampleViewers />
       <PendingTray />
       {[undefined, 0, 500 * 1024, 1024 * 1024].map((size, i) => (
