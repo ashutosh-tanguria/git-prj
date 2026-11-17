@@ -18,7 +18,10 @@
     "test:e2e": "playwright test",
     "test:a11y": "playwright test --grep accessibility",
     "size": "node scripts/check-size.mjs",
-    "check": "npm run typecheck && npm run lint && npm run lint:css && npm test && npm run build && npm run size"
+    "check": "npm run typecheck && npm run lint && npm run lint:css && npm test && npm run build && npm run size",
+    "sandbox:dev": "vite --config sandbox/vite.config.ts",
+    "sandbox:build": "vite build --config sandbox/vite.config.ts",
+    "sandbox:preview": "vite preview --config sandbox/vite.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-mono": "5.3.0",

@@ -451,6 +451,10 @@ Every viewer: Download, Copy path, Open in provider (opens the provider's own we
 
 Client-side tiers remain the default. Managed paid tiers are opt-in and do not replace them. Existing scriptless preview remains until separate-origin security tests pass.
 
+Owner scope decision (M3.5a, 2026-11-17): implement Website and media preview only, Tiers A and D plus video/audio. Tier 2 (LibreOffice WebAssembly), Tier B (WebContainers) and Tier C (Pyodide), including their engine spikes, are deferred. Office Quick view and managed-tier mocks belong to M3.5b and are not authorized by M3.5a. M4 is not started. This decision supersedes conditional engine work elsewhere in this document and the merged amendments.
+
+M3.5a transfers a private MessagePort from the trusted bootstrap into its service worker, then navigates the frame itself to repository code. Its parent is cross-origin A. The iframe and response CSP allow scripts and same-origin access on B only. No popup, top navigation, forms, child frames or repository workers are allowed. The persistent banner belongs to origin A. External requests default to blocked for the hostile-site guarantee; opting out permits HTTPS resources and discloses that repository content can leave the preview. Requests to origin A remain forbidden. Local development uses app port 5173 and sandbox port 5174; browser tests use 4173 and 4174. Production requires a separately deployed sandbox site and an exact origin configuration, never a wildcard.
+
 #### 6.5b.1 Honest ceiling
 
 "Any technology, however heavy, fully online" has a hard limit: anything that needs a real server process (a database, a Python or Java backend, Docker, server-side rendering) cannot run inside a browser tab. Shelf therefore uses tiers:
@@ -1032,6 +1036,8 @@ Boundaries at 24.9, 25, 49.9, 50, 94.9, 95, 100 MiB; repo boundaries at 499, 500
 
 The app may contact only these hosts. A Playwright test records every request in a full end-to-end run and fails on anything else.
 
+M3.5a authorizes official documentation research on `docs.github.com`, `developer.stackblitz.com`, `codesandbox.io` and the official `github.com/codesandbox/docs` source. Hand-off navigation may open `github.com`, API-confirmed HTTPS GitHub Pages URLs, `stackblitz.com`, `codesandbox.io` and `codespaces.new`; these are user-clicked new tabs, never credential-bearing app fetches. Local sandbox development/test ports and the exact configured origin B are permitted. Origin B has no provider/API credentials and its strict mode permits only virtual repository resources; optional external mode permits HTTPS with credentials omitted where intercepted.
+
 - `api.github.com`, `raw.githubusercontent.com` (public raw files only)
 - `www.googleapis.com` (Drive), `accounts.google.com`, `apis.google.com` and `docs.google.com` (GIS and Picker, loaded lazily only after the user connects Drive)
 - `api.dropboxapi.com`, `content.dropboxapi.com`, `www.dropbox.com` (auth redirect)
@@ -1379,6 +1385,8 @@ Each milestone ends green: `npm run check` passes, `PROGRESS.md` is updated, and
 | M3 Staging and push | Create repository with capability detection and fallback (6.17), destination/folder picker, automatic messages, push popover, quick push, cut/copy/paste, remappable shortcut registry; Staging store, OPFS persistence, Pending tray and review, atomic GitHub push, conflict dialog, history and restore, working-copy export and restore, undo and redo | 3 uploads plus 1 delete become one commit; conflict never overwrites |
 | M3c Folder operations | Linked subtree rename/delete/copy/move, guarded cross-repository copy, directory upload, complete tree fallback and explicit collision review | Three-file rename is one commit with zero blob uploads; group undo and cap/truncation/collision tests pass |
 | M3.5 Preview Plus | Office and project spikes, isolated sandbox, virtual site, Office quick view, media verification, hand-off and conditional local heavy tiers; mock vendor adapters, consent and cost controls | Spike decisions documented; isolation and mock-vendor acceptance tests pass; no real accounts required |
+| M3.5a Website and media preview | Separate-origin Tier A sandbox and security, Tier D hand-off, cached media playback | Acceptance 29, 30, 34 and 35 pass locally; sandbox deployment remains an owner step |
+| M3.5b Office and managed previews | Office Quick view and managed-tier mock work from M3.5 | Requires separate owner authorization; Tier 2, B and C remain deferred |
 | M4 Other providers and moves | Drive, Dropbox, OneDrive providers, consented provider cloud-render Tier 3, Local folder import and export, cross-provider move and copy with verification, Split view, PDF split | Contract suite green for every provider; move verifies hash |
 | M5 Library features | Cache with LRU and pinning, offline open, full-text search, command palette, Collections and tags, duplicate finder, ZIP export, Grid and Column views | Offline PDF reopens at the saved page; search returns page numbers |
 | M6 Platform | OAuth/render broker worker, Turnstile, quotas and first real managed vendor adapters, Sign in with GitHub, Chrome extension, PWA install and update flow, security headers, allowlist test, Settings and Privacy screens | Allowlist test green; Lighthouse PWA at least 90 |
@@ -1536,3 +1544,4 @@ Open questions for the owner: final product name and domain; MIT or another lice
 - Prior art: Filestash (self-hosted file manager); rclone (rclone.org); `git-grab` (github.com/hews/git-grab), `gitgrab` (github.com/sachinsmc/gitgrab), `ghgrab` and `gitsnip` (terminaltrove.com); Carelo (github.com/aheinze/carelo); Column Explorer for Obsidian; OneCommander folder columns documentation.
 - Design critique of generated interfaces: "10 signs of AI generated design" (pub.towardsai.net), "Escaping AI slop" (noqta.tn), "How to avoid that vibe coded look" (robotsonpayroll.substack.com).
 - Typeface: Braille Institute, Atkinson Hyperlegible Next and Mono (brailleinstitute.org/freefont), Fontsource package page.
+

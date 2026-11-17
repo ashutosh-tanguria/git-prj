@@ -23,6 +23,10 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Decisions
 
+- M3.5a first commit: isolated sandbox origin and security only. The bootstrap transfers the private app port into the service worker, then replaces itself with repository code. Its parent is origin A, so repository scripts cannot inspect the parent or remove the app-owned banner. Opaque nested frames were rejected during development because their subresources bypass the virtual-file service worker. Repository workers, child frames, forms, popups and top navigation remain denied by response CSP and iframe permissions.
+- Owner scope decision: defer Tier 2 LibreOffice WebAssembly, Tier B WebContainers and Tier C Pyodide, including their engine spikes. README records this override. M3.5b Office/managed mocks and M4 remain unauthorized and unstarted. Amendments 1 to 3 were already merged into README before implementation; source amendment files and the owner's AGENTS.md edits are left untouched.
+- External requests default to blocked to enforce hostile-site exfiltration tests. Unblocking will be an explicit toolbar choice with a disclosure. Sessions enforce 500 files and 50 MiB of declared and actual bytes; paths are canonical and reads are limited to the manifest. No runtime dependency was added.
+
 - M3c: source folders use immutable tree SHAs. Recursive responses marked truncated are discarded and each directory is read non-recursively; a truncated or inaccessible child fails the whole operation. Special entries are never silently omitted. Source tree stamps detect newly added upstream files at Push, and replacement stamps protect the whole destination. Expected replacement roots advance only after Shelf's own successful sequential commit.
 - Same-repository, same-branch folder Cut/rename reuses blob SHAs and preserves executable modes. Same-repository Copy reuses SHAs; cross-repository Copy reads immutable raw blobs one at a time through durable persistence. No metadata is published until the complete group and its guards succeed. Failed byte materialization can leave unreferenced byte files, as with existing staging; it never publishes a partial pending group.
 - Collision choices have no default. Keep both generates a free (shelf copy) sibling name; Replace removes the existing destination subtree, including superseded pending work, in the same undoable stage action. Source folders with existing pending changes must be reviewed/discarded before a remote-subtree operation, preventing silent omission of local work. Filtering Pending retains every member of a linked group.
@@ -79,6 +83,8 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Not done
 
+M3.5a first checkpoint: sandbox security implementation exists; app preview UI, hand-offs and media cache follow in the second requested commit. Production deployment and real-device/browser checks remain owner steps. No M3.5b or M4 work.
+
 M3c real-account and native OS directory-drop verification are owner-run. Repository/branch changes involving Cut remain M4. Cross-repository Git LFS pointer copying is refused to avoid orphaning LFS data. Unsupported symlinks/submodules fail the entire operation. No M3.5 work was started.
 
 M3b manual real-account checks, native browser menus, Firefox, screen readers and physical devices are not verified. Directory-wide operations are implemented in M3c; cross-repository Cut remains disabled. Destination retargeting is limited to add-only plans. Owner and branch suggestions currently cover the first 100 API results; an exact branch/repository can still be entered. Historical Styleguide goldens were reviewed and intentionally refreshed in the validation recovery task. The initial full-suite failure count and subsequent targeted results are recorded below. No M3.5 work was started.
@@ -112,6 +118,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ### SETUP: Preview Plus and optional managed rendering
 
+[HUMAN] M3.5a: create a second Cloudflare Pages project using `npm ci && npm run sandbox:build`, output `sandbox/dist`, and exact `SHELF_APP_ORIGIN`. Build Shelf with `VITE_SANDBOX_ORIGIN` set to the deployed sandbox origin. Use a different registrable site, verify Pages public-suffix/cookie isolation if using pages.dev, and verify deployed CSP/frame-ancestors/COOP/COEP. See sandbox/README.md. For local dev run app at 127.0.0.1:5173 and sandbox at 127.0.0.1:5174. No secrets belong in the sandbox.
+
 [HUMAN] Create a second static deployment on a verified different registrable site; configure origin B COOP, COEP, CSP and frame-ancestors, and the app origin allowlist. Verify the host site boundary.
 
 [HUMAN] For optional managed tiers, create a CloudConvert account and API key and a CodeSandbox account and SDK key, using free tiers first. Create a Cloudflare Turnstile site key. Set Worker secrets, budget variables and kill switch, configure billing alerts at both vendors, and document the monthly ceiling in docs/costs.md. Do not commit secrets. These steps are for M6; M3.5 uses mocks.
@@ -131,6 +139,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 [HUMAN] Review the new Explorer/Inspector/PDF/360px captures and intentional Styleguide baselines in docs/design-qa.md. Review the bounded-preview and scriptless-HTML choices above. Configure a Git remote if CI should run remotely. Authorize M2 separately when ready.
 
 ## Known issues and limits
+
+- M3.5a: production host boundaries and deployed headers require owner verification. Diagnostics from repository scripts are advisory and bounded. Chromium is the local security proof; Firefox/WebKit, physical media codecs and production accounts remain manual gates.
 
 - M3c: a changed source/replacement tree requires discarding and restaging the complete folder. Per-file conflict choices cannot waive the subtree completeness check. SHA-only copies redirected to another repository must be recreated from the original selection. Existing first-100 repository/branch suggestion limits, physical-device performance and native browser/OS checks remain. OS directory drops operate in an open repository; the library-home Upload folder action asks for a destination first.
 
@@ -199,3 +209,11 @@ Final recovery validation: npm run check passes with 161 tests, typecheck, lint,
 - Focused development coverage: 34 unit/component tests across folder planning, staging, push, guard review, shortcut parsing and existing M3b UI. Folder-specific MSW cases include rename/delete, zero-blob SHA reuse, cross-repository file limits and LFS refusal, 500 MB sequential replacement copies, truncated-tree fallback during planning and push, collision choices, group undo, empty markers, all directory-reader batches and the over-cap rejection.
 - Four folder browser flows pass, covering F2 rename, linked Pending/Undo/Redo, one atomic commit and zero blob uploads, Keep both/Replace/Cancel, OS entry enumeration over the cap, directory-picker prefixes, axe and Hindi/light/dark reflow. All ten Styleguide cases pass, including three densities, forced colors and 200 percent simulation. The full historical browser suite was not rerun. No tests were skipped or deleted.
 - Playwright goldens were updated in one final update run, only for intentional changes: light-default.png, dark-default.png, hindi-360.png, tooltip-light.png and tooltip-dark.png. Changes are the Upload folder command, the F2/Delete shortcut rows and folder group/collision specimens. Three final sample review captures are retained in docs/m3c; incidental historical docs captures were restored. No real-account verification or M3.5 work is claimed.
+
+### M3.5a sandbox and security checkpoint
+
+- Status: first requested commit implemented. Three protocol/policy tests and the Chromium hostile-site/message inspection pass. `npm run check` passes with 181 tests and the unchanged 149328-byte gzip shell. An initial check stopped in typecheck on overloaded test instrumentation; Proxy wrappers corrected it before the passing run. No screenshots or snapshots were taken.
+- Decisions: 256-bit channel IDs, exact source/origin checks, private app-to-SW port, manifest-only reads, strict MIME/CSP, SPA fallback and virtual absolute paths. Stop disposal and abort are wired in the app transport. The sandbox build emits its own deployment headers.
+- Not done: app UI, hand-off research integration, media cache and manual checklist follow in the second commit. Deferred Tier 2/B/C and M3.5b/M4 remain unstarted.
+- Manual steps: second Pages deployment and verification are listed in SETUP above and sandbox/README.md. No account or secret was created.
+- Known issues: production site-boundary/header and non-Chromium/device checks remain unverified; strict mode is the tested security default.

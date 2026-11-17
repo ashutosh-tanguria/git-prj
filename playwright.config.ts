@@ -19,11 +19,18 @@ export default defineConfig({
     },
   ],
   snapshotPathTemplate: "{testDir}/snapshots/{arg}{ext}",
-  webServer: {
-    command:
-      "npx vite build --mode styleguide && npx vite preview --mode styleguide --host 127.0.0.1 --port 4173",
-    port: 4173,
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command:
+        "npx vite build --mode styleguide && npx vite preview --mode styleguide --host 127.0.0.1 --port 4173",
+      port: 4173,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: "node scripts/sandbox-test-server.mjs",
+      port: 4174,
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.001 } },
 });
