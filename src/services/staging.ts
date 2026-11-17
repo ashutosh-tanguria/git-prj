@@ -102,6 +102,11 @@ export function createStaging(storage: WorkingStorage) {
           publish();
         }
       }),
+    update: (transform: (current: Change[]) => Change[]) =>
+      serial(async () => {
+        await initialize();
+        await replace(transform(rows));
+      }),
     restore: (next: Change[]) => serial(() => replace(next)),
     read: (row: Change) => storage.get(row.blobKey || row.id),
   };

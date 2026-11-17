@@ -186,5 +186,6 @@
   "checksPassed": "Checks passed. Staging becomes available in M3.",
   "stageM3": "Stage (available in M3)",
   "nothingStaged": "Nothing has been staged or uploaded.",
-  "dontStage": "Don’t stage"
+  "dontStage": "Don’t stage",
+  "settings": "Settings"
 }

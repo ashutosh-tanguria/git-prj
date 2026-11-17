@@ -53,6 +53,75 @@ it("generates every README message form", () => {
   ).toBe("Add algorithms.pdf (moved from Google Drive)");
   expect([...commitMessage([add("a".repeat(100) + ".pdf")])]).toHaveLength(72);
 });
+it.each([
+  {
+    label: "one add",
+    changes: [add("algorithms-week3.pdf")],
+    folder: "",
+    expected: "Add algorithms-week3.pdf",
+  },
+  {
+    label: "several adds",
+    changes: [add("a.pdf"), add("b.pdf"), add("c.png")],
+    folder: "semester-5",
+    expected: "Add 3 files to semester-5 (2 PDFs, 1 image)",
+  },
+  {
+    label: "rename",
+    changes: [
+      {
+        kind: "rename",
+        oldPath: "os-notes.pdf",
+        target: { path: "os-notes-v2.pdf" },
+      },
+    ],
+    folder: "",
+    expected: "Rename os-notes.pdf to os-notes-v2.pdf",
+  },
+  {
+    label: "delete",
+    changes: [{ kind: "delete", target: { path: "old-draft.pdf" } }],
+    folder: "",
+    expected: "Delete old-draft.pdf",
+  },
+  {
+    label: "mixed",
+    changes: [
+      { kind: "delete", target: { path: "old" } },
+      add("a"),
+      add("b"),
+      { kind: "rename", target: { path: "new" } },
+    ],
+    folder: "semester-5",
+    expected: "Update semester-5: add 2 files, rename 1, delete 1",
+  },
+  {
+    label: "moved provider",
+    changes: [{ ...add("algorithms.pdf"), movedFrom: "Google Drive" }],
+    folder: "",
+    expected: "Add algorithms.pdf (moved from Google Drive)",
+  },
+] satisfies {
+  label: string;
+  changes: MessageChange[];
+  folder: string;
+  expected: string;
+}[])("message table: $label", ({ changes, folder, expected }) => {
+  expect(commitMessage(changes, folder)).toBe(expected);
+});
+it("lists every operation over eight changes and truncates a Unicode subject to 72 characters", () => {
+  const changes: MessageChange[] = [
+    ...Array.from({ length: 6 }, (_, i) => add("a" + i)),
+    { kind: "modify", target: { path: "notes.txt" } },
+    { kind: "delete", target: { path: "old.txt" } },
+    { kind: "rename", oldPath: "before.txt", target: { path: "after.txt" } },
+  ];
+  expect(commitMessage(changes).split("\n\n")[1]).toContain(
+    "M notes.txt\nD old.txt\nR before.txt -> after.txt",
+  );
+  expect([...commitMessage([add("😀".repeat(90))])]).toHaveLength(72);
+  expect(commitMessage([add("draft.")])).toBe("Add draft");
+});
 it("validates names and folder paths", () => {
   for (const value of ["", ".", "..", ".git", "bad name", "a".repeat(101)])
     expect(validRepositoryName(value)).toBe(false);

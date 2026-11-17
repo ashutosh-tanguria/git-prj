@@ -1,3 +1,7 @@
+import "../i18n/m3b";
+import { usePushChoice } from "./usePushChoice";
+import { commitMessage } from "../services/commitMessage";
+import { destinationKey } from "../services/destinations";
 import { preference, savePreference } from "../services/preferences";
 import "../i18n/working";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -9,16 +13,48 @@ import { t } from "../i18n";
 export function useWorkingCopy() {
   const rows = useSyncExternalStore(staging.subscribe, staging.snapshot),
     [open, setOpen] = useState(false),
-    [message, setMessage] = useState("Update working copy"),
+    [message, setMessageValue] = useState("Update working copy"),
     [publicConfirm, setPublic] = useState(false),
     [warnings, setWarnings] = useState(false),
     [sensitive, setSensitive] = useState(false),
+    [commits, setCommits] = useState<string[]>([]),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [ref, setRef] = useState(false),
     [conflicts, setConflicts] = useState<string[]>([]),
     [persisted, setPersisted] = useState(false),
     [filter, setFilter] = useState("all");
+  const [edited, setEdited] = useState(false);
+  const setMessage = (value: string) => {
+    setEdited(true);
+    setMessageValue(value);
+  };
+  useEffect(() => {
+    setPublic(false);
+    setWarnings(false);
+    setSensitive(false);
+    setOverrideConfirmed(false);
+    setRepoOverride("");
+  }, [rows]);
+  useEffect(() => {
+    if (!edited)
+      setMessageValue(
+        commitMessage(
+          rows,
+          rows[0]?.target.path.split("/").slice(0, -1).join("/") || "",
+        ),
+      );
+  }, [rows, edited]);
+  const { quick, setQuick, anchor } = usePushChoice(
+    rows,
+    () => {
+      setPublic(false);
+      setWarnings(false);
+      setSensitive(false);
+      setOpen(true);
+    },
+    !!conflicts.length,
+  );
   const [now, setNow] = useState(Date.now()),
     [installHint, setInstallHint] = useState(false);
   useEffect(() => {
@@ -99,7 +135,7 @@ export function useWorkingCopy() {
         groups.set(key, [...(groups.get(key) || []), row]);
       }
       for (const group of groups.values()) {
-        await pushChanges(group, staging.read, {
+        const result = await pushChanges(group, staging.read, {
           message,
           repoOverride: overrideConfirmed ? repoOverride : undefined,
           publicConfirmed: publicConfirm,
@@ -108,11 +144,40 @@ export function useWorkingCopy() {
           signal: controller.current.signal,
           onRef: () => setRef(true),
         });
+        setCommits((old) =>
+          [
+            ...new Set([
+              ...old,
+              ...result.map(
+                (sha) =>
+                  "https://github.com/" +
+                  encodeURIComponent(group[0].target.owner) +
+                  "/" +
+                  encodeURIComponent(group[0].target.repo) +
+                  "/commit/" +
+                  encodeURIComponent(sha),
+              ),
+            ]),
+          ].slice(-10),
+        );
         await staging.discard(group.map((c) => c.id));
       }
+      if (rows[0]) {
+        const destination = {
+          ...rows[0].target,
+          path: rows[0].target.path.split("/").slice(0, -1).join("/"),
+        };
+        await savePreference("lastDestination", destination);
+        const used = await preference<string[]>("usedDestinations", []);
+        await savePreference("usedDestinations", [
+          ...new Set([...used, destinationKey(destination)]),
+        ]);
+      }
+      setEdited(false);
       setError(t("workingSuccess"));
       window.dispatchEvent(new HashChangeEvent("hashchange"));
     } catch (e) {
+      setQuick(false);
       if (e instanceof ConflictError) setConflicts(e.paths);
       setError(
         t(
@@ -150,6 +215,10 @@ export function useWorkingCopy() {
     groups.set(key, [...(groups.get(key) || []), row]);
   }
   return {
+    commits,
+    quick,
+    anchor,
+    setQuick,
     repoOverride,
     setRepoOverride,
     overrideConfirmed,

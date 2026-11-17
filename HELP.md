@@ -30,3 +30,10 @@ At narrow or short heights, expand PDF controls to change fit/search/sidebar set
 Guard review: focus the file grid and press U, or drop local files into Shelf. Review checks only; Stage saves the working copy only after guard approval. Click the repository size in the guard strip for the read-only Size ledger, which currently covers the current listing.
 
 Pending review now saves staged bytes before confirmation, supports Undo/Redo and Discard, and can download or restore a working-copy ZIP. Push always checks remote versions and guards again. Protected branches retain pending work; use an allowed branch on GitHub before recovery. History restores are staged for review rather than pushed immediately.
+
+
+M3b: New repository (Alt+N) defaults to Private and README initialization. Creation permission is broader than the recommended selected-repository read/push preset; permission refusals offer github.com/new and a refresh action. New folder (Alt+M) stages a disclosed .gitkeep marker. Upload, Rename, Delete and file Cut/Copy/Paste run guard review and save pending work before confirming. Same-repository Cut/Paste reuses the blob; cross-repository Cut and directory-wide operations remain unavailable.
+
+Push (Alt+P) generates an editable English commit message. Change destination offers repository, branch and folder suggestions, including new folder paths for additions. Always push here pins later uploads; uncheck it and apply to remove the pin. First use, changed targets, public repositories, warnings and conflicts require full review. Eligible private destinations use compact Quick push and still re-run guards. Settings offers persisted shortcut remapping; browser-menu conflicts need checking in your actual browser.
+
+M3b: नई रिपॉज़िटरी Alt+N से खोलें; निजी और README विकल्प पहले से चुने हैं। Alt+M नया फ़ोल्डर स्टेज करता है। अपलोड, नाम बदलना, हटाना और फ़ाइल कट/कॉपी/पेस्ट पहले जाँच और फिर लंबित संग्रह में सहेजते हैं। Alt+P पुश समीक्षा खोलता है। गंतव्य पिन करने पर अगली फ़ाइलें वहीं स्टेज होती हैं। सार्वजनिक रिपॉज़िटरी, चेतावनी और टकराव में पूरी समीक्षा ज़रूरी है। सेटिंग में शॉर्टकट बदल सकते हैं; अपने ब्राउज़र में कुंजियाँ जाँचें।

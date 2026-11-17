@@ -10,9 +10,10 @@ export function folderPath(value: string) {
   if (
     value.startsWith("/") ||
     value.endsWith("/") ||
+    value.includes("//") ||
     value.includes("\\") ||
     value.includes("\0") ||
-    value.split("/").some((s) => [".", "..", ".git"].includes(s))
+    value.split("/").some((s) => [".", "..", ".git"].includes(s.toLowerCase()))
   )
     throw Error("destinationInvalid");
   return value;

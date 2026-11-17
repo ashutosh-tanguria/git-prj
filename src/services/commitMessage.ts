@@ -43,13 +43,16 @@ export function commitMessage(
     for (const c of changes) counts.set(c.kind, (counts.get(c.kind) || 0) + 1);
     subject =
       `Update ${where}: ` +
-      [...counts]
+      (["add", "modify", "rename", "delete"] as const)
+        .filter((kind) => counts.has(kind))
+        .map((kind) => [kind, counts.get(kind)] as const)
         .map(
           ([kind, count]) =>
             `${kind} ${count}${kind === "add" ? " files" : ""}`,
         )
         .join(", ");
   }
+  subject = subject.replace(/\.+$/, "");
   const chars = [...subject];
   if (chars.length > 72) subject = chars.slice(0, 71).join("") + "…";
   if (changes.length > 8)

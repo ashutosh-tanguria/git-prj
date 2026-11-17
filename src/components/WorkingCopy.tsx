@@ -1,19 +1,17 @@
-import { WorkingOverride } from "./WorkingOverride";
-import { WorkingRows } from "./WorkingRows";
+import { WorkingReview } from "./WorkingReview";
+import { QuickPush } from "./QuickPush";
 import { Button } from "../ui/Button";
-import { Modal, Dialog, Heading } from "react-aria-components";
 import { useWorkingCopy } from "./useWorkingCopy";
-import { staging } from "../services/workingStorage";
 import { restoreWorkingFile } from "../services/stageUploads";
 import { t } from "../i18n";
-import { WorkingConflict } from "./WorkingConflict";
 import styles from "./Library.module.css";
 export function WorkingCopy() {
+  const state = useWorkingCopy();
   const {
-    repoOverride,
-    setRepoOverride,
-    overrideConfirmed,
-    setOverrideConfirmed,
+    commits,
+    quick,
+    anchor,
+    setQuick,
     now,
     installHint,
     rows,
@@ -21,27 +19,17 @@ export function WorkingCopy() {
     setOpen,
     message,
     setMessage,
-    publicConfirm,
-    setPublic,
-    warnings,
-    setWarnings,
-    sensitive,
-    setSensitive,
     error,
     busy,
     ref,
-    conflicts,
-    setConflicts,
-    persisted,
-    filter,
-    setFilter,
-    restore,
     controller,
+    persisted,
+    restore,
     run,
     download,
     push,
-    groups,
-  } = useWorkingCopy();
+    setPublic,
+  } = state;
   return (
     <section id="pending" tabIndex={-1} className={styles.pendingStrip}>
       <span>
@@ -81,6 +69,9 @@ export function WorkingCopy() {
       >
         {t("workingTitle")}
       </Button>
+      <Button onPress={() => window.dispatchEvent(new Event("working-review"))}>
+        {t("workingPush")}
+      </Button>
       <Button onPress={() => void download()} isDisabled={!rows.length}>
         {t("workingBackup")}
       </Button>
@@ -107,94 +98,28 @@ export function WorkingCopy() {
           {installHint && t("workingInstall")}
         </span>
       )}
-      {open && (
-        <Modal isOpen onOpenChange={setOpen} className={styles.workingPanel}>
-          <Dialog>
-            <Heading slot="title">{t("workingTitle")}</Heading>
-            {error && <p role="alert">{error}</p>}
-            <Button onPress={() => void run(staging.undo)}>
-              {t("workingUndo")}
-            </Button>
-            <Button onPress={() => void run(staging.redo)}>
-              {t("workingRedo")}
-            </Button>
-            <label>
-              {t("workingFilter")}
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              >
-                {["all", "add", "modify", "delete", "rename", "blocked"].map(
-                  (value) => (
-                    <option key={value} value={value}>
-                      {t(
-                        value === "all" ? "workingAll" : "workingKind" + value,
-                      )}
-                    </option>
-                  ),
-                )}
-              </select>
-            </label>
-            <WorkingRows
-              groups={groups}
-              busy={busy}
-              onDiscard={(ids) => void run(() => staging.discard(ids))}
-            />
-            <label>
-              {t("workingMessage")}
-              <input
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-            </label>
-            {[
-              [publicConfirm, setPublic, "publicConfirm"],
-              [warnings, setWarnings, "workingConsent"],
-              [sensitive, setSensitive, "workingSensitive"],
-            ].map(([checked, set, key], i) => (
-              <label key={i}>
-                <input
-                  type="checkbox"
-                  checked={checked as boolean}
-                  onChange={(e) =>
-                    (set as (v: boolean) => void)(e.target.checked)
-                  }
-                />
-                {t(key as string)}
-              </label>
-            ))}
-            <Button
-              isDisabled={
-                busy || !rows.length || !message.trim() || conflicts.length > 0
-              }
-              onPress={() => void push()}
-            >
-              {t("workingPush")}
-            </Button>
-            {busy && (
-              <Button
-                isDisabled={ref}
-                onPress={() => controller.current?.abort()}
-              >
-                {t(ref ? "workingRef" : "workingCancel")}
-              </Button>
-            )}
-            <WorkingOverride
-              value={repoOverride}
-              onValue={setRepoOverride}
-              checked={overrideConfirmed}
-              onChecked={setOverrideConfirmed}
-            />
-            {!!conflicts.length && (
-              <WorkingConflict
-                paths={conflicts}
-                onClose={() => setConflicts([])}
-              />
-            )}
-            <Button onPress={() => setOpen(false)}>{t("close")}</Button>
-          </Dialog>
-        </Modal>
-      )}
+      {open &&
+        (quick ? (
+          <QuickPush
+            rows={rows}
+            message={message}
+            onMessage={setMessage}
+            onPush={() => void push()}
+            onClose={() => setOpen(false)}
+            onChange={() => setQuick(false)}
+            busy={busy}
+            anchor={anchor}
+            finishing={ref}
+            onCancel={() => controller.current?.abort()}
+          />
+        ) : (
+          <WorkingReview state={state} />
+        ))}
+      {commits.map((url) => (
+        <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+          {t("viewCommit")}
+        </a>
+      ))}
       {error && !open && <p role="status">{error}</p>}
     </section>
   );

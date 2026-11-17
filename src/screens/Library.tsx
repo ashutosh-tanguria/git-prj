@@ -1,3 +1,4 @@
+import { lazy, Suspense, useState } from "react";
 import { GuardMount } from "../components/GuardMount";
 import { VisibilityBadge } from "../components/VisibilityBadge";
 import { useLibrary } from "./useLibrary";
@@ -8,18 +9,23 @@ import { ReadShell } from "../components/ReadShell";
 import { FileTable } from "../components/FileTable";
 import { AddressBar } from "../components/AddressBar";
 import { GuardStrip, PendingTray, StatusBar } from "../components/ReadChrome";
-import { QuickLook } from "../components/QuickLook";
+import { LibraryPreview } from "../components/LibraryPreview";
 import { ReadViewer } from "../viewers/ReadViewer";
 import { ConnectPanel } from "../components/ConnectPanel";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import styles from "../components/Library.module.css";
+const LibraryCommands = lazy(() =>
+  import("../components/LibraryCommands").then((m) => ({
+    default: m.LibraryCommands,
+  })),
+);
 export default function Library() {
+  const [notice, setNotice] = useState("");
+  const state = useLibrary();
   const {
     refresh,
-    previewError,
     visibility,
-    previewOrder,
     previewRequest,
     account,
     setAccount,
@@ -44,7 +50,7 @@ export default function Library() {
     connect,
     open,
     quick,
-  } = useLibrary();
+  } = state;
   return (
     <div className={styles.shell}>
       <CommandBar />
@@ -96,6 +102,7 @@ export default function Library() {
           }
         }}
       >
+        {notice && <p role="status">{notice}</p>}
         {!account ? (
           <ConnectPanel
             token={token}
@@ -137,6 +144,38 @@ export default function Library() {
       {account && ref && (
         <GuardMount key={key} roots={roots} current={ref} entries={entries} />
       )}
+      <Suspense fallback={null}>
+        <LibraryCommands
+          current={ref}
+          selection={selection}
+          roots={roots}
+          onRefresh={async () => {
+            setRoots(await library.roots());
+          }}
+          onCreated={(repo, branchWarning) => {
+            setRoots((old) => [
+              ...old.filter((r) => r.full_name !== repo.full_name),
+              repo,
+            ]);
+            const [owner, name] = repo.full_name.split("/");
+            location.hash = explorerRoute({
+              owner,
+              repo: name,
+              branch: repo.default_branch,
+              path: "",
+            });
+            setNotice(
+              t("repoCreated") +
+                " " +
+                repo.full_name +
+                " (" +
+                t(repo.private ? "repoPrivate" : "repoPublic") +
+                ")" +
+                (branchWarning ? ". " + t("repoBranchWarning") : ""),
+            );
+          }}
+        />
+      </Suspense>
       <PendingTray />
       <GuardStrip
         repo={roots.find(
@@ -144,45 +183,7 @@ export default function Library() {
         )}
       />
       <StatusBar account={account} entries={entries} selection={selection} />
-      {preview && (
-        <QuickLook
-          title={preview.name}
-          onPrevious={() => {
-            const i = previewOrder.findIndex(
-              (item) => item.ref === preview.ref,
-            );
-            const next =
-              previewOrder[(i - 1 + previewOrder.length) % previewOrder.length];
-            if (next) void quick(next);
-          }}
-          onNext={() => {
-            const i = previewOrder.findIndex(
-              (item) => item.ref === preview.ref,
-            );
-            const next = previewOrder[(i + 1) % previewOrder.length];
-            if (next) void quick(next);
-          }}
-          onOpen={() => {
-            previewRequest.current?.abort();
-            setPreview(undefined);
-            setBlob(undefined);
-            open(preview);
-          }}
-          onClose={() => {
-            previewRequest.current?.abort();
-            setPreview(undefined);
-            setBlob(undefined);
-          }}
-        >
-          {previewError ? (
-            <p role="alert">{previewError}</p>
-          ) : blob ? (
-            <ReadViewer blob={blob} name={preview.name} fileKey={preview.ref} />
-          ) : (
-            <p role="status">{t("loadingRead")}</p>
-          )}
-        </QuickLook>
-      )}
+      <LibraryPreview state={state} />
     </div>
   );
 }

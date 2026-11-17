@@ -71,3 +71,56 @@ it("cut/paste in one repository reuses the blob without reading bytes", async ()
   expect(changes[0].blob).toBeUndefined();
   expect(changes[0].target.path).toBe("week-2/a.pdf");
 });
+it("keeps a created repository if renaming its default branch is refused", async () => {
+  server.use(
+    http.post("https://api.github.com/user/repos", () =>
+      HttpResponse.json({
+        full_name: "ada/notes",
+        private: true,
+        default_branch: "master",
+      }),
+    ),
+    http.post(
+      "https://api.github.com/repos/ada/notes/branches/master/rename",
+      () => HttpResponse.json({}, { status: 403 }),
+    ),
+  );
+  expect(await createRepository(input)).toMatchObject({
+    full_name: "ada/notes",
+    default_branch: "master",
+    branchWarning: true,
+  });
+  server.resetHandlers();
+});
+it("copy/paste keeps the source and stages newly read bytes", async () => {
+  server.use(
+    http.get(
+      "https://api.github.com/repos/ada/notes/contents/week-1/a.txt",
+      () => new HttpResponse("Sample copy"),
+    ),
+  );
+  setFileClipboard(
+    [
+      {
+        name: "a.txt",
+        path: "week-1/a.txt",
+        ref: "gh:ada/notes@main/week-1/a.txt",
+        sha: "source-blob",
+        size: 11,
+        kind: "file",
+      },
+    ],
+    false,
+  );
+  const plan = await planPaste({
+    owner: "ada",
+    repo: "notes",
+    branch: "main",
+    path: "week-2",
+  });
+  expect(plan).toHaveLength(1);
+  expect(plan[0].kind).toBe("add");
+  expect(await plan[0].blob?.text()).toBe("Sample copy");
+  expect(plan[0].oldPath).toBeUndefined();
+  server.resetHandlers();
+});

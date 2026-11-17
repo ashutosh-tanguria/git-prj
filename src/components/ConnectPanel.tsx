@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { ProviderMark } from "../ui/ProviderMark";
 import { LaterAction } from "./CommandBar";
 import styles from "./Library.module.css";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
+const TokenPresets = lazy(() =>
+  import("./TokenPresets").then((m) => ({ default: m.TokenPresets })),
+);
 export function ConnectPanel({
   token,
   onToken,
@@ -41,7 +44,9 @@ export function ConnectPanel({
       ))}
       {open && (
         <div className={styles.tokenForm}>
-          <p>{t("patHelp")}</p>
+          <Suspense fallback={null}>
+            <TokenPresets />
+          </Suspense>
           <Input
             label={t("token")}
             type="password"

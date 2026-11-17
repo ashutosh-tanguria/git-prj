@@ -1,3 +1,4 @@
+import { conflictingPaths } from "./conflictingPaths";
 import { request } from "../providers/github/client";
 import type { Change } from "./staging";
 import {
@@ -198,25 +199,7 @@ export async function pushChanges(
       );
     }
     if (tree.truncated) throw Error("pushTruncated");
-    const conflicts = (remote: Tree) =>
-      batch
-        .filter((c) => {
-          const existing = remote.tree.find(
-            (e) => e.path === (c.oldPath || c.target.path),
-          );
-          return c.kind === "add"
-            ? !!existing
-            : !existing ||
-                !c.baseVersion ||
-                existing.sha !== c.baseVersion ||
-                existing?.mode === "120000" ||
-                existing?.mode === "160000" ||
-                !!(
-                  c.kind === "rename" &&
-                  remote.tree.some((e) => e.path === c.target.path)
-                );
-        })
-        .map((c) => c.target.path);
+    const conflicts = (remote: Tree) => conflictingPaths(batch, remote);
     const bad = conflicts(tree);
     if (bad.length) throw new ConflictError(bad);
     const entries: {

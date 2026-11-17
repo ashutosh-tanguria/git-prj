@@ -744,3 +744,61 @@
   padding: var(--space-3);
   border: var(--border-width) solid var(--rule-control);
 }
+.quickPopover {
+  inset: auto;
+  transform: none;
+  inline-size: min(calc(var(--full) - var(--space-4)), 560px);
+  max-block-size: calc(100dvh - var(--space-4));
+  padding: var(--space-4);
+}
+.workingPanel textarea {
+  min-block-size: 80px;
+  inline-size: var(--full);
+  background: var(--pane);
+  color: var(--ink-1);
+  border: var(--border-width) solid var(--rule-control);
+  border-radius: var(--radius-control);
+  padding: var(--space-2);
+  font: inherit;
+  resize: vertical;
+}
+.specimenPanel {
+  background: var(--raised);
+  border: var(--border-width) solid var(--rule);
+  padding: var(--space-4);
+}
+.specimenPanel label {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-block: var(--space-2);
+}
+.formPanel {
+  inset-block-end: auto;
+  max-block-size: calc(100dvh - var(--space-6) * 2);
+  inline-size: min(
+    calc(var(--full) - var(--space-6) * 2),
+    var(--palette-width)
+  );
+}
+.formPanel label {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr);
+  align-items: center;
+}
+.formPanel label:has([type="checkbox"]) {
+  display: flex;
+}
+.formPanel input:not([type="checkbox"]),
+.formPanel select {
+  min-inline-size: 0;
+  inline-size: var(--full);
+}
+.formPanel section label {
+  margin-block: var(--space-3);
+}
+@media (width < 640px) {
+  .formPanel label {
+    grid-template-columns: 1fr;
+  }
+}

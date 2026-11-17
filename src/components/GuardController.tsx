@@ -1,3 +1,6 @@
+import { preference } from "../services/preferences";
+import { library } from "../services/library";
+import { request } from "../providers/github/client";
 import { stageUploads } from "../services/stageUploads";
 import type { GitRef } from "../lib/refs";
 import { useEffect, useRef, useState } from "react";
@@ -19,48 +22,63 @@ export function GuardController({
   current: GitRef;
 }) {
   const [files, setFiles] = useState<File[]>(),
+    [target, setTarget] = useState(current),
+    [targetRepo, setTargetRepo] = useState(repo),
+    [targetEntries, setTargetEntries] = useState(entries),
+    [error, setError] = useState(false),
     [ledger, setLedger] = useState(false);
   const input = useRef<HTMLInputElement>(null),
     dialog = useRef<HTMLElement>(null);
+  const chooseFiles = async (files: File[]) => {
+    setError(false);
+    try {
+      const target = await preference("pinnedDestination", current);
+      const root =
+        "/repos/" +
+        encodeURIComponent(target.owner) +
+        "/" +
+        encodeURIComponent(target.repo);
+      const metadata = (await (await request(root)).json()) as Repo;
+      const listing = await library.list(target).catch((error) => {
+        if (["NOT_FOUND", "EMPTY_REPO"].includes((error as Error).message))
+          return [];
+        throw error;
+      });
+      setTarget(target);
+      setTargetRepo(metadata);
+      setTargetEntries(listing);
+      setFiles(files);
+    } catch {
+      setError(true);
+    }
+  };
   useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if (
-        e.key.toLowerCase() === "u" &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.altKey &&
-        (e.target as HTMLElement).closest('[role="grid"]') &&
-        !(e.target as HTMLElement).closest(
-          'input,textarea,[contenteditable="true"]',
-        )
-      ) {
-        e.preventDefault();
-        input.current?.click();
-      }
-    };
     const drop = (e: DragEvent) => {
       if (e.dataTransfer?.types.includes("Files")) {
         e.preventDefault();
-        if (e.type === "drop") setFiles(Array.from(e.dataTransfer.files));
+        if (e.type === "drop")
+          void chooseFiles(Array.from(e.dataTransfer.files));
       }
     };
+    const upload = () => input.current?.click();
+    window.addEventListener("shelf-upload", upload);
     const ledger = () => setLedger(true);
-    window.addEventListener("keydown", key);
     window.addEventListener("dragover", drop);
     window.addEventListener("drop", drop);
     window.addEventListener("shelf-ledger", ledger);
     return () => {
-      window.removeEventListener("keydown", key);
+      window.removeEventListener("shelf-upload", upload);
       window.removeEventListener("dragover", drop);
       window.removeEventListener("drop", drop);
       window.removeEventListener("shelf-ledger", ledger);
     };
-  }, []);
+  }, [current, entries, repo]);
   useEffect(() => {
     if (files || ledger) requestAnimationFrame(() => dialog.current?.focus());
   }, [files, ledger]);
   return (
     <>
+      {error && <p role="alert">{t("workingError")}</p>}
       <input
         ref={input}
         hidden
@@ -68,7 +86,7 @@ export function GuardController({
         type="file"
         multiple
         onChange={(e) => {
-          setFiles(Array.from(e.target.files || []));
+          void chooseFiles(Array.from(e.target.files || []));
           e.target.value = "";
         }}
       />
@@ -105,10 +123,10 @@ export function GuardController({
                 key={files?.map((f) => f.name + f.size).join("|")}
                 files={files || []}
                 onStage={async () => {
-                  await stageUploads(current, files || [], entries);
+                  await stageUploads(target, files || [], targetEntries);
                   setFiles(undefined);
                 }}
-                repo={repo}
+                repo={targetRepo}
               />
             )}
           </Dialog>

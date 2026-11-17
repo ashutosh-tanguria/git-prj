@@ -4,7 +4,7 @@ Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic and UI are implemented locally, with the ledger listing-scope deviation below. M3 part A now has local implementation and mocked validation; remaining limits are listed below.
+The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic and UI are implemented locally, with the ledger listing-scope deviation below. M3 parts A and B have local implementation and mocked validation; remaining limits are listed below. M3.5 is not started.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M1 Shell and GitHub read | Implementation done; real-account verification pending | Full selection/grid, tree/keyboard, PDF reader, Inspector, responsive panes, local preferences and mocked browser tests. Owner follows docs/manual-test-m1.md. |
 | M1.5 UI v2 | Done locally | Amendment merged in place; colour roles, command/address rows, navigation groups, revised columns, preview and counts, glyph families, Styleguide and focused accessibility tests. |
 | M2 Guards | Implemented locally with documented limits | Guard review, badges, meter and read-only ledger; real-account checks remain pending. |
-| M3 Staging and push | Part A implemented locally with limits; Part B not started | Persistent staging, Pending review, atomic push, conflict choices, history restore and ZIP recovery; manual account verification pending. |
+| M3 Staging and push | Parts A and B implemented locally with documented limits | Durable staging and recovery, creation, destination paths, pinned and guarded quick push, file clipboard commands and shortcut Settings; manual account and native-browser checks pending. |
 | M3.5 Preview Plus | Not started | Spikes, isolated preview origin and mock managed tiers follow M3. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
@@ -21,6 +21,13 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- M3b UI: active New repository, New folder, Upload, Rename, Delete, Cut, Copy, Paste and Push controls use durable guard-reviewed staging. New folder uses a disclosed .gitkeep marker. Copy keeps the source and stages read bytes; the same-repository rename rule applies to Cut/Paste. Cross-repository Cut remains refused until M4 verified transfers. Directory-wide clipboard/rename/delete remain explicitly refused.
+- Destination changes apply atomically to all pending additions, preserving byte keys and undo history. Mixed plans with existing-file operations cannot be retargeted, to preserve their base versions. Folder and branch suggestions use the provider; new folder paths become commit paths. Home uploads ask for a destination before choosing files, allowing the correct visibility and size guards before staging. A pin applies to later uploads and can be removed by unchecking and applying it.
+- Push opens full review on first use, changed destination, public visibility, non-OK guards, sensitive names, unknown preflight or conflicts. Quick push checks the current remote tree before opening and still re-runs every push guard. Public/warning confirmations reset on changed pending work. Destination editing and pending mutations are unavailable while pushing, and cancellation remains available before the ref update. Successful pushes expose commit links.
+- New repository uses actual POST authorization as capability detection, private and README defaults, live validation and debounced availability. Owner memberships are candidates subject to server policy, not a promise of creation permission. Creation 422 is not falsely classified as permission or duplicate name when the existing provider abstraction cannot distinguish them. The fallback guide and repository refresh remain available.
+- Additional current-doc finding: renaming a default branch needs Contents write and Administration write. The creation endpoint has no branch parameter. Shelf attempts main after initialized creation; after a failed rename it attempts a read to reconcile the actual branch, keeps the created repository and warns if main cannot be confirmed. Turning off README also preserves an uninitialized owner default and warns if different. Source: [rename a branch](https://docs.github.com/en/rest/branches/branches#rename-a-branch). This safely avoids presenting an already-created repository as a failed creation and posting a duplicate.
+- Shortcut registry and non-secret persisted remappings live at #/settings/keyboard. Text editing and active dialogs retain their own keys. Duplicate modifier orders and browser/app-reserved combinations are rejected. The default Alt+N/M/P actions retain visible controls. No global command palette or new New menu was implemented; the existing direct buttons and empty-destination creation entry are active, while the palette remains M5.
 
 - M3b research (2026-11-17): GitHub currently lists Administration write OR Repository creation write for POST /user/repos, and the permission matrix lists Repository creation write for both personal and organization creation. Contents write remains needed to push. Creation defaults to public unless private is supplied; auto_init defaults false. There is no default_branch create parameter, so an initialized branch is renamed to main afterward when permitted. Capability is determined by the actual authorized create response; owner membership is not proof of create permission and denied organization listing falls back to the user. github.com/new prefill parameters were not verified and will not be used. Sources: [create repository](https://docs.github.com/en/rest/repos/repos#create-a-repository-for-the-authenticated-user), [fine-grained permission matrix](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-repository-creation). No real repository was created during research.
 
@@ -64,7 +71,9 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Not done
 
-M3a limitations: protected branches fail safely and retain work, with recovery branch creation/retargeting still manual; background listing refresh does not yet mark conflicts before Push. No real account, physical-device memory or browser matrix result is claimed. ZIP64/streaming large backups are not supported; classic ZIP export refuses over-limit archives. Undo retains unreferenced staged byte files for session safety; garbage collection is deferred. M3b and M3.5 remain unstarted.
+M3b manual real-account checks, native browser menus, Firefox, screen readers and physical devices are not verified. Directory-wide operations and cross-repository Cut are not enabled. Destination retargeting is limited to add-only plans. Owner and branch suggestions currently cover the first 100 API results; an exact branch/repository can still be entered. Existing full-page historical Styleguide goldens were not refreshed under the six-image review limit, and the full historical browser suite is not claimed green. No M3.5 work was started.
+
+M3a limitations: protected branches fail safely and retain work, with recovery branch creation/retargeting still manual; background listing refresh does not yet mark conflicts before Push. No real account, physical-device memory or browser matrix result is claimed. ZIP64/streaming large backups are not supported; classic ZIP export refuses over-limit archives. Undo retains unreferenced staged byte files for session safety; garbage collection is deferred. M3b local implementation is described below. M3.5 remains unstarted.
 
 Preview Plus, the sandbox, broker, managed vendor adapters, cost controls and their tests are documentation requirements only; implementation and owner setup remain outstanding.
 
@@ -84,6 +93,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 | Script-enabled HTML preview | Disabled under the stronger security policy; documented deviation. |
 
 ## Manual steps
+
+[HUMAN] Follow docs/manual-test-m3b.md with disposable repositories and short-lived fine-grained tokens. Use the recommended selected-repository Contents read/write preset for reading and push; add authorized Repository creation write or Administration write only when creation is needed. For a non-main owner default, branch rename additionally needs Contents write and Administration write. Organization approval/resource coverage is owner-managed. Test Firefox and native Chrome/Edge menus; revoke tokens after inspection. No token, OAuth app or secret needs to be committed.
 
 [HUMAN] Follow docs/manual-test-m3a.md using an initialized disposable repository and a short-lived Contents read/write token. Confirm atomic commit, conflicts, protected branches, history and ZIP recovery. Never share the token in chat.
 
@@ -109,6 +120,9 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 ## Known issues and limits
 
+- M3b browser record: Chrome 157.0.8103.78 and Edge 157.0.4341.60 passed automated headless Alt+N/M/P delivery. This does not verify native browser menu conflicts. Firefox was not found in the standard Program Files or per-user installation paths, so its check is unverified. See docs/m3b-browser-checks.json and the owner checklist.
+- Repository creation with a non-main owner default can require broader branch-rename permission than creation itself. Unknown or refused branch normalization produces a warning and retains the created repository; refresh before retrying a creation after an uncertain network result. No real account was used.
+
 - History currently lists the API default page of recent commits. Branch recovery after protection rejection remains manual. Partial sequential push success can leave earlier batches on GitHub while pending work is retained after a later failure; inspect GitHub before retrying. No silent force push is used.
 
 - Vendor prices, retention, licences, browser support, host site boundaries, CSP hosts and cloud preview permissions are unverified until the required spikes and adapter research. M2 recursive-ledger scope remains open.
@@ -130,6 +144,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 - Screenshot baselines depend on Windows Chromium. Changes were reviewed locally; independent owner visual approval remains pending.
 
 ## Validation
+
+M3b core commit 238579a passed npm run check with 145 tests. Focused MSW unit/component tests cover each automatic-message table row, Unicode truncation, private/public creation, permission refusal, branch-rename refusal, copy/rename plans, atomic retargeting, shortcut parsing and locale parity. Focused Chromium flows cover acceptance 19 to 24, public/warn/block/conflict quick exclusions, pinning and commit links. Chrome/Edge key-delivery results and the unverified Firefox check are recorded for acceptance 26. Integrated npm run check passed with 161 tests and a 149266-byte gzip shell. The five focused browser cases passed. The full historical browser audit is in progress for the validation commit.
 
 M2 guard logic: file, repo, batch, public visibility, sensitive-name and LFS boundary tests plus en/hi key parity; see tests/guards.test.ts. npm run check passed with 128 tests and a 149311-byte gzip shell.
 

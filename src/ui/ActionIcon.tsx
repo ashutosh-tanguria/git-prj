@@ -2,6 +2,10 @@ import { Button, type ButtonProps } from "./Button";
 import { Tooltip } from "./Tooltip";
 import styles from "./Polish.module.css";
 export const iconPaths: Record<string, string> = {
+  newFolder: "M2 4h5l2 2h5v8H2ZM9 8v4M7 10h4",
+  newRepository: "M3 2h9v12H3ZM3 11h9M5 4h4",
+  rename: "m10 2 4 4-7 7-5 1 1-5ZM9 3l4 4",
+  settings: "M2 4h12M2 12h12M5 2v4M11 10v4",
   back: "m9 3-5 5 5 5M4 8h9",
   forward: "m7 3 5 5-5 5M3 8h9",
   parent: "M8 13V3m-4 4 4-4 4 4",

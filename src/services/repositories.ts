@@ -47,7 +47,7 @@ export async function createRepository(input: {
   publicConfirmed: boolean;
   description: string;
   readme: boolean;
-}): Promise<Repo> {
+}): Promise<Repo & { branchWarning?: boolean }> {
   if (!validRepositoryName(input.name)) throw Error("repositoryNameInvalid");
   if (!input.private && !input.publicConfirmed)
     throw Error("guardVisibilityConfirm");
@@ -68,19 +68,36 @@ export async function createRepository(input: {
   ).json()) as Repo;
   // The creation endpoint inherits the owner's branch default. Rename only the newly initialized branch.
   if (input.readme && repo.default_branch !== "main") {
-    await request(
-      "/repos/" +
-        encodeURIComponent(input.owner) +
-        "/" +
-        encodeURIComponent(input.name) +
-        "/branches/" +
-        encodeURIComponent(repo.default_branch) +
-        "/rename",
-      undefined,
-      false,
-      { method: "POST", body: JSON.stringify({ new_name: "main" }) },
-    );
-    repo.default_branch = "main";
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await request(
+        "/repos/" +
+          encodeURIComponent(input.owner) +
+          "/" +
+          encodeURIComponent(input.name) +
+          "/branches/" +
+          encodeURIComponent(repo.default_branch) +
+          "/rename",
+        undefined,
+        false,
+        { method: "POST", body: JSON.stringify({ new_name: "main" }) },
+      );
+      repo.default_branch = "main";
+    } catch {
+      try {
+        const actual = (await (
+          await request(
+            "/repos/" +
+              encodeURIComponent(input.owner) +
+              "/" +
+              encodeURIComponent(input.name),
+          )
+        ).json()) as Repo;
+        return { ...actual, branchWarning: actual.default_branch !== "main" };
+      } catch {
+        return { ...repo, branchWarning: true };
+      }
+    }
   }
-  return repo;
+  return { ...repo, branchWarning: repo.default_branch !== "main" };
 }

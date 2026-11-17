@@ -85,23 +85,46 @@ export function CommandBar() {
     </nav>
   );
 }
+export function CommandAction({
+  action,
+  icon,
+}: {
+  action: string;
+  icon?: string;
+}) {
+  return (
+    <Button
+      data-action={action}
+      onPress={() =>
+        window.dispatchEvent(
+          new CustomEvent("shelf-command", { detail: { action } }),
+        )
+      }
+    >
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d={icon || iconPaths[action] || "M3 8h10M8 3v10"} />
+      </svg>
+      <span>{t(action)}</span>
+    </Button>
+  );
+}
 function CommandActions() {
   return (
     <>
       <div>
-        <LaterAction action="newFolder" />
-        <LaterAction
+        <CommandAction action="newFolder" />
+        <CommandAction
           action="uploadFiles"
           icon="M8 12V2m-4 4 4-4 4 4M2 11v3h12v-3"
         />
-        <LaterAction action="newRepository" />
+        <CommandAction action="newRepository" />
       </div>
       <div>
-        <LaterAction action="cut" icon="m3 2 10 12M13 2 3 14M2 9h4v5H2Z" />
-        <LaterAction action="copy" icon="M6 6h8v8H6ZM2 10V2h8" />
-        <LaterAction action="paste" icon="M5 3H2v11h12V3h-3M5 2h6v3H5Z" />
-        <LaterAction action="rename" />
-        <LaterAction action="delete" icon="M2 4h12M5 4V2h6v2M4 4v10h8V4" />
+        <CommandAction action="cut" icon="m3 2 10 12M13 2 3 14M2 9h4v5H2Z" />
+        <CommandAction action="copy" icon="M6 6h8v8H6ZM2 10V2h8" />
+        <CommandAction action="paste" icon="M5 3H2v11h12V3h-3M5 2h6v3H5Z" />
+        <CommandAction action="rename" />
+        <CommandAction action="delete" icon="M2 4h12M5 4V2h6v2M4 4v10h8V4" />
       </div>
       <div>
         <button
@@ -110,6 +133,7 @@ function CommandActions() {
         >
           {t("sortMenu")}
         </button>
+        <CommandAction action="settings" />
         <LaterAction
           action="viewMenu"
           milestone="M5"
@@ -117,7 +141,7 @@ function CommandActions() {
         />
       </div>
       <div className={styles.push}>
-        <LaterAction action="push" icon="M8 13V3m-4 4 4-4 4 4" />
+        <CommandAction action="push" icon="M8 13V3m-4 4 4-4 4 4" />
       </div>
     </>
   );
