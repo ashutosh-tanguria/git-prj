@@ -4,6 +4,7 @@ import { t } from "../i18n";
 import { Button } from "../ui/Button";
 import { createPortal } from "react-dom";
 import styles from "./ExplorerV2.module.css";
+import { useSiteAvailable, openSitePreview } from "./useSiteAvailable";
 export function LaterAction({
   action,
   milestone = "M3",
@@ -97,9 +98,11 @@ export function CommandAction({
       data-action={action}
       aria-label={t(action)}
       onPress={() =>
-        window.dispatchEvent(
-          new CustomEvent("shelf-command", { detail: { action } }),
-        )
+        action === "previewSite"
+          ? openSitePreview()
+          : window.dispatchEvent(
+              new CustomEvent("shelf-command", { detail: { action } }),
+            )
       }
     >
       <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -110,6 +113,7 @@ export function CommandAction({
   );
 }
 function CommandActions() {
+  const siteAvailable = useSiteAvailable();
   return (
     <>
       <div>
@@ -139,6 +143,7 @@ function CommandActions() {
           {t("sortMenu")}
         </button>
         <CommandAction action="settings" />
+        {siteAvailable && <CommandAction action="previewSite" />}
         <LaterAction
           action="viewMenu"
           milestone="M5"

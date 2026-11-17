@@ -1428,13 +1428,13 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 
 27. A `.docx`, `.xlsx` and `.pptx` in a repository open in Shelf with Quick view and show text, tables and slide images, without downloading to disk.
 28. If the Office spike passes, "High fidelity" converts the sample PPTX to PDF in the browser, opens it in the PDF viewer with zoom and search, and a second open is served from cache.
-29. A folder with `index.html`, CSS, JS and images shows "Preview site" and renders as a real site; relative `fetch` of a JSON file in the repo works; a single-page app route reloads correctly.
-30. A malicious fixture site cannot read origin A storage, cookies or tokens, cannot navigate the top window, and the untrusted banner cannot be removed by it.
+29. A folder with `index.html`, CSS, JS and images shows "Preview site" in the command bar, context menu and Inspector and renders as a real site. Relative JSON fetch, absolute `/assets/` references and single-page route reload work. Run/Stop/Reload, viewport presets and request diagnostics work; 500-file/50-MB caps are enforced before lazy immutable reads.
+30. A malicious fixture cannot read origin A's parent document, storage, cookies or tokens, navigate the top window, open popups, register a worker or exfiltrate with fetch in strict mode. It cannot remove the app-owned untrusted banner. Stop removes the frame and clears the virtual session.
 31. If the run-project spike passes, a small Vite project installs, runs and previews; Stop ends it; closing the panel frees memory.
 32. All heavy downloads require consent, show progress, can be cancelled, and are listed in Settings with a Clear action.
 33. Unsupported or too-large content shows a specific message and the hand-off menu, never a blank screen.
-34. Videos up to the 100 MB GitHub file limit play after download, with progress, and reopen from cache.
-35. Origin B network and message traffic is covered by an e2e test proving no token or Shelf storage content is ever sent.
+34. Supported video and audio up to 100 MiB play from blob URLs after download with progress, keyboard controls and version-keyed OPFS caching with IndexedDB fallback. Reopen/reconnect reuses cached bytes. Above 100 MiB a specific message appears without downloading. Physical-device memory and codec coverage remain manual release gates.
+35. Origin B network and every Window/MessagePort send/receive payload are inspected in e2e, including decoded file buffers. Seeded provider tokens and Shelf storage/cookie contents never cross the sandbox boundary. Origin A's provider Authorization headers stay on the GitHub API.
 36. With the mock vendor enabled, a DOCX, PPTX and XLSX can be rendered in the cloud, the PDF opens in the PDF viewer, and a second open is served from OPFS.
 37. The worker never receives file bytes or provider tokens (e2e test inspects all worker requests).
 38. With the kill switch on or the daily budget exhausted, Tier P and E disappear or show a clear unavailable message, and lower tiers still work.

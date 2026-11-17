@@ -2,6 +2,8 @@
 
 ## [HUMAN] steps
 
+- M3.5a: create a second Cloudflare Pages project on a different registrable site. Build with `npm ci && npm run sandbox:build`, output `sandbox/dist`, and exact `SHELF_APP_ORIGIN`. Build Shelf with exact `VITE_SANDBOX_ORIGIN`. Verify hosted CSP/frame-ancestors/COOP/COEP, public-suffix/cookie isolation and hostile fixtures. No secrets belong in the sandbox. Local app/sandbox ports are 5173/5174 on 127.0.0.1. See [M3.5a checklist](docs/manual-test-m3_5a.md) and [sandbox deployment](sandbox/README.md).
+
 - M0: review Styleguide snapshots, Hindi font rendering and design QA. Choose a remote/CI repository. M0 is local and needs no provider credentials.
 - M1: create an initialized disposable GitHub repository; fine-grained PAT restricted to selected repositories with Contents read/write and Metadata read. Paste tokens only in the future in-memory Connect form.
 - M2: review guard wording, units, public and sensitive-name confirmations in English and Hindi.

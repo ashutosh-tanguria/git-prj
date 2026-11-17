@@ -2,6 +2,7 @@ import { metadata, clearMetadata } from "./metadata";
 import type { GitRef } from "../lib/refs";
 import { parseRef } from "../lib/refs";
 import * as github from "../providers/github/client";
+import type { MediaProgress } from "./mediaRead";
 export { type Entry, type Repo } from "../providers/github/client";
 export const library = {
   async imageSibling(ref: GitRef, direction: number) {
@@ -30,5 +31,14 @@ export const library = {
   metadata,
   roots: github.repos,
   list: github.list,
-  read: github.read,
+  read: (
+    ref: GitRef,
+    signal?: AbortSignal,
+    progress?: (value: MediaProgress) => void,
+  ) =>
+    /\.(mp4|webm|mp3|wav|ogg|m4a)$/i.test(ref.path)
+      ? import("./mediaRead").then((module) =>
+          module.readMedia(ref, signal, progress),
+        )
+      : github.read(ref, signal),
 };

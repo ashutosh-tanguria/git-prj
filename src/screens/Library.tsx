@@ -14,10 +14,16 @@ import { ReadViewer } from "../viewers/ReadViewer";
 import { ConnectPanel } from "../components/ConnectPanel";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
+import { MediaStatus } from "../components/MediaStatus";
 import styles from "../components/Library.module.css";
 const LibraryCommands = lazy(() =>
   import("../components/LibraryCommands").then((m) => ({
     default: m.LibraryCommands,
+  })),
+);
+const SiteEntry = lazy(() =>
+  import("../components/SiteEntry").then((module) => ({
+    default: module.SiteEntry,
   })),
 );
 export default function Library() {
@@ -102,6 +108,12 @@ export default function Library() {
           }
         }}
       >
+        {!preview && (
+          <MediaStatus
+            value={state.mediaProgress}
+            onCancel={state.cancelMedia}
+          />
+        )}
         {notice && <p role="status">{notice}</p>}
         {!account ? (
           <ConnectPanel
@@ -145,6 +157,7 @@ export default function Library() {
         <GuardMount key={key} roots={roots} current={ref} entries={entries} />
       )}
       <Suspense fallback={null}>
+        <SiteEntry current={account ? ref : null} selection={selection} />
         <LibraryCommands
           current={ref}
           selection={selection}

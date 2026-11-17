@@ -1,6 +1,7 @@
 import { QuickLook } from "./QuickLook";
 import { ReadViewer } from "../viewers/ReadViewer";
 import { t } from "../i18n";
+import { MediaStatus } from "./MediaStatus";
 import type { useLibrary } from "../screens/useLibrary";
 export function LibraryPreview({
   state,
@@ -50,6 +51,10 @@ export function LibraryPreview({
             setBlob(undefined);
           }}
         >
+          <MediaStatus
+            value={state.mediaProgress}
+            onCancel={state.cancelMedia}
+          />
           {previewError ? (
             <p role="alert">{previewError}</p>
           ) : blob ? (

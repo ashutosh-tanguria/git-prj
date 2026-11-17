@@ -4,13 +4,16 @@ const FileHistory = lazy(() =>
 );
 import { VisibilityBadge } from "./VisibilityBadge";
 import { Button } from "../ui/Button";
-import { useEffect, useState, useId } from "react";
+import { useEffect, useState, useId, useRef } from "react";
 import { InspectorTabList } from "./InspectorTabList";
 import { library, type Entry } from "../services/library";
 import { parseRef } from "../lib/refs";
 import { ReadViewer } from "../viewers/ReadViewer";
 import { t } from "../i18n";
 import styles from "./Panels.module.css";
+import { useSiteAvailable, openSitePreview } from "./useSiteAvailable";
+import { MediaStatus } from "./MediaStatus";
+import type { MediaProgress } from "../services/mediaRead";
 export function Inspector({
   entries,
   visibility,
@@ -23,27 +26,40 @@ export function Inspector({
   previewBlob?: Blob;
 }) {
   const prefix = useId();
+  const mediaRequest = useRef<AbortController | null>(null);
+  const siteAvailable = useSiteAvailable();
   const [tab, setTab] = useState(defaultTab);
   const [blob, setBlob] = useState<Blob>(),
     [error, setError] = useState("");
+  const [mediaProgress, setMediaProgress] = useState<MediaProgress>();
   const entry = entries.length === 1 ? entries[0] : undefined;
   useEffect(() => {
     setBlob(previewBlob);
     setError("");
+    setMediaProgress(undefined);
     if (!entry || entry.kind !== "file" || tab !== "preview" || previewBlob)
       return;
     const controller = new AbortController();
+    mediaRequest.current = controller;
     void library
-      .read(parseRef(entry.ref), controller.signal)
+      .read(parseRef(entry.ref), controller.signal, (value) => {
+        if (!controller.signal.aborted) setMediaProgress(value);
+      })
       .then(setBlob)
-      .catch(() => {
-        if (!controller.signal.aborted) setError(t("readError"));
+      .catch((error: Error) => {
+        if (!controller.signal.aborted)
+          setError(
+            t(error.message === "mediaLimit" ? "mediaLimit" : "readError"),
+          );
       });
     return () => controller.abort();
   }, [entry?.ref, tab, previewBlob]);
   return (
     <section aria-label={t("inspector")} className={styles.inspector}>
       <h2>{t("inspector")}</h2>
+      {siteAvailable && entries.length === 1 && (
+        <Button onPress={openSitePreview}>{t("previewSite")}</Button>
+      )}
       <div>
         <InspectorTabList prefix={prefix} tab={tab} onTab={setTab} />
         <div
@@ -55,6 +71,14 @@ export function Inspector({
         >
           {tab === "preview" && (
             <>
+              <MediaStatus
+                value={mediaProgress}
+                onCancel={() => {
+                  mediaRequest.current?.abort();
+                  setMediaProgress(undefined);
+                  setError(t("mediaCancelled"));
+                }}
+              />
               {entries.length !== 1 ? (
                 <p>
                   {entries.length ? t("multiPreview") : t("nothingSelected")}

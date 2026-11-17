@@ -6,6 +6,7 @@ import {
   validChannel,
   validManifest,
   validPath,
+  instrumentHtml,
   type VirtualFile,
 } from "./protocol";
 const worker = globalThis as unknown as ServiceWorkerGlobalScope;
@@ -174,6 +175,13 @@ worker.addEventListener("fetch", (event) => {
       addEventListener('securitypolicyviolation', e => parent.postMessage({type:'site-report',kind:'request',path:e.blockedURI}, ${JSON.stringify(__APP_ORIGIN__)}));
       addEventListener('error', e => parent.postMessage({type:'site-report',kind:'console',path:e.message || 'Resource failed'}, ${JSON.stringify(__APP_ORIGIN__)}), true);
       addEventListener('unhandledrejection', () => parent.postMessage({type:'site-report',kind:'console',path:'Unhandled promise rejection'}, ${JSON.stringify(__APP_ORIGIN__)}));
+      for (const method of ['log', 'info', 'warn', 'error']) {
+        const original = console[method].bind(console);
+        console[method] = (...values) => {
+          parent.postMessage({type:'site-report',kind:'console',path:values.map(value => typeof value === 'string' ? value : '[value]').join(' ').slice(0, 2048)}, ${JSON.stringify(__APP_ORIGIN__)});
+          original(...values);
+        };
+      }
     `,
           {
             headers: {
@@ -201,10 +209,7 @@ worker.addEventListener("fetch", (event) => {
       }
       const body = /\.html?$/.test(path)
         ? new TextEncoder().encode(
-            '<script src="/vfs/' +
-              channel +
-              '/__shelf_monitor.js"></script>' +
-              new TextDecoder().decode(bytes),
+            instrumentHtml(new TextDecoder().decode(bytes), channel),
           )
         : bytes;
       return new Response(body, {
@@ -213,6 +218,7 @@ worker.addEventListener("fetch", (event) => {
           "Content-Security-Policy": siteCsp(
             session.blocked,
             worker.location.origin,
+            __APP_ORIGIN__,
           ),
           "Access-Control-Allow-Origin": "*",
           "Cross-Origin-Resource-Policy": "cross-origin",

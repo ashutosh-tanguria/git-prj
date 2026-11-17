@@ -1,46 +1,52 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { auditPreviewMessages } from "./previewAudit";
 const files: Record<string, string> = {
   "index.html": readFileSync("fixtures/hostile-site/index.html", "utf8"),
   "attacks.js": readFileSync("fixtures/hostile-site/attacks.js", "utf8"),
 };
+test("sandbox rejects initialization from an unapproved parent origin", async ({
+  page,
+}) => {
+  await page.goto("http://127.0.0.1:4174/");
+  await page.evaluate(async () => {
+    const frame = document.createElement("iframe");
+    frame.title = "Wrong parent";
+    frame.src = "/";
+    document.body.append(frame);
+    await new Promise<void>((resolve) => {
+      frame.onload = () => resolve();
+    });
+    const bridge = new MessageChannel();
+    frame.contentWindow?.postMessage(
+      {
+        type: "init",
+        channel: "a".repeat(64),
+        entry: "index.html",
+        blocked: true,
+        files: [{ path: "index.html", size: 4 }],
+      },
+      location.origin,
+      [bridge.port2],
+    );
+  });
+  // frame-ancestors rejects B as a parent before the protocol can be initialized.
+  expect(
+    await page.evaluate(
+      async () => (await navigator.serviceWorker.getRegistrations()).length,
+    ),
+  ).toBe(0);
+  await expect(page.locator("iframe")).toHaveCount(1);
+  expect(page.frames().some((frame) => frame.url().includes("/vfs/"))).toBe(
+    false,
+  );
+});
 test("hostile site fails every escape and every message excludes app secrets", async ({
   page,
   context,
 }) => {
-  const network: string[] = [],
-    traffic: string[] = [];
-  await context.exposeBinding("capturePreviewTraffic", (_, value: string) =>
-    traffic.push(value),
-  );
-  await context.addInitScript(() => {
-    const capture = (value: unknown) => {
-      void (
-        globalThis as unknown as {
-          capturePreviewTraffic: (value: string) => Promise<void>;
-        }
-      ).capturePreviewTraffic(
-        JSON.stringify(value, (_, item) =>
-          item instanceof ArrayBuffer ? Array.from(new Uint8Array(item)) : item,
-        ),
-      );
-    };
-    const windowPost = window.postMessage;
-    window.postMessage = new Proxy(windowPost, {
-      apply(target, receiver, args: unknown[]) {
-        capture(args[0]);
-        return Reflect.apply(target, receiver, args);
-      },
-    });
-    const portPost = MessagePort.prototype.postMessage;
-    MessagePort.prototype.postMessage = new Proxy(portPost, {
-      apply(target, receiver, args: unknown[]) {
-        capture(args[0]);
-        return Reflect.apply(target, receiver, args);
-      },
-    });
-    window.addEventListener("message", (event) => capture(event.data));
-  });
+  const network: string[] = [];
+  const traffic = await auditPreviewMessages(context);
   context.on("request", (request) => network.push(request.url()));
   await page.goto("/");
   await page.evaluate(async (source) => {

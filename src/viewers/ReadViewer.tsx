@@ -123,6 +123,9 @@ export function ReadViewer({
         <details ref={help}>
           <summary aria-label={t("keyboardHelp")}>?</summary>
           <p>{t("readShortcuts")}</p>
+          {["mp4", "webm", "mp3", "wav", "ogg", "m4a"].includes(
+            extension || "",
+          ) && <p>{t("previewHelp")}</p>}
         </details>
       </header>
       {error && <p role="alert">{error}</p>}

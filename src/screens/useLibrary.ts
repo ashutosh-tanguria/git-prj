@@ -9,6 +9,7 @@ import {
   type GitRef,
 } from "../lib/refs";
 import { t } from "../i18n";
+import type { MediaProgress } from "../services/mediaRead";
 export function useLibrary() {
   const previewRequest = useRef<AbortController | null>(null);
   const [previewOrder, setPreviewOrder] = useState<Entry[]>([]);
@@ -22,6 +23,7 @@ export function useLibrary() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [blob, setBlob] = useState<Blob>();
+  const [mediaProgress, setMediaProgress] = useState<MediaProgress>();
   const [previewError, setPreviewError] = useState("");
   const [preview, setPreview] = useState<Entry>();
   let ref: GitRef | null = null;
@@ -40,46 +42,55 @@ export function useLibrary() {
     setSelection([]);
     if (!account || !key) return;
     const controller = new AbortController();
+    previewRequest.current = controller;
     setLoading(true);
     setError("");
     setBlob(undefined);
+    setMediaProgress(undefined);
     const parsed = parseRef(key);
     const action = hash.startsWith("#/view/")
-      ? library.read(parsed, controller.signal).then(async (value) => {
-          if (controller.signal.aborted) return;
-          setBlob(value);
-          const fallback: Entry = {
-            name: parsed.path.split("/").at(-1) || "",
-            path: parsed.path,
-            ref: key,
-            size: value.size,
-            sha: "",
-            kind: "file",
-          };
-          setSelection([fallback]);
-          const results = await Promise.allSettled([
-            library.list(
-              {
-                ...parsed,
-                path: parsed.path.split("/").slice(0, -1).join("/"),
-              },
-              controller.signal,
-            ),
-            library.metadata(key, controller.signal),
-          ]);
-          if (controller.signal.aborted) return;
-          const listed =
-            results[0].status === "fulfilled"
-              ? results[0].value.find((entry) => entry.ref === key)
-              : undefined;
-          const metadata =
-            results[1].status === "fulfilled" ? results[1].value : {};
-          setSelection([{ ...(listed || fallback), ...metadata }]);
-        })
+      ? library
+          .read(parsed, controller.signal, (value) => {
+            if (!controller.signal.aborted) setMediaProgress(value);
+          })
+          .then(async (value) => {
+            if (controller.signal.aborted) return;
+            setBlob(value);
+            const fallback: Entry = {
+              name: parsed.path.split("/").at(-1) || "",
+              path: parsed.path,
+              ref: key,
+              size: value.size,
+              sha: "",
+              kind: "file",
+            };
+            setSelection([fallback]);
+            const results = await Promise.allSettled([
+              library.list(
+                {
+                  ...parsed,
+                  path: parsed.path.split("/").slice(0, -1).join("/"),
+                },
+                controller.signal,
+              ),
+              library.metadata(key, controller.signal),
+            ]);
+            if (controller.signal.aborted) return;
+            const listed =
+              results[0].status === "fulfilled"
+                ? results[0].value.find((entry) => entry.ref === key)
+                : undefined;
+            const metadata =
+              results[1].status === "fulfilled" ? results[1].value : {};
+            setSelection([{ ...(listed || fallback), ...metadata }]);
+          })
       : library.list(parsed, controller.signal).then(setEntries);
     void action
-      .catch(() => {
-        if (!controller.signal.aborted) setError(t("readError"));
+      .catch((error: Error) => {
+        if (!controller.signal.aborted)
+          setError(
+            t(error.message === "mediaLimit" ? "mediaLimit" : "readError"),
+          );
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
@@ -127,14 +138,36 @@ export function useLibrary() {
     if (entry.kind !== "file") return;
     setPreview(entry);
     setBlob(undefined);
+    setMediaProgress(undefined);
     try {
-      const bytes = await library.read(parseRef(entry.ref), controller.signal);
+      const bytes = await library.read(
+        parseRef(entry.ref),
+        controller.signal,
+        (value) => {
+          if (!controller.signal.aborted) setMediaProgress(value);
+        },
+      );
       if (!controller.signal.aborted) setBlob(bytes);
-    } catch {
-      if (!controller.signal.aborted) setPreviewError(t("readError"));
+    } catch (error) {
+      if (!controller.signal.aborted)
+        setPreviewError(
+          t(
+            (error as Error).message === "mediaLimit"
+              ? "mediaLimit"
+              : "readError",
+          ),
+        );
     }
   }
   return {
+    cancelMedia: () => {
+      previewRequest.current?.abort();
+      setLoading(false);
+      setMediaProgress(undefined);
+      if (preview) setPreviewError(t("mediaCancelled"));
+      else setError(t("mediaCancelled"));
+    },
+    mediaProgress,
     refresh: () => refresh((version) => version + 1),
     visibility:
       roots.find((repo) => repo.full_name === ref?.owner + "/" + ref?.repo)

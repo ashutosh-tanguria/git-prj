@@ -43,6 +43,7 @@ export function LibraryCommands({
     );
   }, []);
   const dispatch = async (action: string) => {
+    if (action === "previewSite") return;
     setError("");
     setName("");
     setJob(undefined);

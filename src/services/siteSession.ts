@@ -10,7 +10,10 @@ export function sandboxOrigin(value: string, app = location.origin): string {
   const local = url.hostname === "127.0.0.1" || url.hostname === "localhost";
   const appUrl = new URL(app);
   const site = (host: string) =>
-    host.endsWith(".pages.dev") ? host : host.split(".").slice(-2).join(".");
+    host
+      .split(".")
+      .slice(host.endsWith(".pages.dev") ? -3 : -2)
+      .join(".");
   if (
     !local &&
     (url.protocol !== "https:" || site(url.hostname) === site(appUrl.hostname))

@@ -15,9 +15,12 @@ export default function Media({
   const media = useRef<HTMLMediaElement | null>(null);
   return (
     <section
+      data-media-player
       tabIndex={0}
       aria-label={t("mediaPlayer") + ": " + name}
       onKeyDown={(e) => {
+        if ((e.target as HTMLElement).closest("input,select,textarea,button,a"))
+          return;
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         const node = media.current;
         if (!node) return;
@@ -35,7 +38,7 @@ export default function Media({
               node.currentTime + (e.key === "ArrowRight" ? 5 : -5),
             ),
           );
-        } else if (e.key === "f") {
+        } else if (e.key.toLowerCase() === "f") {
           void e.currentTarget
             .requestFullscreen()
             .catch(() => setError(t("mediaError")));

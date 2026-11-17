@@ -9,7 +9,7 @@ void i18next.init({
 });
 export function t(
   key: string,
-  options?: { count?: number; size?: string },
+  options?: { count?: number; size?: string; repo?: string },
 ): string {
   return i18next.t(key, options ?? {});
 }

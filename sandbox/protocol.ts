@@ -74,8 +74,20 @@ export function mime(path: string): string {
     "application/octet-stream"
   );
 }
-export function siteCsp(blocked: boolean, origin: string): string {
+export function siteCsp(
+  blocked: boolean,
+  origin: string,
+  appOrigin = "'none'",
+): string {
   const sources = origin + (blocked ? "" : " https:");
   // The repository replaces the bootstrap. Its parent is cross-origin Shelf.
-  return `default-src 'none'; script-src ${sources} 'unsafe-inline'; style-src ${sources} 'unsafe-inline'; img-src ${sources} data: blob:; font-src ${sources}; media-src ${sources} blob:; connect-src ${sources}; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; sandbox allow-scripts allow-same-origin`;
+  return `default-src 'none'; script-src ${sources} 'unsafe-inline'; style-src ${sources} 'unsafe-inline'; img-src ${sources} data: blob:; font-src ${sources}; media-src ${sources} blob:; connect-src ${sources}; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${appOrigin}; sandbox allow-scripts allow-same-origin`;
+}
+export function instrumentHtml(html: string, channel: string): string {
+  const monitor =
+    '<script src="/vfs/' + channel + '/__shelf_monitor.js"></script>';
+  const doctype = /^(\s*<!doctype[^>]*>)/i;
+  return doctype.test(html)
+    ? html.replace(doctype, "$1" + monitor)
+    : monitor + html;
 }

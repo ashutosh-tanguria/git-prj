@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_BYTES,
   mime,
+  instrumentHtml,
   siteCsp,
   validChannel,
   validManifest,
@@ -44,6 +45,12 @@ describe("virtual site boundary", () => {
     expect(validChannel("guess")).toBe(false);
   });
   it("uses executable MIME types and restrictive policy", () => {
+    expect(
+      instrumentHtml(
+        "<!doctype html><title>Sample site</title>",
+        "a".repeat(64),
+      ),
+    ).toMatch(/^<!doctype html><script/);
     expect(mime("module.mjs")).toContain("text/javascript");
     expect(mime("route.html")).toContain("text/html");
     expect(mime("file.woff2")).toBe("font/woff2");

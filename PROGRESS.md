@@ -4,7 +4,7 @@ Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities except where Amendment 1 overrides it. M1.5 UI v2 is implemented locally. M1 real-account verification remains an owner-run gate. M2 guard logic and UI are implemented locally, with the ledger listing-scope deviation below. M3 parts A and B have local implementation and mocked validation; remaining limits are listed below. M3c folder operations are implemented locally with mocked validation. M3.5 is not started.
+The approved analysis governs ambiguities except where merged amendments or owner scope decisions override it. M1.5 UI v2, M2 guards, M3 parts A/B and M3c have local implementation with the limits below. M1 real-account verification remains owner-run. M3.5a Website and media preview is implemented locally with mocked Chromium validation; production sandbox deployment is an owner step. M3.5b and M4 are not started. Tier 2, Tier B and Tier C are deferred by owner decision.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
@@ -15,13 +15,19 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 | M2 Guards | Implemented locally with documented limits | Guard review, badges, meter and read-only ledger; real-account checks remain pending. |
 | M3 Staging and push | Parts A and B implemented locally with documented limits | Durable staging and recovery, creation, destination paths, pinned and guarded quick push, file clipboard commands and shortcut Settings; manual account and native-browser checks pending. |
 | M3c Folder operations | Implemented locally; owner account/device checks pending | Complete subtree plans, linked groups, collision choices, guarded folder copy and directory import. README acceptance 43 to 49. |
-| M3.5 Preview Plus | Not started | Spikes, isolated preview origin and mock managed tiers follow M3. |
+| M3.5a Website and media preview | Implemented locally; production/device gates pending | Sandbox, static sites, hand-offs and cached media; acceptance 29, 30, 34 and 35. |
+| M3.5b Office and managed previews | Not started | Separate owner authorization required. Tier 2, B and C are deferred. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
 | M6 Platform | Not started | OAuth, hosting, extension, PWA, Settings and Privacy remain here. |
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- M3.5a UI: roots with index.html and candidate docs/dist/build/public folders are detected; package/backend roots without a selected built site get the server hand-off message. Package roots are treated conservatively as needing a build; no dependency installation or engine execution is attempted. HTML selection previews its containing folder. Special tree entries and noncanonical paths refuse the whole preview. Caps apply to the selected virtual root; media uses a separate 100 MiB input limit.
+- Hand-off URL verification, 2026-11-17: [StackBlitz official import guide](https://developer.stackblitz.com/guides/integration/open-from-github) documents `https://stackblitz.com/github/OWNER/REPO/tree/BRANCH/PATH`. [GitHub Codespaces official guide](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/setting-up-your-repository/facilitating-quick-creation-and-resumption-of-codespaces) documents `https://codespaces.new/OWNER/REPO/tree/BRANCH`. [GitHub Pages REST](https://docs.github.com/en/rest/pages/pages#get-a-github-pages-site) supplies `html_url` only after GET /repos/{owner}/{repo}/pages succeeds; permission/disabled results hide the action. All path/branch segments are encoded and links use noopener/noreferrer. No hand-off receives a Shelf token or file upload.
+- CodeSandbox current-doc exception: the [official repository import source](https://github.com/codesandbox/docs/blob/main/packages/projects-docs/pages/learn/repositories/open-source.mdx) announces no new repository imports after 2026-04-01 and support ending 2026-07-01. Do not use its retired `/p/github/OWNER/REPO` format. The menu instead uses `https://codesandbox.io/s/new`, documented by the [official browser-sandbox overview source](https://github.com/codesandbox/docs/blob/main/packages/projects-docs/pages/learn/browser-sandboxes/overview.mdx), and explains manual import. This is a deliberate current-service limitation, not an unverified automatic importer.
+- Media reuses native blob playback and existing Space/arrows/F keys; Quick Look now leaves player keys to the player. Downloads stream progress, reject over 100 MiB before fetching, and cache by ref plus immutable SHA. OPFS bytes and IndexedDB LRU metadata use a separate disposable 500 MiB cache; IndexedDB blobs are the no-OPFS fallback. Storage failures retain playback and show the cache-unavailable notice. General offline-library/cache Settings work remains M5/M6.
 
 - M3.5a first commit: isolated sandbox origin and security only. The bootstrap transfers the private app port into the service worker, then replaces itself with repository code. Its parent is origin A, so repository scripts cannot inspect the parent or remove the app-owned banner. Opaque nested frames were rejected during development because their subresources bypass the virtual-file service worker. Repository workers, child frames, forms, popups and top navigation remain denied by response CSP and iframe permissions.
 - Owner scope decision: defer Tier 2 LibreOffice WebAssembly, Tier B WebContainers and Tier C Pyodide, including their engine spikes. README records this override. M3.5b Office/managed mocks and M4 remain unauthorized and unstarted. Amendments 1 to 3 were already merged into README before implementation; source amendment files and the owner's AGENTS.md edits are left untouched.
@@ -83,7 +89,7 @@ The approved analysis governs ambiguities except where Amendment 1 overrides it.
 
 ## Not done
 
-M3.5a first checkpoint: sandbox security implementation exists; app preview UI, hand-offs and media cache follow in the second requested commit. Production deployment and real-device/browser checks remain owner steps. No M3.5b or M4 work.
+M3.5a implementation is complete locally. Production deployment, real-account media near 100 MiB, Firefox/WebKit, physical-device memory, NVDA/VoiceOver and fluent Hindi review remain owner steps in docs/manual-test-m3_5a.md. Tier 2/B/C, M3.5b and M4 remain unstarted. CodeSandbox automatic repository import is unavailable in the official current service; the menu opens its documented blank browser sandbox with an explanation.
 
 M3c real-account and native OS directory-drop verification are owner-run. Repository/branch changes involving Cut remain M4. Cross-repository Git LFS pointer copying is refused to avoid orphaning LFS data. Unsupported symlinks/submodules fail the entire operation. No M3.5 work was started.
 
@@ -91,7 +97,7 @@ M3b manual real-account checks, native browser menus, Firefox, screen readers an
 
 M3a limitations: protected branches fail safely and retain work, with recovery branch creation/retargeting still manual; background listing refresh does not yet mark conflicts before Push. No real account, physical-device memory or browser matrix result is claimed. ZIP64/streaming large backups are not supported; classic ZIP export refuses over-limit archives. Undo retains unreferenced staged byte files for session safety; garbage collection is deferred. M3b local implementation is described below. M3.5 remains unstarted.
 
-Preview Plus, the sandbox, broker, managed vendor adapters, cost controls and their tests are documentation requirements only; implementation and owner setup remain outstanding.
+The M3.5a sandbox and static/media UI are implemented. The broker, managed vendor adapters and cost controls remain future work in M3.5b/M6. Older checkpoint notes below describe historical scope, not the current M3.5a status.
 
 M2 review UI is implemented. Repository-wide recursive largest-file enumeration remains outstanding; the ledger explicitly limits its claim to the current listing. Actual staging and push remain M3, and transfers/splitting remain M4.
 
@@ -139,6 +145,8 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 [HUMAN] Review the new Explorer/Inspector/PDF/360px captures and intentional Styleguide baselines in docs/design-qa.md. Review the bounded-preview and scriptless-HTML choices above. Configure a Git remote if CI should run remotely. Authorize M2 separately when ready.
 
 ## Known issues and limits
+
+- M3.5a static preview cannot build source projects or run servers. Some HTTPS resources still fail COEP even with external requests enabled. Diagnostic text is advisory output from repository code; the external request policy and app-owned banner do not depend on it. The runtime origin check is conservative for multi-part public suffixes other than pages.dev; use clearly different registrable domains and verify deployment independently.
 
 - M3.5a: production host boundaries and deployed headers require owner verification. Diagnostics from repository scripts are advisory and bounded. Chromium is the local security proof; Firefox/WebKit, physical media codecs and production accounts remain manual gates.
 
@@ -217,3 +225,16 @@ Final recovery validation: npm run check passes with 161 tests, typecheck, lint,
 - Not done: app UI, hand-off research integration, media cache and manual checklist follow in the second commit. Deferred Tier 2/B/C and M3.5b/M4 remain unstarted.
 - Manual steps: second Pages deployment and verification are listed in SETUP above and sandbox/README.md. No account or secret was created.
 - Known issues: production site-boundary/header and non-Chromium/device checks remain unverified; strict mode is the tested security default.
+
+### M3.5a UI and final validation
+
+- Status: Website and media preview is implemented locally. First commit 579a3f2 contains the sandbox/protocol/security checkpoint; the second requested commit contains site controls, hand-offs, media progress/cancellation/cache, locales, specimens and deployment/manual docs. M3.5b and M4 are not started.
+- Validation: the second commit's single `npm run check` passes with 186 unit/component tests, type/lint/CSS/build checks and a 150094-byte gzip production shell under the unchanged 153600-byte cap. The first commit's passing check had 181 tests; its initial typecheck-only interruption is recorded above. No tests were skipped or deleted.
+- Focused browser results across development/final runs: six new cases pass for the integrated static-site controls and actual provider-token message/network audit; audio/video blob playback and OPFS reuse across reload; Hindi light/dark specimens and axe; blocked foreign embedding; hostile escape attempts; and cancelling media before bytes arrive. The existing CSV/inert-HTML/native-media regression also passes after its fixture gained immutable audio blob metadata. Stop is verified by removing the frame and receiving HTTP 410 when the stopped session is probed.
+- Snapshots were refreshed once, at the end: light-default, dark-default and hindi-360. The same run's existing 200-percent reflow capture is the fourth and final screenshot. All three Styleguide tests pass, including axe/forced-colors/reflow. No further screenshot run was made; tooltip and other historical goldens were unchanged. See docs/design-qa.md.
+- Decisions: static file reads are streamed and bounded against the immutable manifest before bytes cross the private port; virtual responses also restrict frame-ancestors to the exact app origin. App deployment headers are generated into dist/_headers. Console and request diagnostics are bounded to 200 entries. Native media retains playback when caching is unavailable and exposes a Cancel download action while bytes are arriving.
+- Not done: production hosting/site-boundary/header validation, real-account/near-100-MiB/device/codec/browser/screen-reader/Hindi review remain owner release gates, not claimed results. CodeSandbox automatic repository imports are retired; the documented /s/new manual-import fallback and explanation are implemented. General offline library, cache Settings/Wipe, Office/managed render and deferred Tier 2/B/C engines were not added.
+- Manual steps: follow docs/manual-test-m3_5a.md and the [HUMAN] SETUP entry above for the second Cloudflare Pages project. Both projects build locally; no deployment, external account, secret or remote push was performed.
+- Known issues: source package/backend roots need built static output or an external hand-off. COEP can reject third-party resources even when the external toggle is off. The strict-mode hostile-site guarantee is the tested default; turning external requests on explicitly permits repository content to leave the preview. Cache remains disposable browser storage. The owner's AGENTS.md change and untracked amendment source files remain untouched.
+
+Final review note: diagnostics injection now preserves an existing HTML doctype, keeping static sites in standards mode. The protocol/policy tests and complete site-control browser case pass after this correction, including a CSS1Compat assertion; scoped lint passes. No additional screenshot or full check run was needed. All M3.5a code is committed in the requested two steps; production/manual gates remain as listed above.

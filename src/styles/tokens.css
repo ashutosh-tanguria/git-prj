@@ -1,4 +1,9 @@
 :root {
+  --site-stage-height: 52vh;
+  --site-phone-width: 390px;
+  --site-tablet-width: 768px;
+  --site-panel-width: 1280px;
+  --site-log-height: 160px;
   color-scheme: light;
   --canvas: #f6f8fa;
   --pane: #ffffff;

@@ -94,6 +94,20 @@ export function FileRow({
           onTouchEnd();
       }}
       onContextMenu={(e) => {
+        if (row.kind === "dir" || /\.html?$/i.test(row.name)) {
+          e.preventDefault();
+          const rect = e.currentTarget.getBoundingClientRect();
+          window.dispatchEvent(
+            new CustomEvent("shelf-site-context", {
+              detail: {
+                entry: row,
+                x: e.clientX || rect.left,
+                y: e.clientY || rect.bottom,
+              },
+            }),
+          );
+          return;
+        }
         if (
           (e.nativeEvent as PointerEvent).pointerType === "touch" ||
           matchMedia("(pointer: coarse)").matches

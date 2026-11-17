@@ -30,7 +30,11 @@ export function QuickLook({
       <Dialog>
         <div
           onKeyDownCapture={(e) => {
-            if ((e.target as HTMLElement).closest("input,select,textarea"))
+            if (
+              (e.target as HTMLElement).closest(
+                "input,select,textarea,[data-media-player]",
+              )
+            )
               return;
             if (e.key === "ArrowLeft" && onPrevious) {
               e.preventDefault();

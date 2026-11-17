@@ -1,4 +1,5 @@
 import { FolderSpecimens } from "./FolderSpecimens";
+import { PreviewSpecimens } from "./PreviewSpecimens";
 import { M3bSpecimens } from "./M3bSpecimens";
 import "../i18n/working";
 import { WorkingConflict } from "../components/WorkingConflict";
@@ -27,6 +28,7 @@ export function ReadStyleguide() {
   return (
     <section>
       <h2>{t("sample")}</h2>
+      <PreviewSpecimens />
       <CommandBar />
       <div style={{ display: "flex", height: 80 }}>
         <Sash

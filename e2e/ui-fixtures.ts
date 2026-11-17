@@ -51,6 +51,11 @@ export const code = [
 export const uiServer = setupServer(
   http.get("https://api.github.com/*", async ({ request }) => {
     const url = new URL(request.url);
+    if (url.pathname.endsWith("/git/blobs/audio"))
+      return new HttpResponse(
+        new Uint8Array(readFileSync("fixtures/sample-reading-note.wav")),
+        { headers: { "Content-Type": "audio/wav" } },
+      );
     if (url.pathname === "/user") {
       if (mode === "busy")
         await new Promise<void>((resolve) => {

@@ -5,6 +5,14 @@ import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
 const server = setupServer(
   http.get(
+    "https://api.github.com/repos/ada/notes/git/blobs/sample-audio",
+    () =>
+      new HttpResponse(
+        new Uint8Array(readFileSync("fixtures/sample-reading-note.wav")),
+        { headers: { "Content-Type": "audio/wav" } },
+      ),
+  ),
+  http.get(
     "https://api.github.com/repos/ada/notes/contents/sample-reading.csv",
     () =>
       new HttpResponse(
@@ -85,6 +93,13 @@ const server = setupServer(
   http.get("https://api.github.com/repos/ada/notes/git/trees/main", () =>
     HttpResponse.json({
       tree: [
+        {
+          path: "sample-reading-note.wav",
+          sha: "sample-audio",
+          type: "blob",
+          mode: "100644",
+          size: readFileSync("fixtures/sample-reading-note.wav").length,
+        },
         {
           path: "complete.pdf",
           sha: "complete",
