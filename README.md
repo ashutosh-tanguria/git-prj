@@ -453,6 +453,8 @@ Client-side tiers remain the default. Managed paid tiers are opt-in and do not r
 
 Owner scope decision (M3.5a, 2026-11-17): implement Website and media preview only, Tiers A and D plus video/audio. Tier 2 (LibreOffice WebAssembly), Tier B (WebContainers) and Tier C (Pyodide), including their engine spikes, are deferred. Office Quick view and managed-tier mocks belong to M3.5b and are not authorized by M3.5a. M4 is not started. This decision supersedes conditional engine work elsewhere in this document and the merged amendments.
 
+Owner scope decision (M3.5b, 2026-11-17): Office Quick view is authorized now. All paid cloud Tier P and E work, including the worker broker, vendors, mocks, Turnstile and quotas, moves to M6 and is built once there with the real vendors. The cloud control in Quick view remains disabled with the tooltip "Available in a later release". This decision supersedes earlier M3.5 managed-tier mock requirements.
+
 M3.5a transfers a private MessagePort from the trusted bootstrap into its service worker, then navigates the frame itself to repository code. Its parent is cross-origin A. The iframe and response CSP allow scripts and same-origin access on B only. No popup, top navigation, forms, child frames or repository workers are allowed. The persistent banner belongs to origin A. External requests default to blocked for the hostile-site guarantee; opting out permits HTTPS resources and discloses that repository content can leave the preview. Requests to origin A remain forbidden. Local development uses app port 5173 and sandbox port 5174; browser tests use 4173 and 4174. Production requires a separately deployed sandbox site and an exact origin configuration, never a wildcard.
 
 #### 6.5b.1 Honest ceiling
@@ -590,7 +592,7 @@ Shelf app (origin A)                       Sandbox (origin B, different site)
 4. Tier 2 High fidelity (if the spike passes) and Tier B Run project (if the spike passes).
 5. Tier 3 Cloud render is built in M4 after the OneDrive and Drive providers exist.
 6. Tier C Pyodide is optional and may move to M5 or later.
-7. Add vendor-neutral interfaces, mock adapters, consent UI and worker cost controls against mocks. Tier P and E appear only when capabilities report them enabled and within budget. Real Turnstile, quotas and first vendor adapters are wired in M6 after the owner sets up accounts.
+7. Tier P and E, including broker interfaces, vendors, mocks, consent and cost controls, are M6 work under the owner scope decision above.
 
 ---
 
@@ -1384,12 +1386,12 @@ Each milestone ends green: `npm run check` passes, `PROGRESS.md` is updated, and
 | M2 Guards | `limits.ts`, all verdicts, repo meter, visibility badge, sensitive-name warning, Size ledger (read-only), all guard dialogs, locale keys en and hi | All boundary tests pass; 150 MB file blocked; public push needs the checkbox |
 | M3 Staging and push | Create repository with capability detection and fallback (6.17), destination/folder picker, automatic messages, push popover, quick push, cut/copy/paste, remappable shortcut registry; Staging store, OPFS persistence, Pending tray and review, atomic GitHub push, conflict dialog, history and restore, working-copy export and restore, undo and redo | 3 uploads plus 1 delete become one commit; conflict never overwrites |
 | M3c Folder operations | Linked subtree rename/delete/copy/move, guarded cross-repository copy, directory upload, complete tree fallback and explicit collision review | Three-file rename is one commit with zero blob uploads; group undo and cap/truncation/collision tests pass |
-| M3.5 Preview Plus | Office and project spikes, isolated sandbox, virtual site, Office quick view, media verification, hand-off and conditional local heavy tiers; mock vendor adapters, consent and cost controls | Spike decisions documented; isolation and mock-vendor acceptance tests pass; no real accounts required |
+| M3.5 Preview Plus | Isolated sandbox, virtual site, Office Quick view, media verification and hand-off; deferred tiers follow the owner scope decisions | Isolation and Office Quick view acceptance tests pass; no real accounts required |
 | M3.5a Website and media preview | Separate-origin Tier A sandbox and security, Tier D hand-off, cached media playback | Acceptance 29, 30, 34 and 35 pass locally; sandbox deployment remains an owner step |
-| M3.5b Office and managed previews | Office Quick view and managed-tier mock work from M3.5 | Requires separate owner authorization; Tier 2, B and C remain deferred |
+| M3.5b Office Quick view | Local Office Quick view on the isolated sandbox origin | Acceptance 27 and hostile-file isolation pass; Tier 2, B and C remain deferred |
 | M4 Other providers and moves | Drive, Dropbox, OneDrive providers, consented provider cloud-render Tier 3, Local folder import and export, cross-provider move and copy with verification, Split view, PDF split | Contract suite green for every provider; move verifies hash |
 | M5 Library features | Cache with LRU and pinning, offline open, full-text search, command palette, Collections and tags, duplicate finder, ZIP export, Grid and Column views | Offline PDF reopens at the saved page; search returns page numbers |
-| M6 Platform | OAuth/render broker worker, Turnstile, quotas and first real managed vendor adapters, Sign in with GitHub, Chrome extension, PWA install and update flow, security headers, allowlist test, Settings and Privacy screens | Allowlist test green; Lighthouse PWA at least 90 |
+| M6 Platform | OAuth/render broker worker, Tier P and E vendors and mocks, Turnstile, quotas, Sign in with GitHub, Chrome extension, PWA install and update flow, security headers, allowlist test, Settings and Privacy screens | Allowlist test green; Lighthouse PWA at least 90 |
 | M7 Release | Accessibility pass (axe plus manual notes), Hindi strings reviewed, Help and onboarding copy, performance budget check, docs, release checklist | Section 15 passes in full on Chromium, Firefox, WebKit |
 
 Feature flags per provider so that M4 can be merged provider by provider if one is blocked on external setup.
@@ -1426,7 +1428,7 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 26. The shortcut conflict check for `Alt+N`, `Alt+M`, `Alt+P` is recorded for Chrome, Edge and Firefox.
 
 
-27. A `.docx`, `.xlsx` and `.pptx` in a repository open in Shelf with Quick view and show text, tables and slide images, without downloading to disk.
+27. A `.docx`, `.xlsx` and `.pptx` in a repository open in Shelf with Quick view on the isolated sandbox origin and show text, tables, formula results and slide images without downloading to disk. Sheet tabs and the 5,000-row notice work; fidelity notices, 50 MB cap, legacy and error messages, toolbar controls and disabled cloud segment are present. Hostile Office fixtures cannot reach the parent, app storage or tokens.
 28. If the Office spike passes, "High fidelity" converts the sample PPTX to PDF in the browser, opens it in the PDF viewer with zoom and search, and a second open is served from cache.
 29. A folder with `index.html`, CSS, JS and images shows "Preview site" in the command bar, context menu and Inspector and renders as a real site. Relative JSON fetch, absolute `/assets/` references and single-page route reload work. Run/Stop/Reload, viewport presets and request diagnostics work; 500-file/50-MB caps are enforced before lazy immutable reads.
 30. A malicious fixture cannot read origin A's parent document, storage, cookies or tokens, navigate the top window, open popups, register a worker or exfiltrate with fetch in strict mode. It cannot remove the app-owned untrusted banner. Stop removes the frame and clears the virtual session.

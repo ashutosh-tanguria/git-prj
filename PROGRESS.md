@@ -4,7 +4,7 @@ Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities except where merged amendments or owner scope decisions override it. M1.5 UI v2, M2 guards, M3 parts A/B and M3c have local implementation with the limits below. M1 real-account verification remains owner-run. M3.5a Website and media preview is implemented locally with mocked Chromium validation; production sandbox deployment is an owner step. M3.5b and M4 are not started. Tier 2, Tier B and Tier C are deferred by owner decision.
+The approved analysis governs ambiguities except where merged amendments or owner scope decisions override it. M1.5 UI v2, M2 guards, M3 parts A/B and M3c have local implementation with the limits below. M1 real-account verification remains owner-run. M3.5a Website and media preview is implemented locally with mocked Chromium validation; production sandbox deployment is an owner step. M3.5b is authorized and has preliminary dependency research only; M4 is not started. Tier 2, Tier B and Tier C are deferred by owner decision.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
@@ -16,13 +16,26 @@ The approved analysis governs ambiguities except where merged amendments or owne
 | M3 Staging and push | Parts A and B implemented locally with documented limits | Durable staging and recovery, creation, destination paths, pinned and guarded quick push, file clipboard commands and shortcut Settings; manual account and native-browser checks pending. |
 | M3c Folder operations | Implemented locally; owner account/device checks pending | Complete subtree plans, linked groups, collision choices, guarded folder copy and directory import. README acceptance 43 to 49. |
 | M3.5a Website and media preview | Implemented locally; production/device gates pending | Sandbox, static sites, hand-offs and cached media; acceptance 29, 30, 34 and 35. |
-| M3.5b Office and managed previews | Not started | Separate owner authorization required. Tier 2, B and C are deferred. |
+| M3.5b Office Quick view | Preliminary research only | Viewer, fixtures and isolation tests remain to be implemented. Tier 2, B and C are deferred. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
 | M6 Platform | Not started | OAuth, hosting, extension, PWA, Settings and Privacy remain here. |
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
+
+- Owner decision, 2026-11-18: use the supplied SheetJS CE 0.20.3 tarball after SHA-256 verification, with sandbox worker isolation, a 50 MB input cap, 20-second timeout and limited read options. Verify docx-preview and pptx-preview using npm metadata and audit; use the specified PPTX fallback if it fails the stated criteria. Network verification failures are recorded as unverified and do not stop the work.
+
+- Owner decision for M3.5b: move all paid cloud Tier P and E work, including broker, vendors, mocks, Turnstile and quotas, to M6 for one implementation with real vendors. README records this override. M4 remains unstarted.
+- Dependency research is incomplete. On 2026-11-17 the allowed GitHub API reported docx-preview upstream package version 0.4.1 and Apache-2.0, with repository activity in September 2026. The pptx-preview candidate repository reported activity in October 2025 and an unclassified licence; its package version and licence still need verification. The SheetJS GitHub mirror points to a different upstream host, which is not in README 9.3. GitHub advisories list high-severity prototype pollution and ReDoS affecting older npm xlsx releases. ExcelJS is an alternative candidate, but GitHub lists a medium-severity XSS advisory and its suitability and affected versions remain to be checked. No dependency, CSP compatibility, complete advisory review or package integrity is approved by this preliminary research.
+
+### M3.5b research checkpoint
+
+- Status: scope and acceptance text updated; Office Quick view is not implemented.
+- Decisions: preserve the strict host allowlist and do not install or ship a parser before the requested verification.
+- Not done: dependency verification, implementation, security and fixture tests, translations, specimens, manual checklist, visual review, snapshot refresh and both requested commits.
+- Manual steps: production sandbox deployment and existing owner verification gates remain as documented for M3.5a.
+- Known issues: the maintained SheetJS upstream is outside the current research allowlist; any change to approved hosts requires an explicit policy decision. The GitHub advisory search alone does not prove that a dependency is safe or compatible with the sandbox CSP.
 
 - M3.5a UI: roots with index.html and candidate docs/dist/build/public folders are detected; package/backend roots without a selected built site get the server hand-off message. Package roots are treated conservatively as needing a build; no dependency installation or engine execution is attempted. HTML selection previews its containing folder. Special tree entries and noncanonical paths refuse the whole preview. Caps apply to the selected virtual root; media uses a separate 100 MiB input limit.
 - Hand-off URL verification, 2026-11-17: [StackBlitz official import guide](https://developer.stackblitz.com/guides/integration/open-from-github) documents `https://stackblitz.com/github/OWNER/REPO/tree/BRANCH/PATH`. [GitHub Codespaces official guide](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/setting-up-your-repository/facilitating-quick-creation-and-resumption-of-codespaces) documents `https://codespaces.new/OWNER/REPO/tree/BRANCH`. [GitHub Pages REST](https://docs.github.com/en/rest/pages/pages#get-a-github-pages-site) supplies `html_url` only after GET /repos/{owner}/{repo}/pages succeeds; permission/disabled results hide the action. All path/branch segments are encoded and links use noopener/noreferrer. No hand-off receives a Shelf token or file upload.
