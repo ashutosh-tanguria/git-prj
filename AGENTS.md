@@ -14,3 +14,4 @@ If sections conflict, precedence is: 8 (guards) > 9 (security) > 5 and 6 (UI) > 
 - If something is ambiguous, choose the simplest safe option, record it in PROGRESS.md, and continue.
 - If a task needs a human step (OAuth apps, secrets), build against the mock and list it in PROGRESS.md.
 - Do not start the next milestone until the owner says so.
+- If README-AMENDMENT-*.md files exist, they override README.md where they conflict. Merge them into README.md before building.

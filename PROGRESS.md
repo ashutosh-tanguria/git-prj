@@ -1,10 +1,19 @@
 # Shelf progress
 
+### M3.5b continuation checkpoint (2026-11-20)
+
+- Status: Office Quick view remains incomplete. The existing dependency and spreadsheet worker preparation is uncommitted.
+- Decisions: The owner accepts the three moderate production audit findings through pptx-preview under the no high or critical rule; revisit them on dependency upgrades. The full audit was not repeated.
+- Not done: Office viewer, format and size messages, fixtures, hostile-document and token/storage isolation tests, chunk size justification, and the requested implementation commit. M4 remains unstarted.
+- Manual steps: Production sandbox deployment and verification remain owner steps.
+- Known issues: The spreadsheet worker is not wired to a viewer; its 256-column limit requires a visible notice. Renderer CSP and isolation have not been proven.
+- Validation: The focused spreadsheet worker and vendored archive integrity tests passed (3 tests). The single npm run check passed with 189 tests and a 150094-byte gzip shell. It does not test an Office viewer.
+
 Updated: 2026-11-17 (Asia/Calcutta).
 
 ## Status
 
-The approved analysis governs ambiguities except where merged amendments or owner scope decisions override it. M1.5 UI v2, M2 guards, M3 parts A/B and M3c have local implementation with the limits below. M1 real-account verification remains owner-run. M3.5a Website and media preview is implemented locally with mocked Chromium validation; production sandbox deployment is an owner step. M3.5b is authorized and has preliminary dependency research only; M4 is not started. Tier 2, Tier B and Tier C are deferred by owner decision.
+The approved analysis governs ambiguities except where merged amendments or owner scope decisions override it. M1.5 UI v2, M2 guards, M3 parts A/B and M3c have local implementation with the limits below. M1 real-account verification remains owner-run. M3.5a Website and media preview is implemented locally with mocked Chromium validation; production sandbox deployment is an owner step. M3.5b is authorized and has uncommitted dependency and worker preparation only; M4 is not started. Tier 2, Tier B and Tier C are deferred by owner decision.
 
 | Work | Status | Evidence / next gate |
 | --- | --- | --- |
@@ -25,15 +34,16 @@ The approved analysis governs ambiguities except where merged amendments or owne
 ## Decisions
 
 - Owner decision, 2026-11-18: use the supplied SheetJS CE 0.20.3 tarball after SHA-256 verification, with sandbox worker isolation, a 50 MB input cap, 20-second timeout and limited read options. Verify docx-preview and pptx-preview using npm metadata and audit; use the specified PPTX fallback if it fails the stated criteria. Network verification failures are recorded as unverified and do not stop the work.
+- M3.5b preparation: the supplied tarball hash matches and it is not ignored. Offline installation succeeded. Registry metadata confirms docx-preview 0.4.1 and pptx-preview 1.0.7 are permissively licensed and published within 24 months. Production-only npm audit reports no high or critical findings and three moderate findings through pptx-preview. The full audit initially stalled on registry timeouts and remains unverified. A sandbox spreadsheet worker and hash, cap and timeout tests are in progress; no Office viewer is wired or security-tested yet. The worker currently limits output to 256 columns as a memory bound and needs a user-visible notice and review before use.
 
 - Owner decision for M3.5b: move all paid cloud Tier P and E work, including broker, vendors, mocks, Turnstile and quotas, to M6 for one implementation with real vendors. README records this override. M4 remains unstarted.
 - Dependency research is incomplete. On 2026-11-17 the allowed GitHub API reported docx-preview upstream package version 0.4.1 and Apache-2.0, with repository activity in September 2026. The pptx-preview candidate repository reported activity in October 2025 and an unclassified licence; its package version and licence still need verification. The SheetJS GitHub mirror points to a different upstream host, which is not in README 9.3. GitHub advisories list high-severity prototype pollution and ReDoS affecting older npm xlsx releases. ExcelJS is an alternative candidate, but GitHub lists a medium-severity XSS advisory and its suitability and affected versions remain to be checked. No dependency, CSP compatibility, complete advisory review or package integrity is approved by this preliminary research.
 
 ### M3.5b research checkpoint
 
-- Status: scope and acceptance text updated; Office Quick view is not implemented.
+- Status: scope and acceptance text committed; dependency and sandbox spreadsheet worker preparation is uncommitted. Office Quick view is not implemented.
 - Decisions: preserve the strict host allowlist and do not install or ship a parser before the requested verification.
-- Not done: dependency verification, implementation, security and fixture tests, translations, specimens, manual checklist, visual review, snapshot refresh and both requested commits.
+- Not done: full dependency audit and CSP review, Office viewer integration, security and fixture tests, translations, specimens, manual checklist, visual review, snapshot refresh and both requested implementation commits.
 - Manual steps: production sandbox deployment and existing owner verification gates remain as documented for M3.5a.
 - Known issues: the maintained SheetJS upstream is outside the current research allowlist; any change to approved hosts requires an explicit policy decision. The GitHub advisory search alone does not prove that a dependency is safe or compatible with the sandbox CSP.
 

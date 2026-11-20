@@ -28,14 +28,17 @@
     "@fontsource-variable/atkinson-hyperlegible-next": "5.3.0",
     "@fontsource-variable/noto-sans-devanagari": "5.3.0",
     "@tanstack/react-virtual": "3.14.26",
+    "docx-preview": "0.4.1",
     "dompurify": "3.4.18",
     "highlight.js": "11.12.0",
     "i18next": "27.1.2",
     "marked": "18.2.0",
     "pdfjs-dist": "6.5.438",
+    "pptx-preview": "1.0.7",
     "react": "19.3.1",
     "react-aria-components": "1.22.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "xlsx": "file:vendor/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
