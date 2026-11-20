@@ -1,5 +1,13 @@
 # Shelf progress
 
+### M4a slice 2: Google Drive (2026-11-20)
+
+- Status: Drive implements the shared suite, drive.file GIS token client, lazy gesture-triggered script, cursor listing, binary/revision reads, normal Shelf folder creation at Push, multipart and chunked resumable upload above 5 MiB, native MD5 metadata and quota.
+- Decisions: Never request broad Drive/appData scopes or create storage on Connect. Missing ETag refuses destructive writes; version and ETag are checked before conditional mutation. HTTP 308 is accepted only on allowlisted Drive upload sessions. Uncertain uploads stop without automatic replay.
+- Not done: Dropbox, OneDrive and integration follow. M4b is not started. Optional Picker is outside M4a.
+- Manual steps: [HUMAN] Register the Google web client and test CORS/ETag exposure, consent, expiry and resumable behavior with a disposable account. Client ID remains unset.
+- Known issues: Google-native documents do not expose binary media/MD5; provider errors remain visible. Real-account OAuth and session recovery after tab termination are not claimed. Focused contracts/upload/auth tests, typecheck and scoped lint pass.
+
 ### M4a slice 1: provider contracts (2026-11-20)
 
 - Status: Added normalized provider contracts, typed errors, allowlisted HTTP and a reusable MSW contract suite. GitHub passes all 12 assertions alongside existing push/read regression tests (24 tests total); typecheck passes.

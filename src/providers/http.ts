@@ -8,12 +8,12 @@ export function allowedUrl(value: string, hosts: readonly string[]) {
 export async function providerFetch(url: string, hosts: readonly string[], init: RequestInit = {}, expire?: () => void) {
   allowedUrl(url, hosts);
   let res: Response;
-  try { res = await fetch(url, { ...init, credentials: "omit", redirect: "error" }); }
+  try { res = await fetch(url, { ...init, credentials: "omit", redirect: url.startsWith("https://www.googleapis.com/upload/") && init.method === "PUT" ? "manual" : "error" }); }
   catch (error) {
     if (init.signal?.aborted) throw error;
     throw new ProviderError("OFFLINE", true, { uncertain: !!init.method && init.method !== "GET" });
   }
-  if (res.ok) return res;
+  if (res.ok || (res.status === 308 && url.startsWith("https://www.googleapis.com/upload/"))) return res;
   const text = await res.text();
   const code = res.status === 401 ? "AUTH_EXPIRED" : res.status === 429 ? "RATE_LIMITED"
     : res.status === 507 || /quota|insufficient_space|storageLimitExceeded/i.test(text) ? "QUOTA"
