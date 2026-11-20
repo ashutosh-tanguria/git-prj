@@ -2,6 +2,7 @@ import { MAX_BYTES, validChannel } from "../../sandbox/protocol";
 import { sandboxOrigin } from "./siteSession";
 
 export type OfficeEvent =
+  | { type: "shortcut"; key: string }
   | {
       type: "rendered";
       pages: number;
@@ -47,7 +48,14 @@ export function startOfficeSession(
   bridge.port1.onmessage = async ({ data }: MessageEvent) => {
     if (stopped || !validChannel(data?.channel) || data.channel !== channel)
       return;
-    if (data.type === "need" && data.path === name && !sent) {
+    if (
+      data.type === "shortcut" &&
+      ["+", "=", "-", "0", "j", "k", "PageDown", "PageUp", "?"].includes(
+        data.key,
+      )
+    ) {
+      report({ type: "shortcut", key: data.key });
+    } else if (data.type === "need" && data.path === name && !sent) {
       sent = true;
       const bytes = await blob.arrayBuffer();
       if (!stopped)

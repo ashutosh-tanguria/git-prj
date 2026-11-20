@@ -3,6 +3,7 @@ import { SiteToolbar } from "../components/SiteToolbar";
 import { SitePreviewView } from "../components/SitePreviewView";
 import { t } from "../i18n";
 import { MediaStatus } from "../components/MediaStatus";
+import { OfficeSpecimens } from "./OfficeSpecimens";
 export function PreviewSpecimens() {
   const [active, setActive] = useState(false),
     [blocked, setBlocked] = useState(true),
@@ -51,6 +52,7 @@ export function PreviewSpecimens() {
           value={{ loaded: 12 * 1048576, total: 12 * 1048576, cached: true }}
         />
       </SitePreviewView>
+      <OfficeSpecimens />
     </section>
   );
 }

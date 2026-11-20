@@ -1283,7 +1283,7 @@ Unpushed changes live only in the browser, and browsers can discard site data, n
 | Staging 100 files | UI stays responsive (hashing and writes off the main thread) |
 | Idle memory after closing a large PDF | returns within 20% of the baseline |
 
-Preview Plus: quick-view libraries are lazy chunks; justify any viewer over 250 KB gzip. Heavy engines are opt-in, version-cached separately and never shell-precached. Conversion defaults to a 100 MB input cap with phone memory warnings. Measure the spike targets in 6.5b.9.
+Preview Plus: quick-view libraries are lazy chunks; justify any viewer over 250 KB gzip. M3.5b permits only the isolated, PPTX-only `pptx-preview.es-*` chunk up to 400 KiB gzip (measured 386,345 bytes); its bundled chart runtime exceeds the ordinary budget. It never enters the app shell. See docs/dependencies.md and scripts/check-office-size.mjs. Heavy engines are opt-in, version-cached separately and never shell-precached. Conversion defaults to a 100 MB input cap with phone memory warnings. Measure the spike targets in 6.5b.9.
 
 PWA: installable manifest (name, icons, `display: standalone`, theme colours matching tokens), service worker via Workbox with precache of shell and fonts only, an offline fallback that opens the cached library, an update flow that shows "A new version is ready. Reload to update." without interrupting active pushes. Lighthouse PWA and Accessibility scores at least 90 in CI.
 
@@ -1428,7 +1428,7 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 26. The shortcut conflict check for `Alt+N`, `Alt+M`, `Alt+P` is recorded for Chrome, Edge and Firefox.
 
 
-27. A `.docx`, `.xlsx` and `.pptx` in a repository open in Shelf with Quick view on the isolated sandbox origin and show text, tables, formula results and slide images without downloading to disk. Sheet tabs and the 5,000-row notice work; fidelity notices, 50 MB cap, legacy and error messages, toolbar controls and disabled cloud segment are present. Hostile Office fixtures cannot reach the parent, app storage or tokens.
+27. A `.docx`, `.xlsx` and `.pptx` in a repository open in Shelf with Quick view on the isolated sandbox origin and show text, tables, formula results and slide images without downloading to disk. Sheet tabs support arrow/Home/End keys; only the first 5,000 rows and 256 columns per sheet are shown with a notice, using saved formula results without recalculation; fidelity notices, 50 MB cap, legacy and error messages, toolbar controls and disabled cloud segment are present. Hostile Office fixtures cannot reach the parent, app storage or tokens.
 28. If the Office spike passes, "High fidelity" converts the sample PPTX to PDF in the browser, opens it in the PDF viewer with zoom and search, and a second open is served from cache.
 29. A folder with `index.html`, CSS, JS and images shows "Preview site" in the command bar, context menu and Inspector and renders as a real site. Relative JSON fetch, absolute `/assets/` references and single-page route reload work. Run/Stop/Reload, viewport presets and request diagnostics work; 500-file/50-MB caps are enforced before lazy immutable reads.
 30. A malicious fixture cannot read origin A's parent document, storage, cookies or tokens, navigate the top window, open popups, register a worker or exfiltrate with fetch in strict mode. It cannot remove the app-owned untrusted banner. Stop removes the frame and clears the virtual session.

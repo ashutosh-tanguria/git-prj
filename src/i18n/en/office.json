@@ -10,5 +10,19 @@
   "officeUnavailable": "Office preview is unavailable. Download this file to open it.",
   "officeSheets": "Sheets",
   "officeRows": "Quick view shows the first 5,000 rows and 256 columns per sheet. Formula values use the saved results; formulas are not recalculated.",
-  "officeFidelity": "Quick view: animations, transitions, charts, SmartArt and speaker notes are not reproduced."
+  "officeFidelity": "Quick view: animations, transitions, charts, SmartArt and speaker notes are not reproduced.",
+  "officeQuick": "Quick view",
+  "officeCloud": "Render in cloud",
+  "officeLater": "Available in a later release",
+  "officeZoom": "Office zoom",
+  "officePrevious": "Previous",
+  "officeNext": "Next",
+  "officePage": "Page",
+  "officeSlide": "Slide",
+  "officeHelp": "Office keyboard shortcuts",
+  "officeShortcuts": "PageDown or j: next page or slide. PageUp or k: previous. + and -: zoom. 0: reset zoom. Arrow keys, Home and End: choose a sheet. ?: keyboard help.",
+  "officeUntrusted": "Untrusted document preview",
+  "officeSample": "Office viewer specimens",
+  "officeFormula": "Formula values use saved results and are not recalculated.",
+  "officeColumns": "Quick view displays at most 5,000 rows and 256 columns per sheet."
 }

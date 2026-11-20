@@ -23,9 +23,44 @@ window.addEventListener("message", (event: MessageEvent) => {
   if (!/\.(docx|xlsx|pptx)$/i.test(file.path)) return;
   active = true;
   const port = event.ports[0];
+  window.addEventListener("keydown", (event) => {
+    if (
+      (["+", "=", "-", "0", "?"].includes(event.key) ||
+        (!/\.xlsx$/i.test(file.path) &&
+          ["j", "k", "PageDown", "PageUp"].includes(event.key))) &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
+      event.preventDefault();
+      port.postMessage({ type: "shortcut", channel, key: event.key });
+    }
+  });
   let sheets: SpreadsheetSheet[] = [];
   let received = false;
   port.onmessage = async ({ data }: MessageEvent) => {
+    if (
+      data?.channel === channel &&
+      data.type === "zoom" &&
+      Number.isFinite(data.index) &&
+      data.index >= 25 &&
+      data.index <= 400
+    ) {
+      root.style.zoom = String(data.index / 100);
+      return;
+    }
+    if (
+      data?.channel === channel &&
+      data.type === "page" &&
+      Number.isSafeInteger(data.index) &&
+      data.index >= 0
+    ) {
+      const pages = root.querySelectorAll(
+        "section.docx, [class*='pptx-preview-slide-wrapper-']",
+      );
+      pages[data.index]?.scrollIntoView({ block: "start" });
+      return;
+    }
     if (
       data?.channel === channel &&
       data.type === "sheet" &&
@@ -70,6 +105,38 @@ window.addEventListener("message", (event: MessageEvent) => {
         await preview.preview(data.bytes);
         pages = preview.slideCount;
         if (!pages) throw Error("corrupt");
+        preview.wrapper.style.height = "auto";
+        preview.wrapper.style.overflow = "visible";
+        for (const [index, slide] of preview.pptx.slides.entries()) {
+          const xml = new DOMParser().parseFromString(
+            await preview.pptx.getXmlByPath(slide.name),
+            "application/xml",
+          );
+          const names = Array.from(
+            xml.getElementsByTagNameNS(
+              "http://schemas.openxmlformats.org/presentationml/2006/main",
+              "pic",
+            ),
+            (picture) => {
+              const metadata = picture.getElementsByTagNameNS(
+                "http://schemas.openxmlformats.org/presentationml/2006/main",
+                "cNvPr",
+              )[0];
+              return (
+                metadata?.getAttribute("descr") ||
+                metadata?.getAttribute("title") ||
+                metadata?.getAttribute("name")
+              );
+            },
+          );
+          target
+            .querySelectorAll<HTMLImageElement>(
+              ".pptx-preview-slide-wrapper-" + index + " img",
+            )
+            .forEach((image, i) => {
+              image.alt = names[i] || file.path + " [" + (i + 1) + "]";
+            });
+        }
       } else {
         const { renderAsync } = await import("docx-preview");
         await renderAsync(data.bytes, target, undefined, {
@@ -94,6 +161,11 @@ window.addEventListener("message", (event: MessageEvent) => {
         ],
         FORBID_ATTR: ["href", "srcset", "target"],
       });
+      target
+        .querySelectorAll<HTMLImageElement>("img:not([alt])")
+        .forEach((image, i) => {
+          image.alt = file.path + " [" + (i + 1) + "]";
+        });
       root.replaceChildren(target);
       port.postMessage({
         type: "rendered",

@@ -4,6 +4,9 @@ export function renderSheet(root: HTMLElement, sheet: SpreadsheetSheet) {
   root.replaceChildren();
   const viewport = document.createElement("div");
   viewport.className = "sheet-viewport";
+  viewport.tabIndex = 0;
+  viewport.setAttribute("role", "region");
+  viewport.setAttribute("aria-label", sheet.name);
   const table = document.createElement("table");
   table.setAttribute("aria-label", sheet.name);
   table.setAttribute("aria-rowcount", String(sheet.rows.length));
@@ -14,6 +17,7 @@ export function renderSheet(root: HTMLElement, sheet: SpreadsheetSheet) {
     const end = Math.min(sheet.rows.length, start + 50);
     table.replaceChildren();
     const spacer = (height: number) => {
+      if (!height) return;
       const row = table.insertRow();
       row.setAttribute("aria-hidden", "true");
       row.style.height = height + "px";

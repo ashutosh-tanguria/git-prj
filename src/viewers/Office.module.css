@@ -14,3 +14,61 @@
   min-block-size: 28rem;
   border: 1px solid var(--rule);
 }
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-block-end: 1px solid var(--rule);
+}
+.toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.toolbar input {
+  inline-size: 4rem;
+}
+.toolbar input,
+.toolbar select,
+.sheets button {
+  background: var(--pane);
+  color: var(--ink-1);
+  border: 1px solid var(--rule-control);
+  border-radius: var(--radius-control);
+  min-block-size: var(--target-min);
+  font: inherit;
+}
+.toolbar [aria-disabled="true"] {
+  color: var(--ink-3);
+  cursor: default;
+}
+.sheets {
+  display: flex;
+  overflow: auto;
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+.sheets button {
+  padding: var(--space-1) var(--space-3);
+  white-space: nowrap;
+}
+.sheets [aria-selected="true"] {
+  background: var(--blue-tint);
+  border-block-end: 3px solid var(--blue);
+}
+.office details {
+  margin: var(--space-1) var(--space-3);
+}
+.office summary {
+  cursor: pointer;
+}
+@media (width < 640px) {
+  .office {
+    min-block-size: 24rem;
+  }
+  .office iframe {
+    min-block-size: 22rem;
+  }
+}

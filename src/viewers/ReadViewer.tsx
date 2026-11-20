@@ -143,7 +143,7 @@ export function ReadViewer({
             "ods",
             "odp",
           ].includes(extension || "") ? (
-          <Office blob={blob} name={name} />
+          <Office key={fileKey || name} blob={blob} name={name} />
         ) : extension === "pdf" ? (
           <Pdf
             key={fileKey || name}

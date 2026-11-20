@@ -94,10 +94,9 @@ test("Hindi, 360px, forced colors and 200 percent reflow", async ({ page }) => {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.screenshot({
-    path: "docs/screenshots/styleguide-zoom-200.png",
-    fullPage: true,
-  });
+  // The three baseline images above cover this review's capture budget.
+  // Keep the 200 percent reflow assertion without exporting a fourth image.
+  await expect(page.locator("#office-specimens")).toBeVisible();
 });
 
 for (const theme of ["light", "dark"])

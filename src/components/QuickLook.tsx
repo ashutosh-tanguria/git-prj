@@ -32,7 +32,7 @@ export function QuickLook({
           onKeyDownCapture={(e) => {
             if (
               (e.target as HTMLElement).closest(
-                "input,select,textarea,[data-media-player]",
+                "input,select,textarea,[data-media-player],[data-office-viewer]",
               )
             )
               return;

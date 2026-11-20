@@ -11,6 +11,28 @@ self.onmessage = (event: MessageEvent<unknown>) => {
     return;
   }
   try {
+    const header = new Uint8Array(bytes, 0, Math.min(8, bytes.byteLength));
+    const compound =
+      header[0] === 0xd0 &&
+      header[1] === 0xcf &&
+      header[2] === 0x11 &&
+      header[3] === 0xe0;
+    if (compound) {
+      const directory = new TextDecoder("utf-16le").decode(bytes);
+      if (
+        directory.includes("EncryptionInfo") &&
+        directory.includes("EncryptedPackage")
+      )
+        throw Error("password-protected");
+    }
+    if (
+      header[0] !== 0x50 ||
+      header[1] !== 0x4b ||
+      header[2] !== 3 ||
+      header[3] !== 4
+    ) {
+      if (!compound) throw Error("corrupt");
+    }
     const workbook = read(bytes, {
       type: "array",
       sheetRows: MAX_ROWS + 1,

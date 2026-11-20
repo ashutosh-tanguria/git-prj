@@ -5,6 +5,10 @@ body {
   background: var(--canvas);
   color: var(--ink-1);
 }
+:focus-visible {
+  outline: var(--focus-width) solid var(--accent);
+  outline-offset: var(--focus-gap);
+}
 #document {
   overflow: auto;
   min-block-size: 100vh;
