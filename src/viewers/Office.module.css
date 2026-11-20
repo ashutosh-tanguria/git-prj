@@ -1,0 +1,16 @@
+.office {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 32rem;
+  flex: 1;
+  min-inline-size: 0;
+}
+.office p {
+  margin: 4px 12px;
+}
+.office iframe {
+  flex: 1;
+  inline-size: 100%;
+  min-block-size: 28rem;
+  border: 1px solid var(--rule);
+}

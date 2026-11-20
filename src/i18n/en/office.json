@@ -1,0 +1,11 @@
+{
+  "officeTitle": "Office Quick view",
+  "officeBytes": "bytes",
+  "officeLoading": "Opening Office document...",
+  "officeUnsupported": "Shelf cannot preview this file type.",
+  "officelimit": "Quick view supports files up to 50 MB. Download this file to open it.",
+  "officecorrupt": "Shelf cannot open this document. It may be damaged.",
+  "officetimeout": "Preview took too long. Download this file to open it.",
+  "officepassword": "This document is password-protected. Download it to open it.",
+  "officeUnavailable": "Office preview is unavailable. Download this file to open it."
+}

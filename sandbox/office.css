@@ -1,0 +1,11 @@
+@import "../src/styles/tokens.css";
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink-1);
+}
+#document {
+  overflow: auto;
+  min-block-size: 100vh;
+}

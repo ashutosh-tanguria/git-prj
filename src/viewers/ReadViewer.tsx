@@ -8,6 +8,7 @@ import { ProviderMark } from "../ui/ProviderMark";
 import { useRef } from "react";
 import styles from "./Viewer.module.css";
 const Media = lazy(() => import("./Media"));
+const Office = lazy(() => import("./Office"));
 const Delimited = lazy(() => import("./Delimited"));
 const Html = lazy(() => import("./Html"));
 const Image = lazy(() => import("./Image"));
@@ -132,6 +133,17 @@ export function ReadViewer({
       <Suspense fallback={<p role="status">{t("loadingRead")}</p>}>
         {textType && blob.size > 10 * 1048576 ? (
           <p>{t("textLimit")}</p>
+        ) : [
+            "docx",
+            "doc",
+            "ppt",
+            "pptx",
+            "xlsx",
+            "odt",
+            "ods",
+            "odp",
+          ].includes(extension || "") ? (
+          <Office blob={blob} name={name} />
         ) : extension === "pdf" ? (
           <Pdf
             key={fileKey || name}

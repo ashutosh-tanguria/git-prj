@@ -7,7 +7,7 @@ export default defineConfig(({ command }) => {
   if (!app || new URL(app).origin !== app)
     throw Error("Set SHELF_APP_ORIGIN to the exact app origin");
   const headers = {
-    "Content-Security-Policy": `default-src 'none'; script-src 'self'; style-src 'self'; frame-src 'self'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${app}`,
+    "Content-Security-Policy": `default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data: blob:; font-src 'none'; frame-src 'none'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${app}`,
     "Cross-Origin-Opener-Policy": "same-origin",
     "Cross-Origin-Embedder-Policy": "require-corp",
     "Referrer-Policy": "no-referrer",
@@ -41,6 +41,7 @@ export default defineConfig(({ command }) => {
       rollupOptions: {
         input: {
           shell: resolve("sandbox/index.html"),
+          office: resolve("sandbox/office.html"),
           sw: resolve("sandbox/sw.ts"),
         },
         output: {

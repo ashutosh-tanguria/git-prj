@@ -261,3 +261,11 @@ Final recovery validation: npm run check passes with 161 tests, typecheck, lint,
 - Known issues: source package/backend roots need built static output or an external hand-off. COEP can reject third-party resources even when the external toggle is off. The strict-mode hostile-site guarantee is the tested default; turning external requests on explicitly permits repository content to leave the preview. Cache remains disposable browser storage. The owner's AGENTS.md change and untracked amendment source files remain untouched.
 
 Final review note: diagnostics injection now preserves an existing HTML doctype, keeping static sites in standards mode. The protocol/policy tests and complete site-control browser case pass after this correction, including a CSS1Compat assertion; scoped lint passes. No additional screenshot or full check run was needed. All M3.5a code is committed in the requested two steps; production/manual gates remain as listed above.
+
+### M3.5b slice 1: DOCX (2026-11-20)
+
+- Status: Implemented isolated Office entry page, byte-only private MessageChannel transport and DOCX rendering with docx-preview; fixture text, table and image render test passes. Typecheck passes.
+- Decisions: The owner's slice instructions override the general pre-commit full-check rule: focused tests per slice, one full npm run check in slice 4. Accepted dependencies/audit were not researched again. Render alt chunks and document fonts are disabled; detached output is sanitized before display under a script-restricting CSP. Existing amendments were already merged as recorded above.
+- Not done: XLSX, PPTX, isolation browser proof and toolbar polish follow in the remaining authorized slices. M4 remains unstarted.
+- Manual steps: Production origin deployment and real-account/device verification remain owner steps.
+- Known issues: DOCX pagination and fonts can differ from desktop Word. Download remains in the app toolbar for every error and legacy type.
