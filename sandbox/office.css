@@ -9,3 +9,22 @@ body {
   overflow: auto;
   min-block-size: 100vh;
 }
+.sheet-viewport {
+  block-size: 100vh;
+  overflow: auto;
+}
+.sheet-viewport table {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.sheet-viewport td,
+.sheet-viewport th {
+  min-inline-size: 8rem;
+  block-size: 32px;
+  max-inline-size: 24rem;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 8px;
+  border: 1px solid var(--rule);
+  box-sizing: border-box;
+}

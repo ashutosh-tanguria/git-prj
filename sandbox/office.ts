@@ -1,6 +1,8 @@
 import { validChannel, validManifest, MAX_BYTES } from "./protocol";
 import DOMPurify from "dompurify";
 import "./office.css";
+import { parseSpreadsheet, type SpreadsheetSheet } from "./spreadsheet";
+import { renderSheet } from "./officeSheet";
 
 const root = document.querySelector<HTMLElement>("#document")!;
 let active = false;
@@ -18,17 +20,29 @@ window.addEventListener("message", (event: MessageEvent) => {
     return;
   const { channel, files } = event.data;
   const file = files[0] as { path: string; size: number };
-  if (!/\.docx$/i.test(file.path)) return;
+  if (!/\.(docx|xlsx)$/i.test(file.path)) return;
   active = true;
   const port = event.ports[0];
+  let sheets: SpreadsheetSheet[] = [];
+  let received = false;
   port.onmessage = async ({ data }: MessageEvent) => {
+    if (
+      data?.channel === channel &&
+      data.type === "sheet" &&
+      Number.isSafeInteger(data.index) &&
+      sheets[data.index]
+    ) {
+      renderSheet(root, sheets[data.index]);
+      return;
+    }
     if (
       data?.channel !== channel ||
       data.type !== "file" ||
       data.path !== file.path
     )
       return;
-    port.onmessage = null;
+    if (received) return;
+    received = true;
     try {
       if (
         !(data.bytes instanceof ArrayBuffer) ||
@@ -36,6 +50,18 @@ window.addEventListener("message", (event: MessageEvent) => {
         data.bytes.byteLength > MAX_BYTES
       )
         throw Error("limit");
+      if (/\.xlsx$/i.test(file.path)) {
+        sheets = await parseSpreadsheet(data.bytes);
+        if (!sheets.length) throw Error("corrupt");
+        renderSheet(root, sheets[0]);
+        port.postMessage({
+          type: "rendered",
+          channel,
+          pages: 1,
+          sheets: sheets.map(({ name, truncated }) => ({ name, truncated })),
+        });
+        return;
+      }
       const target = document.createElement("div");
       const { renderAsync } = await import("docx-preview");
       await renderAsync(data.bytes, target, undefined, {
@@ -70,8 +96,9 @@ window.addEventListener("message", (event: MessageEvent) => {
         type: "error",
         channel,
         code:
-          error instanceof Error && error.message === "limit"
-            ? "limit"
+          error instanceof Error &&
+          ["limit", "password", "timeout"].includes(error.message)
+            ? error.message
             : "corrupt",
       });
     }

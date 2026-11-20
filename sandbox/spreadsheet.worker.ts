@@ -52,7 +52,12 @@ self.onmessage = (event: MessageEvent<unknown>) => {
       };
     });
     self.postMessage({ sheets });
-  } catch {
-    self.postMessage({ error: "corrupt" });
+  } catch (error) {
+    self.postMessage({
+      error:
+        error instanceof Error && /password|encrypt/i.test(error.message)
+          ? "password"
+          : "corrupt",
+    });
   }
 };

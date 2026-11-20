@@ -269,3 +269,11 @@ Final review note: diagnostics injection now preserves an existing HTML doctype,
 - Not done: XLSX, PPTX, isolation browser proof and toolbar polish follow in the remaining authorized slices. M4 remains unstarted.
 - Manual steps: Production origin deployment and real-account/device verification remain owner steps.
 - Known issues: DOCX pagination and fonts can differ from desktop Word. Download remains in the app toolbar for every error and legacy type.
+
+### M3.5b slice 2: XLSX (2026-11-20)
+
+- Status: Wired the existing SheetJS worker to Office Quick view, with sheet tabs and a virtual table bounded to 50 mounted rows. The two-sheet fixture includes a formula with a saved result. Three focused worker/fixture tests and typecheck pass.
+- Decisions: Display saved formula results without recalculation. The existing 5,000-row/256-column cap is disclosed when truncated; table cells use textContent and never interpret workbook HTML or links.
+- Not done: PPTX, browser isolation proof and final UI follow in slices 3 and 4. M4 remains unstarted.
+- Manual steps: Verify a real encrypted workbook and large workbook on target devices during owner acceptance.
+- Known issues: Missing/stale cached formula results reflect the original workbook; Quick view does not calculate formulas.

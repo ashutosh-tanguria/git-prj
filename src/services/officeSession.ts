@@ -2,7 +2,11 @@ import { MAX_BYTES, validChannel } from "../../sandbox/protocol";
 import { sandboxOrigin } from "./siteSession";
 
 export type OfficeEvent =
-  | { type: "rendered"; pages: number }
+  | {
+      type: "rendered";
+      pages: number;
+      sheets: { name: string; truncated: boolean }[];
+    }
   | { type: "error"; code: "limit" | "corrupt" | "timeout" | "password" };
 export function startOfficeSession(
   frame: HTMLIFrameElement,
@@ -56,7 +60,14 @@ export function startOfficeSession(
       data.pages > 0
     ) {
       clearTimeout(timeout);
-      report({ type: "rendered", pages: data.pages });
+      const sheets = Array.isArray(data.sheets)
+        ? data.sheets.filter(
+            (sheet: { name?: unknown; truncated?: unknown }) =>
+              typeof sheet?.name === "string" &&
+              typeof sheet.truncated === "boolean",
+          )
+        : [];
+      report({ type: "rendered", pages: data.pages, sheets });
     } else if (data.type === "error") {
       clearTimeout(timeout);
       report({
@@ -69,11 +80,16 @@ export function startOfficeSession(
   };
   bridge.port1.start();
   frame.src = origin + "/office.html";
-  return () => {
+  const stop = () => {
     stopped = true;
     clearTimeout(timeout);
     window.removeEventListener("message", receive);
     bridge.port1.close();
     frame.src = "about:blank";
   };
+  return Object.assign(stop, {
+    command: (type: string, index: number) => {
+      if (!stopped) bridge.port1.postMessage({ type, index, channel });
+    },
+  });
 }

@@ -7,5 +7,7 @@
   "officecorrupt": "Shelf cannot open this document. It may be damaged.",
   "officetimeout": "Preview took too long. Download this file to open it.",
   "officepassword": "This document is password-protected. Download it to open it.",
-  "officeUnavailable": "Office preview is unavailable. Download this file to open it."
+  "officeUnavailable": "Office preview is unavailable. Download this file to open it.",
+  "officeSheets": "Sheets",
+  "officeRows": "Quick view shows the first 5,000 rows and 256 columns per sheet. Formula values use the saved results; formulas are not recalculated."
 }
