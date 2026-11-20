@@ -13,7 +13,7 @@ export default function Office({ blob, name }: { blob: Blob; name: string }) {
     [],
   );
   const [sheet, setSheet] = useState(0);
-  const supported = /\.(docx|xlsx)$/i.test(name);
+  const supported = /\.(docx|xlsx|pptx)$/i.test(name);
   const limit = blob.size > 50 * 1024 * 1024;
   useEffect(() => {
     if (!supported || limit || !frame.current) return;
@@ -50,6 +50,7 @@ export default function Office({ blob, name }: { blob: Blob; name: string }) {
       <p>
         {name} | {new Intl.NumberFormat().format(blob.size)} {t("officeBytes")}
       </p>
+      {/\.pptx$/i.test(name) && <p>{t("officeFidelity")}</p>}
       {sheets.length > 0 && (
         <div role="group" aria-label={t("officeSheets")}>
           {sheets.map((item, index) => (
@@ -83,4 +84,3 @@ export default function Office({ blob, name }: { blob: Blob; name: string }) {
     </div>
   );
 }
-

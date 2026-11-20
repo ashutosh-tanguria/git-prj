@@ -277,3 +277,11 @@ Final review note: diagnostics injection now preserves an existing HTML doctype,
 - Not done: PPTX, browser isolation proof and final UI follow in slices 3 and 4. M4 remains unstarted.
 - Manual steps: Verify a real encrypted workbook and large workbook on target devices during owner acceptance.
 - Known issues: Missing/stale cached formula results reflect the original workbook; Quick view does not calculate formulas.
+
+### M3.5b slice 3: PPTX and isolation (2026-11-20)
+
+- Status: pptx-preview renders the two-slide/image fixture on origin B. Focused Chromium fixture and hostile-document tests pass; typecheck and scoped lint pass. DOCX/XLSX/PPTX open without disk downloads.
+- Decisions: PPTX output is sanitized while detached; scripts, frames, forms, SVG and active links are removed. The fidelity notice names animations, transitions, charts, SmartArt and speaker notes. Legacy PPT uses the metadata/Download fallback. The hostile DOCX includes a JavaScript parent probe and an HTML altChunk with a script/exfiltration attempt; altChunks are disabled and links sanitized.
+- Not done: Final toolbar, specimens, acceptance/manual documentation and the single full check remain in slice 4. M4 remains unstarted.
+- Manual steps: Production separate-site headers and browser/device/real-account checks remain owner gates.
+- Known issues: SVG-based slide shapes and advanced presentation features can be omitted by the conservative sanitizer. The fixture initially lacked required OOXML content-type declarations; corrected fixture passes the renderer test. No dependency or audit research was repeated.

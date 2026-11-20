@@ -20,7 +20,7 @@ window.addEventListener("message", (event: MessageEvent) => {
     return;
   const { channel, files } = event.data;
   const file = files[0] as { path: string; size: number };
-  if (!/\.(docx|xlsx)$/i.test(file.path)) return;
+  if (!/\.(docx|xlsx|pptx)$/i.test(file.path)) return;
   active = true;
   const port = event.ports[0];
   let sheets: SpreadsheetSheet[] = [];
@@ -63,12 +63,22 @@ window.addEventListener("message", (event: MessageEvent) => {
         return;
       }
       const target = document.createElement("div");
-      const { renderAsync } = await import("docx-preview");
-      await renderAsync(data.bytes, target, undefined, {
-        renderAltChunks: false,
-        useBase64URL: true,
-        ignoreFonts: true,
-      });
+      let pages = 1;
+      if (/\.pptx$/i.test(file.path)) {
+        const { init } = await import("pptx-preview");
+        const preview = init(target, { width: 960, height: 540, mode: "list" });
+        await preview.preview(data.bytes);
+        pages = preview.slideCount;
+        if (!pages) throw Error("corrupt");
+      } else {
+        const { renderAsync } = await import("docx-preview");
+        await renderAsync(data.bytes, target, undefined, {
+          renderAltChunks: false,
+          useBase64URL: true,
+          ignoreFonts: true,
+        });
+        pages = target.querySelectorAll("section.docx").length || 1;
+      }
       DOMPurify.sanitize(target, {
         IN_PLACE: true,
         ADD_TAGS: ["style"],
@@ -88,7 +98,7 @@ window.addEventListener("message", (event: MessageEvent) => {
       port.postMessage({
         type: "rendered",
         channel,
-        pages: target.querySelectorAll("section.docx").length || 1,
+        pages,
       });
     } catch (error) {
       root.replaceChildren();
