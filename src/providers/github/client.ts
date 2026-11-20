@@ -1,12 +1,6 @@
 import { refString, type GitRef } from "../../lib/refs";
-export class ProviderError extends Error {
-  constructor(
-    public code: string,
-    public retryable = false,
-  ) {
-    super(code);
-  }
-}
+import { ProviderError } from "../types";
+export { ProviderError } from "../types";
 export interface Repo {
   size?: number;
   full_name: string;
@@ -24,6 +18,7 @@ export interface Entry {
   ref: string;
 }
 let token = "";
+export function isConnected() { return !!token; }
 export function clearToken() {
   token = "";
 }
@@ -57,7 +52,7 @@ export async function request(
   if (!res.ok) {
     if (res.status === 401) clearToken();
     throw new ProviderError(
-      res.status === 409 ? "EMPTY_REPO" : res.status === 422 ? "CONFLICT" : res.status === 429
+      res.status === 409 ? "EMPTY_REPO" : res.status === 412 || res.status === 422 ? "CONFLICT" : res.status === 413 ? "TOO_LARGE" : res.status === 507 ? "QUOTA" : res.status === 429
         ? "RATE_LIMITED"
         : res.status === 401
           ? "AUTH_EXPIRED"
@@ -69,6 +64,7 @@ export async function request(
               ? "NOT_FOUND"
               : "PROVIDER_DOWN",
       res.status >= 500,
+      { retryAfter: res.headers.has("Retry-After") ? Number(res.headers.get("Retry-After")) : undefined },
     );
   }
   return res;

@@ -1,5 +1,13 @@
 # Shelf progress
 
+### M4a slice 1: provider contracts (2026-11-20)
+
+- Status: Added normalized provider contracts, typed errors, allowlisted HTTP and a reusable MSW contract suite. GitHub passes all 12 assertions alongside existing push/read regression tests (24 tests total); typecheck passes.
+- Decisions: Owner instructions authorize M4a only and override the general pre-commit check rule: focused validation per slice, one full check at the end. Amendments 1 to 3 are already merged. M4a/M4b boundaries are explicit in README 14. Completion callbacks must be durable before another sequential write.
+- Not done: The remaining four authorized slices follow. M4b is not started.
+- Manual steps: Real OAuth client registrations and provider-account checks remain [HUMAN]; no credentials are required for MSW.
+- Known issues: Mock tests do not prove provider CORS or consent behavior. GitHub tree enumeration has no cursor; its existing truncation and root pagination behavior remain separately tested.
+
 ### M3.5b Office Quick view completed locally (2026-11-20)
 
 - Status: All four authorized slices are implemented. DOCX, XLSX and PPTX render on origin B through a byte-only private MessageChannel. Legacy, corrupt, encrypted, timeout and 50 MB messages retain metadata and Download. M4 remains unstarted.
