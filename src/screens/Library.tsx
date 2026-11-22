@@ -2,7 +2,23 @@ import { cloudEnabled } from "../providers/flags";
 import type { CloudLibrary } from "../components/cloudTypes";
 import { nameMatches } from "../services/paletteQuery";
 import type { TextMatch } from "../services/textSearch";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
+import {
+  FavoriteButton,
+  renderItemTags,
+  useOrganizer,
+} from "../components/Organizer";
+import {
+  mergeLabels,
+  portableOrganizer,
+  type LibraryItem,
+} from "../services/organizer";
+import {
+  githubEndpoint,
+  githubTransferSource,
+  localTransferSource,
+  requestTransfer,
+} from "../services/transferRequests";
 import { GuardMount } from "../components/GuardMount";
 import { VisibilityBadge } from "../components/VisibilityBadge";
 import { useLibrary } from "./useLibrary";
@@ -46,6 +62,8 @@ const TransferIntegration = lazy(
 );
 const SplitWorkspace = lazy(() => import("../components/SplitWorkspace"));
 const LocalFolderTools = lazy(() => import("../components/LocalFolderTools"));
+const OrganizerEditor = lazy(() => import("../components/OrganizerEditor").then((module) => ({ default: module.OrganizerEditor })));
+const MixedExplorer = lazy(() => import("../components/MixedExplorer").then((module) => ({ default: module.MixedExplorer })));
 export default function Library() {
   if (!cloudEnabled) return <LibraryScreen />;
   return (
@@ -91,6 +109,98 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
     open,
     quick,
   } = state;
+  const organizer = useOrganizer(
+    state.activeAccount,
+    cloud?.locations.roots.map((root) => root.id) ?? [],
+  );
+  const virtualId = hash.startsWith("#/library/") ? hash.slice(10) : "";
+  const virtualLabel =
+    organizer.value.collections.find((label) => label.id === virtualId) ??
+    organizer.value.tags.find((label) => "tag:" + label.id === virtualId);
+  const rawMixed =
+    virtualLabel?.items ??
+    (virtualId === "recent"
+      ? organizer.value.recent
+      : organizer.value.favorites);
+  const rootIds = JSON.stringify(
+    cloud?.locations.roots.map((root) => root.id) ?? [],
+  );
+  const mixedItems = useMemo(
+    () => organizer.accessible(rawMixed),
+    [rawMixed, state.activeAccount, rootIds],
+  );
+  const [mixedSelection, setMixedSelection] = useState<{
+    id: string;
+    items: LibraryItem[];
+  }>();
+  const sourceFor = (entry: (typeof entries)[number]) =>
+    state.activeAccount && entry.kind !== "special"
+      ? githubTransferSource(state.activeAccount, entry)
+      : undefined;
+  const picked = virtualId
+    ? mixedSelection?.id === virtualId
+      ? organizer.accessible(mixedSelection.items)
+      : []
+    : cloud?.active
+      ? cloud.transferSelection.filter((item) => "endpoint" in item)
+      : selection.flatMap((entry) => sourceFor(entry) ?? []);
+  const favorite = !split && (
+    <FavoriteButton organizer={organizer} items={picked} />
+  );
+  const openVirtual = (id: string) => {
+    setSplit(false);
+    location.hash = "#/library/" + id;
+  };
+  const openMixed = ({ endpoint, entry }: LibraryItem) => {
+    if (endpoint.provider === "github") {
+      const parsed = parseRef(entry.ref);
+      location.hash =
+        entry.kind === "dir" ? explorerRoute(parsed) : viewerRoute(parsed);
+    } else {
+      cloud?.openFilenameResult({
+        ...entry,
+        scope: endpoint.provider + ":" + endpoint.locationId,
+        path: entry.name,
+      });
+    }
+  };
+  const destination = cloud?.active
+    ? cloud.transferDestination
+    : account && ref && !hash.startsWith("#/view/")
+      ? githubEndpoint(account, ref)
+      : undefined;
+  function exportCollections() {
+    const file = new File(
+      [portableOrganizer(organizer.value)],
+      "collections.json",
+      { type: "application/json" },
+    );
+    requestTransfer({
+      move: false,
+      collectionsExport: true,
+      items: [localTransferSource(file, ".shelf/collections.json")],
+    });
+  }
+  async function importCollections() {
+    if (!destination) return;
+    try {
+      const { readPortableOrganizer } =
+        await import("../services/organizerPortability");
+      const imported = await readPortableOrganizer(
+        destination,
+        account,
+        cloud?.transferProvider(destination),
+      );
+      organizer.change((old) => ({
+        ...old,
+        collections: mergeLabels(old.collections, imported.collections),
+        tags: mergeLabels(old.tags, imported.tags),
+      }));
+      setNotice(t("collectionsImported"));
+    } catch {
+      organizer.setError("organizerInvalid");
+    }
+  }
   function disconnect() {
     previewRequest.current?.abort();
     setPreview(undefined);
@@ -106,6 +216,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   const folderQuery = folderFilter.key === folderKey ? folderFilter.query : "";
   const canSearchFolder =
     !split &&
+    !virtualId &&
     (!!cloud?.active ||
       (!!state.activeAccount && !!ref && !hash.startsWith("#/view/")));
   const indexScopes = [
@@ -125,6 +236,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   return (
     <div className={styles.shell}>
       <CommandBar
+        favorite={favorite}
         split={split}
         offline={offline}
         keepOffline={
@@ -163,6 +275,24 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         }}
       />
       <ReadShell
+        virtualLocations={{
+          active: virtualId,
+          collections: organizer.value.collections,
+          tags: organizer.value.tags,
+          open: openVirtual,
+          create: () => organizer.setEditor({ kind: "collections", items: [] }),
+          add: (id, items) => organizer.apply("collections", id, items),
+          exportLabels: exportCollections,
+          importLabels: destination
+            ? () => void importCollections()
+            : undefined,
+        }}
+        favorite={
+          <>
+            {favorite}
+            {renderItemTags(picked, organizer)}
+          </>
+        }
         roots={state.displayedRoots}
         account={state.activeAccount}
         clouds={cloud?.locations}
@@ -197,6 +327,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
           />
         )}
         {notice && <p role="status">{notice}</p>}
+        {organizer.error && <p role="alert">{t(organizer.error)}</p>}
         {split ? (
           <Suspense fallback={<p role="status">{t("loadingRead")}</p>}>
             <SplitWorkspace
@@ -206,6 +337,27 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
               cloud={cloud}
             />
           </Suspense>
+        ) : virtualId ? (
+          <>
+            <h2 className={styles.locationHeading}>
+              {virtualLabel?.name ??
+                t(
+                  virtualId === "recent"
+                    ? "recent"
+                    : virtualId === "favorites"
+                      ? "favorites"
+                      : "collections",
+                )}
+            </h2>
+            <Suspense fallback={null}><MixedExplorer
+              key={virtualId}
+              id={virtualId}
+              items={mixedItems}
+              organizer={organizer}
+              onOpen={openMixed}
+              onSelect={(items) => setMixedSelection({ id: virtualId, items })}
+            /></Suspense>
+          </>
         ) : cloud?.active ? (
           cloud.content
         ) : !state.activeAccount ? (
@@ -226,6 +378,8 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
               )
             ) : (
               <FileTable
+                reference={sourceFor}
+                tags={(item) => renderItemTags([item], organizer)}
                 entries={
                   folderQuery
                     ? entries.filter((entry) =>
@@ -266,11 +420,14 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
           selection={selection}
         />
         <SiteEntry
+          organizer={organizer}
           current={account && !cloud?.active ? ref : null}
           selection={selection}
           account={state.activeAccount}
         />
         <LibraryCommands
+          tags={organizer.value.tags}
+          onTag={(id) => openVirtual("tag:" + id)}
           current={ref}
           onFilenameResult={(item) => {
             if (item.scope.startsWith("github:")) {
@@ -356,6 +513,9 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         </>
       )}
       {cloud?.dialogs}
+      {organizer.editor && <Suspense fallback={null}>
+        <OrganizerEditor editor={organizer.editor} organizer={organizer} />
+      </Suspense>}
       {preview && (
         <Suspense fallback={null}>
           <LibraryPreview state={state} />

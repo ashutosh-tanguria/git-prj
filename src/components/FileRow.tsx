@@ -8,6 +8,9 @@ import type { Column } from "./TableHeader";
 import { FileGlyph } from "../ui/FileGlyph";
 import { t } from "../i18n";
 import styles from "./Table.module.css";
+import { dragReference, type LibraryItem } from "../services/organizer";
+import { ProviderMark } from "../ui/ProviderMark";
+import type { ReactNode } from "react";
 export function FileRow({
   onMetadata,
   entry: row,
@@ -22,6 +25,10 @@ export function FileRow({
   onOpen,
   onTouchStart,
   onTouchEnd,
+  mixed,
+  reference,
+  references,
+  tags,
 }: {
   onMetadata: (ref: string, value: EntryMetadata) => void;
   entry: Entry;
@@ -36,13 +43,18 @@ export function FileRow({
   onOpen: (entry: Entry) => void;
   onTouchStart: () => void;
   onTouchEnd: () => void;
+  mixed?: boolean;
+  reference?: LibraryItem;
+  references?: LibraryItem[];
+  tags?: (item: LibraryItem) => ReactNode;
 }) {
   const split = row.kind === "file" ? row.name.lastIndexOf(".") : -1;
   const callback = useRef(onMetadata);
   callback.current = onMetadata;
   const [metadataError, setMetadataError] = useState(false);
   useEffect(() => {
-    if (row.modified !== undefined && row.lastChange !== undefined) return;
+    if (mixed || (row.modified !== undefined && row.lastChange !== undefined))
+      return;
     const controller = new AbortController();
     void library
       .metadata(row.ref, controller.signal)
@@ -53,7 +65,7 @@ export function FileRow({
         if (!controller.signal.aborted) setMetadataError(true);
       });
     return () => controller.abort();
-  }, [row.ref, row.sha]);
+  }, [row.ref, row.sha, mixed]);
   const touchOrigin = useRef({ x: 0, y: 0 });
   return (
     <div
@@ -65,6 +77,12 @@ export function FileRow({
       data-index={index}
       className={styles.row}
       style={{ top, height }}
+      draggable={!!references?.length}
+      onDragStart={(event) => {
+        if (!references?.length) return;
+        event.dataTransfer.setData(dragReference, JSON.stringify(references));
+        event.dataTransfer.effectAllowed = "link";
+      }}
       onKeyDown={(e) => {
         if (e.target === e.currentTarget && e.key === "Enter") {
           e.preventDefault();
@@ -94,13 +112,17 @@ export function FileRow({
           onTouchEnd();
       }}
       onContextMenu={(e) => {
-        if (row.kind !== "special" && !matchMedia("(pointer: coarse)").matches) {
+        if (
+          row.kind !== "special" &&
+          !matchMedia("(pointer: coarse)").matches
+        ) {
           e.preventDefault();
           const rect = e.currentTarget.getBoundingClientRect();
           window.dispatchEvent(
             new CustomEvent("shelf-site-context", {
               detail: {
-                entry: row,
+                entry: mixed ? undefined : row,
+                sources: references?.length ? references : undefined,
                 x: e.clientX || rect.left,
                 y: e.clientY || rect.bottom,
               },
@@ -160,6 +182,7 @@ export function FileRow({
             row.name
           )}
         </button>
+        {reference && tags?.(reference)}
       </div>
       {!hidden.includes("modified") && (
         <div role="gridcell" title={row.modified ?? undefined}>
@@ -202,6 +225,14 @@ export function FileRow({
           <span className={styles.cellText}>
             {row.lastChange ?? t("unknown")}
           </span>
+        </div>
+      )}
+      {mixed && reference && (
+        <div role="gridcell" data-provider-cell>
+          <ProviderMark
+            provider={reference.endpoint.provider}
+            label={t(reference.endpoint.provider)}
+          />
         </div>
       )}
     </div>

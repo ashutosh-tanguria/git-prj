@@ -1,10 +1,15 @@
 import i18next from "i18next";
 import en from "./en/common.json";
 import hi from "./hi/common.json";
+import enOrganizer from "./en/organizer.json";
+import hiOrganizer from "./hi/organizer.json";
 void i18next.init({
   lng: "en",
   fallbackLng: "en",
-  resources: { en: { translation: en }, hi: { translation: hi } },
+  resources: {
+    en: { translation: { ...en, ...enOrganizer } },
+    hi: { translation: { ...hi, ...hiOrganizer } },
+  },
   interpolation: { escapeValue: false },
 });
 export function t(

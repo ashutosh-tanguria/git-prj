@@ -1,4 +1,12 @@
 # Shelf progress
+### M5b slice 1 (2026-11-22)
+
+- Status: Recent, Favorites, collections and tags use IndexedDB. Virtual locations include the Provider column. References can be added by context menu or drag, and tags appear under the palette's # prefix.
+- Decisions: Recent keeps the latest 100 successful opens. Portable JSON includes collections and tags, merges by label ID, and uses the existing transfer picker and guarded Push for export. Import reads from the current provider folder.
+- Not done: Grid, Columns, duplicate finding, ZIP export and final acceptance follow in M5b.
+- Manual steps: For a portability round trip, choose an owned destination, review the staged export and Push it before importing from that folder.
+- Known issues: References from unavailable accounts become visible when the matching account reconnects. Import keeps the local label name and colour when IDs match.
+
 ### M5a complete (2026-11-22)
 
 - Status: M5a delivers the licence correction, offline cache and Storage, full-text search, folder search, and the command palette. The final slice completes the English and Hindi specimens with the offline cache-miss and storage-full messages. M5a Chromium covers acceptance 8, 12 and 17.

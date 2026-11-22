@@ -47,6 +47,26 @@ export async function cacheRequest<T>(
 }
 
 export const cacheData = {
+  async update<T>(
+    store: string,
+    key: string,
+    initial: T,
+    update: (value: T) => T,
+  ) {
+    const db = await openCache();
+    return new Promise<T>((resolve, reject) => {
+      const tx = db.transaction(store, "readwrite");
+      const items = tx.objectStore(store);
+      const read = items.get(key);
+      let value: T;
+      read.onsuccess = () => {
+        value = update(read.result ?? initial);
+        items.put(value, key);
+      };
+      tx.oncomplete = () => resolve(value);
+      tx.onabort = () => reject(tx.error);
+    });
+  },
   get: <T>(store: string, key: string) =>
     cacheRequest<T | undefined>(store, "readonly", (items) => items.get(key)),
   all: <T>(store: string) =>

@@ -77,10 +77,12 @@ export function CommandBar({
   split = false,
   offline = false,
   keepOffline = false,
+  favorite,
 }: {
   split?: boolean;
   offline?: boolean;
   keepOffline?: boolean;
+  favorite?: React.ReactNode;
 }) {
   return (
     <nav className={styles.command} aria-label={t("commandBar")}>
@@ -89,6 +91,7 @@ export function CommandBar({
           split={split}
           offline={offline}
           keepOffline={keepOffline}
+          favorite={favorite}
         />
       </div>
       <details className={styles.overflow}>
@@ -98,6 +101,7 @@ export function CommandBar({
             split={split}
             offline={offline}
             keepOffline={keepOffline}
+            favorite={favorite}
           />
         </div>
       </details>
@@ -143,10 +147,12 @@ function CommandActions({
   split,
   offline,
   keepOffline,
+  favorite,
 }: {
   split: boolean;
   offline: boolean;
   keepOffline: boolean;
+  favorite?: React.ReactNode;
 }) {
   const siteAvailable = useSiteAvailable();
   return (
@@ -199,6 +205,7 @@ function CommandActions({
         <CommandAction action="settings" />
         <CommandAction action="commandPalette" icon="M3 4h10M3 8h10M3 12h6" />
         {keepOffline && <CommandAction action="keepOffline" />}
+        {favorite}
         <CommandAction
           action="splitView"
           pressed={split}

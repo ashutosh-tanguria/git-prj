@@ -139,7 +139,6 @@
   "items": "items",
   "fileType": "Type",
   "searchFolder": "Search folder",
-  "searchLater": "Folder search available after M5",
   "refresh": "Refresh",
   "itemSummary_one": "{{count}} item",
   "itemSummary_other": "{{count}} items",

@@ -10,6 +10,8 @@ import {
 } from "../lib/refs";
 import { t } from "../i18n";
 import type { MediaProgress } from "../services/mediaRead";
+import { recordOpen } from "../services/organizer";
+import { githubTransferSource } from "../services/transferRequests";
 export function useLibrary(offline: boolean) {
   const previewRequest = useRef<AbortController | null>(null);
   const [previewOrder, setPreviewOrder] = useState<Entry[]>([]);
@@ -109,7 +111,9 @@ export function useLibrary(offline: boolean) {
                   : undefined;
               const metadata =
                 results[1].status === "fulfilled" ? results[1].value : {};
-              setSelection([{ ...(listed || fallback), ...metadata }]);
+              const opened = { ...(listed || fallback), ...metadata };
+              setSelection([opened]);
+              recordOpen(githubTransferSource(activeAccount, opened));
             })
           : listGitHub(activeAccount, parsed, {
               signal: controller.signal,
@@ -197,7 +201,10 @@ export function useLibrary(offline: boolean) {
           if (!controller.signal.aborted) setMediaProgress(value);
         },
       );
-      if (!controller.signal.aborted) setBlob(bytes);
+      if (!controller.signal.aborted) {
+        setBlob(bytes);
+        recordOpen(githubTransferSource(activeAccount, entry));
+      }
     } catch (error) {
       if (!controller.signal.aborted)
         setPreviewError(

@@ -28,6 +28,8 @@ export function ReadShell({
   children,
   onParent,
   onSplit,
+  virtualLocations,
+  favorite,
 }: {
   roots: Repo[];
   account?: string;
@@ -38,6 +40,8 @@ export function ReadShell({
   children: ReactNode;
   onParent: () => void;
   onSplit?: () => void;
+  virtualLocations?: import("./Locations").VirtualLocations;
+  favorite?: ReactNode;
 }) {
   const panels = usePanels(),
     main = useRef<HTMLElement>(null);
@@ -152,7 +156,12 @@ export function ReadShell({
       >
         {panels.locations && panels.width >= 900 && (
           <aside id="locations" tabIndex={-1} className={styles.locationPane}>
-            <Locations repos={roots} clouds={clouds} account={account} />
+            <Locations
+              repos={roots}
+              clouds={clouds}
+              account={account}
+              virtual={virtualLocations}
+            />
           </aside>
         )}
         {panels.locations && panels.width >= 900 && (
@@ -202,6 +211,7 @@ export function ReadShell({
               entries={selection}
               account={account}
               visibility={visibility}
+              favorite={favorite}
             />
           </aside>
         )}
@@ -210,7 +220,12 @@ export function ReadShell({
         <Suspense fallback={null}>
           <PaneLayer kind="locations" onClose={() => close("locations")}>
             <div id="locations" tabIndex={-1}>
-              <Locations repos={roots} clouds={clouds} account={account} />
+              <Locations
+                repos={roots}
+                clouds={clouds}
+                account={account}
+                virtual={virtualLocations}
+              />
             </div>
           </PaneLayer>
         </Suspense>
@@ -226,6 +241,7 @@ export function ReadShell({
                 entries={selection}
                 account={account}
                 visibility={visibility}
+                favorite={favorite}
               />
             </div>
           </PaneLayer>

@@ -5,6 +5,8 @@ import { FileRow } from "./FileRow";
 import { TableHeader, ColumnChooser, columns } from "./TableHeader";
 import { t } from "../i18n";
 import styles from "./Table.module.css";
+import type { LibraryItem } from "../services/organizer";
+import type { ReactNode } from "react";
 export function FileTable(props: {
   entries: Entry[];
   onOpen: (entry: Entry) => void;
@@ -12,6 +14,10 @@ export function FileTable(props: {
   onSelectionChange?: (entries: Entry[]) => void;
   locationKey?: string;
   filtered?: boolean;
+  reference?: (entry: Entry) => LibraryItem | undefined;
+  tags?: (item: LibraryItem) => ReactNode;
+  mixed?: boolean;
+  recent?: boolean;
 }) {
   const table = useFileTable(props);
   const {
@@ -101,11 +107,20 @@ export function FileTable(props: {
         aria-multiselectable="true"
         aria-rowcount={rows.length + 1}
         aria-colcount={
-          innerWidth < 640 ? 3 : columns.length + 1 - layout.hidden.length
+          innerWidth < 640
+            ? props.mixed
+              ? 4
+              : 3
+            : columns.length + 1 - layout.hidden.length + Number(!!props.mixed)
         }
         className={styles.grid}
+        data-mixed={props.mixed || undefined}
         tabIndex={-1}
-        style={{ "--table-columns": template } as CSSProperties}
+        style={
+          {
+            "--table-columns": template + (props.mixed ? " 120px" : ""),
+          } as CSSProperties
+        }
         onKeyDown={table.onKeyDown}
         onPointerDown={table.onPointerDown}
         onPointerMove={table.onPointerMove}
@@ -113,6 +128,7 @@ export function FileTable(props: {
       >
         <TableHeader
           {...layout}
+          mixed={props.mixed}
           onSort={(sort) =>
             setLayout({
               ...layout,
@@ -142,6 +158,15 @@ export function FileTable(props: {
                 table.setMetadata((old) => ({ ...old, [ref]: value }))
               }
               entry={rows[item.index]}
+              reference={props.reference?.(rows[item.index])}
+              references={(selectedEntries.some(
+                (row) => row.ref === rows[item.index].ref,
+              )
+                ? selectedEntries
+                : [rows[item.index]]
+              ).flatMap((row) => props.reference?.(row) ?? [])}
+              tags={props.tags}
+              mixed={props.mixed}
               index={item.index}
               top={item.start}
               height={item.size}

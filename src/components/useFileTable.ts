@@ -29,12 +29,14 @@ export function useFileTable({
   onPreview,
   onSelectionChange,
   locationKey = "default",
+  recent,
 }: {
   entries: Entry[];
   onOpen: (entry: Entry) => void;
   onPreview: (entry: Entry, rows?: Entry[]) => void;
   onSelectionChange?: (entries: Entry[]) => void;
   locationKey?: string;
+  recent?: boolean;
 }) {
   const suppressClick = useRef(false);
   const focusFrame = useRef(0);
@@ -112,19 +114,27 @@ export function useFileTable({
     };
   }, []);
   const rows = entries
-    .map((entry) => ({ ...entry, ...metadata[entry.ref], fileType: entry.kind === "dir" ? "" : entry.name.split(".").at(-1)?.toUpperCase() || "" }))
-    .sort(
-      (a, b) =>
-        Number(b.kind === "dir") -
-        Number(a.kind === "dir") +
-        (a.kind === b.kind
-          ? (layout.reverse ? -1 : 1) *
-            (layout.sort === "size"
-              ? a.size - b.size
-              : String(a[layout.sort] ?? "").localeCompare(
-                  String(b[layout.sort] ?? ""),
-                ))
-          : 0),
+    .map((entry) => ({
+      ...entry,
+      ...metadata[entry.ref],
+      fileType:
+        entry.kind === "dir"
+          ? ""
+          : entry.name.split(".").at(-1)?.toUpperCase() || "",
+    }))
+    .sort((a, b) =>
+      recent
+        ? 0
+        : Number(b.kind === "dir") -
+          Number(a.kind === "dir") +
+          (a.kind === b.kind
+            ? (layout.reverse ? -1 : 1) *
+              (layout.sort === "size"
+                ? a.size - b.size
+                : String(a[layout.sort] ?? "").localeCompare(
+                    String(b[layout.sort] ?? ""),
+                  ))
+            : 0),
     );
   const virtual = useVirtualizer({
     count: rows.length,

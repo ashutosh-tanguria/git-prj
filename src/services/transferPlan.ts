@@ -35,6 +35,28 @@ export async function planTransfers(
       return [];
     throw error;
   });
+  if (
+    request.collectionsExport &&
+    request.items.length === 1 &&
+    request.items[0].relativePath === ".shelf/collections.json"
+  ) {
+    const shelf = listing.find(
+      (entry) => fold(provider, entry.name) === ".shelf",
+    );
+    if (shelf && shelf.kind !== "dir") throw Error("transferFolderCollision");
+    if (shelf)
+      return planTransfers(
+        {
+          ...request,
+          collectionsExport: false,
+          items: request.items.map(({ source, bytes }) => ({ source, bytes })),
+        },
+        { ...target, ref: shelf.ref },
+        provider,
+        rows,
+        choice,
+      );
+  }
   const names = new Map<string, Entry>(
     listing.map((entry) => [fold(provider, entry.name), entry]),
   );

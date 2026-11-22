@@ -13,14 +13,18 @@ import {
 } from "../services/transferRequests";
 import type { TransferSource } from "../services/transferTypes";
 import styles from "./SitePreview.module.css";
+import type { OrganizerControls } from "./Organizer";
+import { ItemActions } from "./ItemActions";
 export function SiteEntry({
   current,
   selection,
   account = "",
+  organizer,
 }: {
   current: GitRef | null;
   selection: Entry[];
   account?: string;
+  organizer?: OrganizerControls;
 }) {
   const [storageNotice, setStorageNotice] = useState("");
   const [target, setTarget] = useState<SiteTarget | null>(null),
@@ -164,6 +168,13 @@ export function SiteEntry({
               >
                 {t("previewSite")}
               </button>
+            )}
+            {organizer && (
+              <ItemActions
+                organizer={organizer}
+                items={menu.sources.filter((source) => "endpoint" in source)}
+                onClose={() => setMenu(undefined)}
+              />
             )}
             {menu.sources.some(
               (source) => "endpoint" in source && source.entry.kind === "file",

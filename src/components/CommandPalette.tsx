@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import type { Label } from "../services/organizer";
+import { LabelMark } from "./LabelMark";
 import { Dialog, Heading, Modal } from "react-aria-components";
 import { t } from "../i18n";
 import {
@@ -145,7 +147,12 @@ function PaletteRow({
       id={id}
       onMouseDown={(event) => event.preventDefault()}
       onClick={onPick}
-      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onPick(); } }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onPick();
+        }
+      }}
     >
       {row.content}
       {row.reason && <small>{row.reason}</small>}
@@ -172,6 +179,8 @@ export function CommandPalette({
   onOpen,
   onTextResult,
   unavailable,
+  tags = [],
+  onTag,
 }: {
   bindings: typeof defaultShortcuts;
   scopes: string[];
@@ -181,6 +190,8 @@ export function CommandPalette({
   onOpen: (entry: NamedEntry) => void;
   onTextResult: (result: TextMatch) => void;
   unavailable: (command: string) => string | undefined;
+  tags?: Label[];
+  onTag?: (id: string) => void;
 }) {
   const [value, setValue] = useState("");
   const [names, setNames] = useState<NamedEntry[]>([]);
@@ -264,8 +275,22 @@ export function CommandPalette({
       content: <TextResult item={item} />,
       choose: () => onTextResult(item),
     }));
+  if (mode === "tags")
+    options = tags
+      .filter((tag) => nameMatches(tag.name, query))
+      .slice(0, 40)
+      .map((tag) => ({
+        id: tag.id,
+        content: (
+          <>
+            <LabelMark color={tag.color} />
+            {tag.name}
+          </>
+        ),
+        choose: () => onTag?.(tag.id),
+      }));
   const status =
-    mode === "tags"
+    mode === "tags" && !tags.length
       ? t("paletteNoTags")
       : loading
         ? t("searchingCache")

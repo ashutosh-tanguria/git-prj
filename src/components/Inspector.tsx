@@ -20,12 +20,14 @@ export function Inspector({
   visibility,
   defaultTab = "preview",
   previewBlob,
+  favorite,
 }: {
   entries: Entry[];
   account?: string;
   visibility: string;
   defaultTab?: string;
   previewBlob?: Blob;
+  favorite?: React.ReactNode;
 }) {
   const prefix = useId();
   const mediaRequest = useRef<AbortController | null>(null);
@@ -95,6 +97,7 @@ export function Inspector({
   return (
     <section aria-label={t("inspector")} className={styles.inspector}>
       <h2>{t("inspector")}</h2>
+      {favorite}
       {siteAvailable && entries.length === 1 && (
         <Button onPress={openSitePreview}>{t("previewSite")}</Button>
       )}

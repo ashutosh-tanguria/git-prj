@@ -2,7 +2,13 @@
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import styles from "./Table.module.css";
-export const columns = ["name", "modified", "fileType", "size", "lastChange"] as const;
+export const columns = [
+  "name",
+  "modified",
+  "fileType",
+  "size",
+  "lastChange",
+] as const;
 export type Column = (typeof columns)[number];
 export function TableHeader({
   widths,
@@ -11,6 +17,7 @@ export function TableHeader({
   onSort,
   onResize,
   hidden,
+  mixed,
 }: {
   widths: number[];
   sort: Column;
@@ -18,6 +25,7 @@ export function TableHeader({
   onSort: (column: Column) => void;
   onResize: (index: number, width: number) => void;
   hidden: Column[];
+  mixed?: boolean;
   onHidden: (hidden: Column[]) => void;
 }) {
   return (
@@ -76,6 +84,11 @@ export function TableHeader({
                 />
               </div>
             ),
+        )}
+        {mixed && (
+          <div role="columnheader" data-provider-cell>
+            {t("provider")}
+          </div>
         )}
       </div>
     </>

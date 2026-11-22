@@ -3,6 +3,11 @@ import { Dialog, Heading, Modal } from "react-aria-components";
 import { useOffline } from "./useOffline";
 import { cacheData } from "../services/cacheData";
 import { cloudScope, listCloud, readCloud } from "../services/cloudCache";
+import {
+  dragReference,
+  recordOpen,
+  type LibraryItem,
+} from "../services/organizer";
 import type { NamedEntry } from "../services/filenameSearch";
 import { nameMatches } from "../services/paletteQuery";
 import type { TextMatch } from "../services/textSearch";
@@ -151,6 +156,19 @@ export default function CloudIntegration({
   const refresh = () => setRevision((value) => value + 1);
   function open(ref: string) {
     location.hash = route(ref);
+  }
+  function reference(
+    owner: NonNullable<typeof session>,
+    entry: Entry,
+  ): LibraryItem {
+    return {
+      entry,
+      endpoint: {
+        provider: owner.root.provider as CloudId,
+        locationId: owner.root.id,
+        ref: entry.ref,
+      },
+    };
   }
   function parent() {
     if (!session) return;
@@ -545,6 +563,7 @@ export default function CloudIntegration({
         result,
         provider: owner.root.provider as CloudId,
       });
+      recordOpen(reference(owner, { ...entry, size: bytes.size }));
     });
   }
   function download(item: Entry, version?: string) {
@@ -757,9 +776,17 @@ export default function CloudIntegration({
                 {visibleRows.map((item) => (
                   <tr
                     key={item.ref}
+                    draggable={item.kind !== "special"}
+                    onDragStart={(event) => {
+                      event.dataTransfer.setData(
+                        dragReference,
+                        JSON.stringify([reference(session, item)]),
+                      );
+                      event.dataTransfer.effectAllowed = "link";
+                    }}
                     onContextMenu={(event) => {
                       if (
-                        item.kind !== "file" ||
+                        item.kind === "special" ||
                         matchMedia("(pointer: coarse)").matches
                       )
                         return;
@@ -767,16 +794,7 @@ export default function CloudIntegration({
                       window.dispatchEvent(
                         new CustomEvent("shelf-site-context", {
                           detail: {
-                            sources: [
-                              {
-                                entry: item,
-                                endpoint: {
-                                  provider: session.root.provider,
-                                  locationId: session.root.id,
-                                  ref: item.ref,
-                                },
-                              },
-                            ],
+                            sources: [reference(session, item)],
                             x: event.clientX,
                             y: event.clientY,
                           },
@@ -856,6 +874,7 @@ export default function CloudIntegration({
                         bytes,
                         provider: session.root.provider as CloudId,
                       });
+                      recordOpen(reference(session, selected));
                     })
                   }
                 >

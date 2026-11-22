@@ -30,6 +30,7 @@ import type { CloudLibrary } from "./cloudTypes";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import styles from "./Library.module.css";
+import type { Label } from "../services/organizer";
 export function LibraryCommands({
   current,
   selection,
@@ -42,6 +43,8 @@ export function LibraryCommands({
   onRefresh,
   onTextResult,
   onFilenameResult,
+  tags,
+  onTag,
 }: {
   current: GitRef | null;
   selection: Entry[];
@@ -54,6 +57,8 @@ export function LibraryCommands({
   onRefresh: () => Promise<void>;
   onTextResult: (item: TextMatch) => void;
   onFilenameResult: (item: NamedEntry) => void;
+  tags?: Label[];
+  onTag?: (id: string) => void;
 }) {
   const previousRoute = useRef("");
   const previous = useRef(current);
@@ -347,6 +352,8 @@ export function LibraryCommands({
           onCommand={(command) => void dispatch(command)}
           onOpen={onFilenameResult}
           onTextResult={onTextResult}
+          tags={tags}
+          onTag={onTag}
           unavailable={(command) => {
             if (command === "exportSelection") return t("paletteZipLater");
             if (command === "push" && !navigator.onLine)

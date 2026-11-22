@@ -7,6 +7,7 @@ export interface TransferRequest {
   move: boolean;
   target?: TransferEndpoint;
   cloudOnly?: boolean;
+  collectionsExport?: boolean;
   onStaged?(): void;
 }
 export function requestTransfer(request: TransferRequest) {
@@ -22,7 +23,7 @@ export function githubEndpoint(account: string, ref: GitRef): TransferEndpoint {
 export function githubTransferSource(
   account: string,
   row: Entry,
-): TransferSource {
+): Extract<TransferSource, { endpoint: TransferEndpoint }> {
   return {
     endpoint: githubEndpoint(account, parseRef(row.ref)),
     entry: {

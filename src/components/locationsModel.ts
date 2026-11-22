@@ -2,6 +2,7 @@ import type { Location, ProviderId } from "../providers/types";
 import type { Repo } from "../services/library";
 import { refString } from "../lib/refs";
 export interface Node {
+  virtual?: boolean;
   id: string;
   label: string;
   ref?: string;

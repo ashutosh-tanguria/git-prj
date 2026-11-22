@@ -341,3 +341,15 @@
 .row:hover [data-family] > span {
   color: var(--ink-2);
 }
+.grid[data-mixed] [data-provider-cell] {
+  display: flex;
+  align-items: center;
+}
+@media (width < 640px) {
+  .grid[data-mixed] [data-provider-cell] {
+    grid-column: 3;
+    grid-row: 2;
+    justify-content: end;
+    pointer-events: none;
+  }
+}
