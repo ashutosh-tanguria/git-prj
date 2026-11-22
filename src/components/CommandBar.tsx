@@ -78,11 +78,13 @@ export function CommandBar({
   offline = false,
   keepOffline = false,
   favorite,
+  viewMenu,
 }: {
   split?: boolean;
   offline?: boolean;
   keepOffline?: boolean;
   favorite?: React.ReactNode;
+  viewMenu?: React.ReactNode;
 }) {
   return (
     <nav className={styles.command} aria-label={t("commandBar")}>
@@ -92,9 +94,10 @@ export function CommandBar({
           offline={offline}
           keepOffline={keepOffline}
           favorite={favorite}
+          viewMenu={viewMenu}
         />
       </div>
-      <details className={styles.overflow}>
+      <details className={styles.overflow} data-command-overflow>
         <summary aria-label={t("commandBar")}>...</summary>
         <div>
           <CommandActions
@@ -102,6 +105,7 @@ export function CommandBar({
             offline={offline}
             keepOffline={keepOffline}
             favorite={favorite}
+            viewMenu={viewMenu}
           />
         </div>
       </details>
@@ -148,11 +152,13 @@ function CommandActions({
   offline,
   keepOffline,
   favorite,
+  viewMenu,
 }: {
   split: boolean;
   offline: boolean;
   keepOffline: boolean;
   favorite?: React.ReactNode;
+  viewMenu?: React.ReactNode;
 }) {
   const siteAvailable = useSiteAvailable();
   return (
@@ -212,7 +218,7 @@ function CommandActions({
           icon="M2 2h12v12H2ZM8 2v12"
         />
         {siteAvailable && <CommandAction action="previewSite" />}
-        <CommandAction action="switchView" />
+        {viewMenu ?? <CommandAction action="switchView" />}
       </div>
       <div className={styles.push}>
         <CommandAction

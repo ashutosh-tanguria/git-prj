@@ -1,0 +1,97 @@
+.gridView {
+  padding: var(--space-2);
+}
+.gridView select,
+.gridView > button,
+.preview button {
+  min-block-size: var(--control-height);
+}
+.items {
+  position: relative;
+  block-size: min(62vh, 680px);
+  overflow: auto;
+}
+.spacer {
+  position: relative;
+}
+.group {
+  position: absolute;
+  inset-inline: 0;
+  display: grid;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-2);
+  cursor: default;
+}
+.items[data-card="true"] .item {
+  flex-direction: column;
+}
+.item:hover {
+  background: var(--hover);
+}
+.item[aria-selected="true"] {
+  background: var(--blue-tint);
+}
+.items:focus-visible .item[data-active] {
+  outline: var(--focus-width) solid var(--blue);
+  outline-offset: calc(-1 * var(--focus-width));
+}
+.art {
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  flex: none;
+}
+.items[data-card="false"] .art {
+  inline-size: var(--icon-size);
+}
+.art img,
+.previewArt img {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+}
+.name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-inline-size: 100%;
+}
+.columns {
+  display: flex;
+  overflow-x: auto;
+  align-items: stretch;
+}
+.level {
+  display: flex;
+  flex: none;
+  border-inline-end: var(--border-width) solid var(--rule);
+}
+.level h3,
+.preview {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+}
+.level small {
+  color: var(--ink-2);
+}
+.preview {
+  flex: 0 0 240px;
+}
+.preview pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-block-size: 220px;
+  overflow: auto;
+}
+.previewArt {
+  inline-size: var(--thumb-large);
+  block-size: var(--thumb-large);
+  display: grid;
+  place-items: center;
+}

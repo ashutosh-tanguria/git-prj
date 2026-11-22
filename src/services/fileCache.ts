@@ -96,7 +96,14 @@ export function changeCacheCap(cap: number) {
 export function clearCache() {
   return exclusive(async () => {
     for (const file of await cachedFiles()) await remove(file);
-    for (const store of ["bytes", "listings", "meta", "textindex", "indexmeta"])
+    for (const store of [
+      "bytes",
+      "listings",
+      "meta",
+      "textindex",
+      "indexmeta",
+      "thumbnails",
+    ])
       await cacheData.clear(store);
     if (typeof navigator.storage?.getDirectory === "function") {
       const dir = await navigator.storage.getDirectory();

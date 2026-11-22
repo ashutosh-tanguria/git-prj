@@ -121,6 +121,7 @@ export default function CloudIntegration({
   const [filter, setFilter] = useState({ folder: "", query: "" });
   const [rows, setRows] = useState<Entry[]>([]);
   const [selected, setSelected] = useState<Entry>();
+  const [viewPicked, setViewPicked] = useState<LibraryItem[]>([]);
   const [pending, setPending] = useState<CloudChange[]>([]);
   const [operation, setOperation] = useState<Operation>();
   const [move, setMove] = useState<{ location: string; item: Entry }>();
@@ -209,6 +210,7 @@ export default function CloudIntegration({
       if (location.hash.startsWith("#/settings/")) return;
       setFolder(currentRef());
       setOperation(undefined);
+      setViewPicked([]);
     };
     window.addEventListener("hashchange", navigate);
     return () => window.removeEventListener("hashchange", navigate);
@@ -408,7 +410,8 @@ export default function CloudIntegration({
   async function stage(files?: FileList) {
     if (!session || !operation) return;
     const locationId = session.root.id;
-    const common = { locationId, parent: folder };
+    const common = { locationId, parent: selected && ["rename", "delete", "cloudReplace"].includes(operation)
+      ? paths.current.get(selected.ref) ?? folder : folder };
     const changes: { change: CloudChange; bytes?: Blob }[] = [];
     const valid = (value: string) =>
       value.trim() &&
@@ -640,6 +643,41 @@ export default function CloudIntegration({
     openTextResult: (item) => showCached(item, item),
     openFilenameResult: (item) =>
       item.kind === "dir" ? open(item.ref) : showCached(item),
+    explorer:
+      session && folder
+        ? {
+            rows: visibleRows,
+            endpoint: {
+              provider: session.root.provider as CloudId,
+              locationId: session.root.id,
+              ref: folder,
+            },
+          list: async (ref, signal) => {
+            const items = await listCloud(session.root, session.provider, ref, { signal });
+            for (const item of items) {
+              paths.current.set(item.ref, ref);
+              folderLabels.current.set(item.ref, item.name);
+            }
+            return items;
+          },
+            open: ({ entry, endpoint }) =>
+              entry.kind === "dir"
+                ? open(entry.ref)
+                : showCached({
+                    ...entry,
+                    scope: endpoint.provider + ":" + endpoint.locationId,
+                    path: filePath(entry),
+                  }),
+            select: (items) => {
+              setViewPicked(items);
+              setSelected(
+                items.length === 1 && items[0].entry.kind === "file"
+                  ? items[0].entry
+                  : undefined,
+              );
+            },
+          }
+        : undefined,
     filterFolder: (query) => setFilter({ folder, query }),
     transferDestination:
       active && session?.provider.isConnected()
@@ -649,8 +687,9 @@ export default function CloudIntegration({
             ref: folder,
           }
         : undefined,
-    transferSelection:
-      selected && session
+    transferSelection: viewPicked.length
+      ? viewPicked
+      : selected && session
         ? [
             {
               entry: selected,
@@ -745,197 +784,206 @@ export default function CloudIntegration({
         <CloudQuota quota={quota} />
       </>
     ),
-    content: session && (
-      <section
-        className={cloudStyles.workspace}
-        aria-label={t(session.provider.id)}
-      >
-        <h2>{t(session.provider.id)}</h2>
-        {move?.location === session.root.id && (
-          <p role="status">
-            {t("cloudMove")} · {move.item.name}
-          </p>
-        )}
-        {folder !== session.root.root && (
-          <Button onPress={parent}>{t("cloudParent")}</Button>
-        )}
-        {offline || session.provider.isConnected() ? (
-          <>
-            <table
-              className={cloudStyles.files}
-              data-file-command-scope
-              tabIndex={-1}
-            >
-              <thead>
-                <tr>
-                  <th scope="col">{t("name")}</th>
-                  <th scope="col">{t("size")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleRows.map((item) => (
-                  <tr
-                    key={item.ref}
-                    draggable={item.kind !== "special"}
-                    onDragStart={(event) => {
-                      event.dataTransfer.setData(
-                        dragReference,
-                        JSON.stringify([reference(session, item)]),
-                      );
-                      event.dataTransfer.effectAllowed = "link";
-                    }}
-                    onContextMenu={(event) => {
-                      if (
-                        item.kind === "special" ||
-                        matchMedia("(pointer: coarse)").matches
-                      )
-                        return;
-                      event.preventDefault();
-                      window.dispatchEvent(
-                        new CustomEvent("shelf-site-context", {
-                          detail: {
-                            sources: [reference(session, item)],
-                            x: event.clientX,
-                            y: event.clientY,
-                          },
-                        }),
-                      );
-                    }}
-                  >
-                    <td>
-                      {item.kind === "dir" ? (
-                        <Button variant="quiet" onPress={() => open(item.ref)}>
-                          {item.name}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="quiet"
-                          aria-pressed={selected?.ref === item.ref}
-                          onPress={() => setSelected(item)}
-                        >
-                          {item.name}
-                        </Button>
-                      )}
-                    </td>
-                    <td>
-                      {item.size === null
-                        ? t("unknown")
-                        : new Intl.NumberFormat(
-                            document.documentElement.lang,
-                          ).format(item.size) + " B"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {!visibleRows.length && (
-              <p role="status">
-                {t(visibleRows === rows ? "emptyFolder" : "searchNoMatches")}
-              </p>
-            )}
-            {selected && (
-              <div className={cloudStyles.actions}>
-                {[true, false].map((move) => (
-                  <Button
-                    key={String(move)}
-                    onPress={() =>
-                      requestTransfer({
-                        items: [
-                          {
-                            source: {
-                              entry: selected,
-                              endpoint: {
-                                provider: session.root.provider as CloudId,
-                                locationId: session.root.id,
-                                ref: selected.ref,
+    content: (alternate) =>
+      session && (
+        <section
+          className={cloudStyles.workspace}
+          aria-label={t(session.provider.id)}
+        >
+          <h2>{t(session.provider.id)}</h2>
+          {move?.location === session.root.id && (
+            <p role="status">
+              {t("cloudMove")} · {move.item.name}
+            </p>
+          )}
+          {folder !== session.root.root && (
+            <Button onPress={parent}>{t("cloudParent")}</Button>
+          )}
+          {offline || session.provider.isConnected() ? (
+            <>
+              {alternate ?? (
+                <table
+                  className={cloudStyles.files}
+                  data-file-command-scope
+                  tabIndex={-1}
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col">{t("name")}</th>
+                      <th scope="col">{t("size")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleRows.map((item) => (
+                      <tr
+                        key={item.ref}
+                        draggable={item.kind !== "special"}
+                        onDragStart={(event) => {
+                          event.dataTransfer.setData(
+                            dragReference,
+                            JSON.stringify([reference(session, item)]),
+                          );
+                          event.dataTransfer.effectAllowed = "link";
+                        }}
+                        onContextMenu={(event) => {
+                          if (
+                            item.kind === "special" ||
+                            matchMedia("(pointer: coarse)").matches
+                          )
+                            return;
+                          event.preventDefault();
+                          window.dispatchEvent(
+                            new CustomEvent("shelf-site-context", {
+                              detail: {
+                                sources: [reference(session, item)],
+                                x: event.clientX,
+                                y: event.clientY,
+                              },
+                            }),
+                          );
+                        }}
+                      >
+                        <td>
+                          {item.kind === "dir" ? (
+                            <Button
+                              variant="quiet"
+                              onPress={() => open(item.ref)}
+                            >
+                              {item.name}
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="quiet"
+                              aria-pressed={selected?.ref === item.ref}
+                              onPress={() => {
+                                setViewPicked([]);
+                                setSelected(item);
+                              }}
+                            >
+                              {item.name}
+                            </Button>
+                          )}
+                        </td>
+                        <td>
+                          {item.size === null
+                            ? t("unknown")
+                            : new Intl.NumberFormat(
+                                document.documentElement.lang,
+                              ).format(item.size) + " B"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {!alternate && !visibleRows.length && (
+                <p role="status">
+                  {t(visibleRows === rows ? "emptyFolder" : "searchNoMatches")}
+                </p>
+              )}
+              {selected && (
+                <div className={cloudStyles.actions}>
+                  {[true, false].map((move) => (
+                    <Button
+                      key={String(move)}
+                      onPress={() =>
+                        requestTransfer({
+                          items: [
+                            {
+                              source: {
+                                entry: selected,
+                                endpoint: {
+                                  provider: session.root.provider as CloudId,
+                                  locationId: session.root.id,
+                                  ref: selected.ref,
+                                },
                               },
                             },
-                          },
-                        ],
-                        move,
+                          ],
+                          move,
+                        })
+                      }
+                    >
+                      {t(move ? "moveTo" : "copyTo")}
+                    </Button>
+                  ))}
+                  <Button
+                    isDisabled={busy}
+                    onPress={() =>
+                      void run(async () => {
+                        const bytes = await readCloud(
+                          session.root,
+                          session.provider,
+                          selected,
+                          filePath(selected),
+                        );
+                        setPreview({
+                          item: selected,
+                          bytes,
+                          provider: session.root.provider as CloudId,
+                        });
+                        recordOpen(reference(session, selected));
                       })
                     }
                   >
-                    {t(move ? "moveTo" : "copyTo")}
+                    {t("open")}
                   </Button>
-                ))}
-                <Button
-                  isDisabled={busy}
-                  onPress={() =>
-                    void run(async () => {
-                      const bytes = await readCloud(
-                        session.root,
-                        session.provider,
-                        selected,
-                        filePath(selected),
-                      );
-                      setPreview({
-                        item: selected,
-                        bytes,
-                        provider: session.root.provider as CloudId,
-                      });
-                      recordOpen(reference(session, selected));
-                    })
-                  }
-                >
-                  {t("open")}
-                </Button>
-                <Button isDisabled={busy} onPress={() => download(selected)}>
-                  {t("download")}
-                </Button>
-                <Button
-                  isDisabled={busy || !selected.version}
-                  onPress={() => command("cloudReplace")}
-                >
-                  {t("cloudReplace")}
-                </Button>
-                <Button isDisabled={busy} onPress={history}>
-                  {t("cloudVersions")}
-                </Button>
-              </div>
-            )}
-          </>
-        ) : (
-          <Button
-            isDisabled={busy}
-            onPress={() => toggle(session.provider.id as CloudId)}
-          >
-            {t("connectAction")}
-          </Button>
-        )}
-        {failure && !operation && <p role="alert">{failure}</p>}
-        <section id="cloud-pending" tabIndex={-1} aria-label={t("pending")}>
-          <h3>
-            {t("pending")} {queued.length}
-          </h3>
-          <ul>
-            {queued.map((item) => (
-              <li key={item.id}>
-                {item.label}{" "}
-                {item.attempted && <strong>{t("cloudNeedsReview")}</strong>}
-                <Button
-                  variant="quiet"
-                  isDisabled={busy}
-                  onPress={() =>
-                    void run(async () =>
-                      setPending(await cloudStaging.discard(item.id)),
-                    )
-                  }
-                >
-                  {t("cloudDiscard")}
-                </Button>
-              </li>
-            ))}
-          </ul>
-          <Button
-            isDisabled={(!offline && !queued.length) || busy}
-            onPress={() => command("push")}
-          >
-            {t(offline ? "pushWhenOnline" : "push")}
-          </Button>
+                  <Button isDisabled={busy} onPress={() => download(selected)}>
+                    {t("download")}
+                  </Button>
+                  <Button
+                    isDisabled={busy || !selected.version}
+                    onPress={() => command("cloudReplace")}
+                  >
+                    {t("cloudReplace")}
+                  </Button>
+                  <Button isDisabled={busy} onPress={history}>
+                    {t("cloudVersions")}
+                  </Button>
+                </div>
+              )}
+            </>
+          ) : (
+            <Button
+              isDisabled={busy}
+              onPress={() => toggle(session.provider.id as CloudId)}
+            >
+              {t("connectAction")}
+            </Button>
+          )}
+          {failure && !operation && <p role="alert">{failure}</p>}
+          <section id="cloud-pending" tabIndex={-1} aria-label={t("pending")}>
+            <h3>
+              {t("pending")} {queued.length}
+            </h3>
+            <ul>
+              {queued.map((item) => (
+                <li key={item.id}>
+                  {item.label}{" "}
+                  {item.attempted && <strong>{t("cloudNeedsReview")}</strong>}
+                  <Button
+                    variant="quiet"
+                    isDisabled={busy}
+                    onPress={() =>
+                      void run(async () =>
+                        setPending(await cloudStaging.discard(item.id)),
+                      )
+                    }
+                  >
+                    {t("cloudDiscard")}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <Button
+              isDisabled={(!offline && !queued.length) || busy}
+              onPress={() => command("push")}
+            >
+              {t(offline ? "pushWhenOnline" : "push")}
+            </Button>
+          </section>
         </section>
-      </section>
-    ),
+      ),
     dialogs: preview ? (
       <QuickLook
         title={preview.item.name}

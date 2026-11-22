@@ -6,12 +6,13 @@ export const cacheStores = [
   "textindex",
   "indexmeta",
   "settings",
+  "thumbnails",
 ];
 let database: Promise<IDBDatabase> | undefined;
 
 function openCache() {
   return (database ??= new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("shelf-library", 2);
+    const request = indexedDB.open("shelf-library", 3);
     request.onupgradeneeded = () => {
       for (const name of cacheStores)
         if (!request.result.objectStoreNames.contains(name))

@@ -1,6 +1,7 @@
 import type { NamedEntry } from "../services/filenameSearch";
 import type { TextMatch } from "../services/textSearch";
 import type { ReactNode } from "react";
+import type { LibraryItem } from "../services/organizer";
 import type { Entry, Location, StorageProvider } from "../providers/types";
 import type {
   TransferEndpoint,
@@ -21,7 +22,14 @@ export interface CloudLibrary {
   active: boolean;
   connectRows: ReactNode;
   settings: ReactNode;
-  content: ReactNode;
+  content(alternate?: ReactNode): ReactNode;
+  explorer?: {
+    rows: Entry[];
+    endpoint: TransferEndpoint;
+    list(ref: string, signal: AbortSignal): Promise<Entry[]>;
+    open(item: LibraryItem): void;
+    select(items: LibraryItem[]): void;
+  };
   status: ReactNode;
   dialogs: ReactNode;
   transferDestination?: TransferEndpoint;

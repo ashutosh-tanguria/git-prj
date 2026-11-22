@@ -8,16 +8,10 @@ import {
   renderItemTags,
   useOrganizer,
 } from "../components/Organizer";
-import {
-  mergeLabels,
-  portableOrganizer,
-  type LibraryItem,
-} from "../services/organizer";
+import type { LibraryItem } from "../services/organizer";
 import {
   githubEndpoint,
   githubTransferSource,
-  localTransferSource,
-  requestTransfer,
 } from "../services/transferRequests";
 import { GuardMount } from "../components/GuardMount";
 import { VisibilityBadge } from "../components/VisibilityBadge";
@@ -36,6 +30,7 @@ import { MediaStatus } from "../components/MediaStatus";
 import styles from "../components/Library.module.css";
 import { useOffline } from "../components/useOffline";
 import { CommandBar } from "../components/CommandBar";
+import type { FileView } from "../components/ViewMenu";
 const LibraryPreview = lazy(() =>
   import("../components/LibraryPreview").then(({ LibraryPreview }) => ({
     default: LibraryPreview,
@@ -62,8 +57,24 @@ const TransferIntegration = lazy(
 );
 const SplitWorkspace = lazy(() => import("../components/SplitWorkspace"));
 const LocalFolderTools = lazy(() => import("../components/LocalFolderTools"));
-const OrganizerEditor = lazy(() => import("../components/OrganizerEditor").then((module) => ({ default: module.OrganizerEditor })));
-const MixedExplorer = lazy(() => import("../components/MixedExplorer").then((module) => ({ default: module.MixedExplorer })));
+const ViewMenu = lazy(() =>
+  import("../components/ViewMenu").then((module) => ({
+    default: module.ViewMenu,
+  })),
+);
+const LibraryExplorerViews = lazy(
+  () => import("../components/LibraryExplorerViews"),
+);
+const OrganizerEditor = lazy(() =>
+  import("../components/OrganizerEditor").then((module) => ({
+    default: module.OrganizerEditor,
+  })),
+);
+const MixedExplorer = lazy(() =>
+  import("../components/MixedExplorer").then((module) => ({
+    default: module.MixedExplorer,
+  })),
+);
 export default function Library() {
   if (!cloudEnabled) return <LibraryScreen />;
   return (
@@ -79,6 +90,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   const [textMatch, setTextMatch] = useState<TextMatch>();
   const [notice, setNotice] = useState("");
   const [split, setSplit] = useState(false);
+  const [view, setView] = useState<FileView>("viewList");
   const offline = useOffline();
   const state = useLibrary(offline);
   const {
@@ -169,22 +181,14 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
     : account && ref && !hash.startsWith("#/view/")
       ? githubEndpoint(account, ref)
       : undefined;
-  function exportCollections() {
-    const file = new File(
-      [portableOrganizer(organizer.value)],
-      "collections.json",
-      { type: "application/json" },
-    );
-    requestTransfer({
-      move: false,
-      collectionsExport: true,
-      items: [localTransferSource(file, ".shelf/collections.json")],
-    });
+  async function exportCollections() {
+    const { requestCollectionsExport } = await import("../services/organizerPortability");
+    requestCollectionsExport(organizer.value);
   }
   async function importCollections() {
     if (!destination) return;
     try {
-      const { readPortableOrganizer } =
+      const { readPortableOrganizer, mergeLabels } =
         await import("../services/organizerPortability");
       const imported = await readPortableOrganizer(
         destination,
@@ -214,6 +218,48 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   }
   const folderKey = cloud?.active ? (cloud.locations.active ?? "") : key;
   const folderQuery = folderFilter.key === folderKey ? folderFilter.query : "";
+  const filteredEntries = useMemo(
+    () =>
+      folderQuery
+        ? entries.filter((entry) => nameMatches(entry.name, folderQuery))
+        : entries,
+    [entries, folderQuery],
+  );
+  const changeView = (next: FileView) => {
+    if (view === next && !split) return;
+    setView(next);
+    setSplit(false);
+    setSelection([]);
+    cloud?.explorer?.select([]);
+    setMixedSelection(undefined);
+  };
+  const commandRef = view === "viewColumns" && ref && selection[0] && !virtualId
+    ? { ...ref, path: selection[0].path.split("/").slice(0, -1).join("/") }
+    : ref;
+  const onMixedSelect = (items: LibraryItem[]) =>
+    setMixedSelection({ id: virtualId, items });
+  const alternate = view !== "viewList" && (
+    <Suspense fallback={<p role="status">{t("loadingRead")}</p>}>
+      <LibraryExplorerViews
+        key={view}
+        account={state.activeAccount}
+        roots={state.displayedRoots}
+        current={ref}
+        cloud={cloud}
+        view={view}
+        rows={filteredEntries}
+        locationKey={virtualId || key}
+        mixed={
+          virtualId
+            ? { items: mixedItems, open: openMixed, select: onMixedSelect }
+            : undefined
+        }
+        onOpen={open}
+        onPreview={(entry) => void quick(entry)}
+        onSelect={setSelection}
+      />
+    </Suspense>
+  );
   const canSearchFolder =
     !split &&
     !virtualId &&
@@ -236,6 +282,11 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   return (
     <div className={styles.shell}>
       <CommandBar
+        viewMenu={
+          <Suspense fallback={null}>
+            <ViewMenu active={view} onChange={changeView} />
+          </Suspense>
+        }
         favorite={favorite}
         split={split}
         offline={offline}
@@ -349,17 +400,21 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
                       : "collections",
                 )}
             </h2>
-            <Suspense fallback={null}><MixedExplorer
-              key={virtualId}
-              id={virtualId}
-              items={mixedItems}
-              organizer={organizer}
-              onOpen={openMixed}
-              onSelect={(items) => setMixedSelection({ id: virtualId, items })}
-            /></Suspense>
+            {alternate || (
+              <Suspense fallback={null}>
+                <MixedExplorer
+                  key={virtualId}
+                  id={virtualId}
+                  items={mixedItems}
+                  organizer={organizer}
+                  onOpen={openMixed}
+                  onSelect={onMixedSelect}
+                />
+              </Suspense>
+            )}
           </>
         ) : cloud?.active ? (
-          cloud.content
+          cloud.content(alternate || undefined)
         ) : !state.activeAccount ? (
           <ConnectPanel {...connection} providerRows={cloud?.connectRows} />
         ) : (
@@ -367,35 +422,29 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
             <h2 className={styles.locationHeading}>
               {ref?.repo} <VisibilityBadge visibility={visibility} />
             </h2>
-            {hash.startsWith("#/view/") ? (
-              blob && (
-                <ReadViewer
-                  blob={blob}
-                  name={ref?.path.split("/").at(-1) || ""}
-                  fileKey={key}
-                  textMatch={textMatch?.ref === key ? textMatch : undefined}
-                />
-              )
-            ) : (
-              <FileTable
-                reference={sourceFor}
-                tags={(item) => renderItemTags([item], organizer)}
-                entries={
-                  folderQuery
-                    ? entries.filter((entry) =>
-                        nameMatches(entry.name, folderQuery),
-                      )
-                    : entries
-                }
-                filtered={!!folderQuery.trim()}
-                onSelectionChange={setSelection}
-                locationKey={key}
-                onOpen={open}
-                onPreview={(entry, rows) => {
-                  void quick(entry, rows);
-                }}
-              />
-            )}
+            {hash.startsWith("#/view/")
+              ? blob && (
+                  <ReadViewer
+                    blob={blob}
+                    name={ref?.path.split("/").at(-1) || ""}
+                    fileKey={key}
+                    textMatch={textMatch?.ref === key ? textMatch : undefined}
+                  />
+                )
+              : alternate || (
+                  <FileTable
+                    reference={sourceFor}
+                    tags={(item) => renderItemTags([item], organizer)}
+                    entries={filteredEntries}
+                    filtered={!!folderQuery.trim()}
+                    onSelectionChange={setSelection}
+                    locationKey={key}
+                    onOpen={open}
+                    onPreview={(entry, rows) => {
+                      void quick(entry, rows);
+                    }}
+                  />
+                )}
           </>
         )}
         {loading && <p role="status">{t("loadingRead")}</p>}
@@ -426,9 +475,10 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
           account={state.activeAccount}
         />
         <LibraryCommands
+          onView={changeView}
           tags={organizer.value.tags}
           onTag={(id) => openVirtual("tag:" + id)}
-          current={ref}
+          current={commandRef}
           onFilenameResult={(item) => {
             if (item.scope.startsWith("github:")) {
               setTextMatch(undefined);
@@ -513,9 +563,11 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         </>
       )}
       {cloud?.dialogs}
-      {organizer.editor && <Suspense fallback={null}>
-        <OrganizerEditor editor={organizer.editor} organizer={organizer} />
-      </Suspense>}
+      {organizer.editor && (
+        <Suspense fallback={null}>
+          <OrganizerEditor editor={organizer.editor} organizer={organizer} />
+        </Suspense>
+      )}
       {preview && (
         <Suspense fallback={null}>
           <LibraryPreview state={state} />

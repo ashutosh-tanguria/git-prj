@@ -1,4 +1,12 @@
 # Shelf progress
+### M5b slice 2 (2026-11-22)
+
+- Status: View switches between List, Grid and Columns in the command bar or palette. Grid uses three sizes and versioned thumbnails. Columns show counts, support resizing and offer an inline file preview.
+- Decisions: Thumbnail rendering is bounded to one request at a time and cached by account, file version and size. Columns retain the root address while drilling. SVG and oversized thumbnails use glyphs.
+- Not done: Duplicate finder, ZIP export and final acceptance follow in M5b.
+- Manual steps: Verify scrolling and keyboard announcements on target hardware and with a screen reader.
+- Known issues: Text previews show the first 4 KiB. Files without a bounded thumbnail or inline text preview can still open through the normal viewer.
+
 ### M5b slice 1 (2026-11-22)
 
 - Status: Recent, Favorites, collections and tags use IndexedDB. Virtual locations include the Provider column. References can be added by context menu or drag, and tags appear under the palette's # prefix.

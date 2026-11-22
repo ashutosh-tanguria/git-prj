@@ -1,11 +1,9 @@
+import { mergeLabels, parseOrganizer, portableOrganizer } from "../src/services/organizerPortability";
 import { expect, it } from "vitest";
 import {
   emptyOrganizer,
   itemKey,
   labelColors,
-  mergeLabels,
-  parseOrganizer,
-  portableOrganizer,
   refersToAccount,
   toggleFavorites,
   type LibraryItem,

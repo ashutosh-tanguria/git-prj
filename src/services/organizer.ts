@@ -78,7 +78,7 @@ export const refersToAccount = (
         .startsWith(account.toLowerCase() + ":")
     : roots.includes(item.endpoint.locationId);
 
-function object(value: unknown): value is Record<string, unknown> {
+export function object(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object";
 }
 export function isLibraryItem(value: unknown): value is LibraryItem {
@@ -116,79 +116,4 @@ export function isLibraryItem(value: unknown): value is LibraryItem {
     }
   }
   return true;
-}
-export function portableOrganizer(value: Organizer) {
-  return JSON.stringify(
-    { version: 1, collections: value.collections, tags: value.tags },
-    null,
-    2,
-  );
-}
-export function parseOrganizer(
-  text: string,
-): Pick<Organizer, "collections" | "tags"> {
-  if (text.length > 2_000_000) throw Error("organizerInvalid");
-  const value: unknown = JSON.parse(text);
-  if (!object(value) || value.version !== 1) throw Error("organizerInvalid");
-  const labels = (input: unknown): Label[] => {
-    if (!Array.isArray(input) || input.length > 500)
-      throw Error("organizerInvalid");
-    const ids = new Set<string>();
-    return input.map((label: unknown) => {
-      if (
-        !object(label) ||
-        typeof label.id !== "string" ||
-        !/^[a-f\d-]{36}$/i.test(label.id) ||
-        ids.has(label.id) ||
-        typeof label.name !== "string" ||
-        !label.name.trim() ||
-        label.name.length > 80 ||
-        !labelColors.some((color) => color === label.color) ||
-        !Array.isArray(label.items) ||
-        !label.items.every(isLibraryItem)
-      )
-        throw Error("organizerInvalid");
-      ids.add(label.id);
-      return {
-        id: label.id,
-        name: label.name,
-        color: label.color as LabelColor,
-        items: uniqueItems(
-          label.items.map(({ endpoint, entry }: LibraryItem) => ({
-            endpoint: {
-              provider: endpoint.provider,
-              locationId: endpoint.locationId,
-              ref: endpoint.ref,
-            },
-            entry: {
-              ref: entry.ref,
-              name: entry.name,
-              kind: entry.kind,
-              size: entry.size,
-              modified: entry.modified,
-              hash: entry.hash,
-              version: entry.version,
-            },
-          })),
-        ),
-      };
-    });
-  };
-  return { collections: labels(value.collections), tags: labels(value.tags) };
-}
-export function mergeLabels(local: Label[], incoming: Label[]) {
-  const labels = new Map(local.map((label) => [label.id, label]));
-  for (const label of incoming) {
-    const existing = labels.get(label.id);
-    labels.set(
-      label.id,
-      existing
-        ? {
-            ...existing,
-            items: uniqueItems([...existing.items, ...label.items]),
-          }
-        : label,
-    );
-  }
-  return [...labels.values()];
 }

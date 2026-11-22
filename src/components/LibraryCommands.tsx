@@ -45,6 +45,7 @@ export function LibraryCommands({
   onFilenameResult,
   tags,
   onTag,
+  onView,
 }: {
   current: GitRef | null;
   selection: Entry[];
@@ -59,6 +60,7 @@ export function LibraryCommands({
   onFilenameResult: (item: NamedEntry) => void;
   tags?: Label[];
   onTag?: (id: string) => void;
+  onView?: (view: import("./ViewMenu").FileView) => void;
 }) {
   const previousRoute = useRef("");
   const previous = useRef(current);
@@ -92,9 +94,14 @@ export function LibraryCommands({
         window.dispatchEvent(new Event("shelf-address-edit"));
         return;
       case "switchView":
-        window.dispatchEvent(
-          new CustomEvent("shelf-command", { detail: { action: "splitView" } }),
+        requestAnimationFrame(() =>
+          window.dispatchEvent(new Event("shelf-view-menu")),
         );
+        return;
+      case "viewList":
+      case "viewGrid":
+      case "viewColumns":
+        onView?.(action);
         return;
       case "sizeLedger":
         if (current && !cloud?.active)

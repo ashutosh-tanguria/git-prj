@@ -235,9 +235,11 @@ export function CommandPalette({
         content: (
           <>
             <span>{label(command)}</span>
-            <Kbd>
-              {commandBinding(command, bindings).replace("Control", "Ctrl")}
-            </Kbd>
+            {commandBinding(command, bindings) && (
+              <Kbd>
+                {commandBinding(command, bindings).replace("Control", "Ctrl")}
+              </Kbd>
+            )}
           </>
         ),
         reason: unavailable(command),

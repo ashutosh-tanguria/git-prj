@@ -36,6 +36,9 @@ export const paletteCommands = [
   "copyTo",
   "splitPdf",
   "switchView",
+  "viewList",
+  "viewGrid",
+  "viewColumns",
   "sizeLedger",
   "connectProvider",
   "goLocation",
@@ -50,7 +53,11 @@ export function commandBinding(
   command: (typeof paletteCommands)[number],
   bindings: typeof defaultShortcuts,
 ) {
-  return command === "push" ? bindings.push : paletteShortcuts[command];
+  return command === "push"
+    ? bindings.push
+    : command in paletteShortcuts
+      ? paletteShortcuts[command as keyof typeof paletteShortcuts]
+      : "";
 }
 
 export type ShortcutAction = keyof typeof defaultShortcuts;
