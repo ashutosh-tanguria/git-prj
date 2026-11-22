@@ -9,9 +9,12 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { staging } from "../services/workingStorage";
 import { exportWorking } from "../services/workingBackup";
 import { pushChanges, ConflictError } from "../services/githubPush";
+import { useOffline } from "./useOffline";
+import { isConnected } from "../providers/github/client";
 import { t } from "../i18n";
 
 export function useWorkingCopy() {
+  const offline = useOffline();
   const rows = useSyncExternalStore(staging.subscribe, staging.snapshot),
     [open, setOpen] = useState(false),
     [message, setMessageValue] = useState("Update working copy"),
@@ -25,6 +28,7 @@ export function useWorkingCopy() {
     [conflicts, setConflicts] = useState<string[]>([]),
     [persisted, setPersisted] = useState(false),
     [filter, setFilter] = useState("all");
+  const [deferred, setDeferred] = useState<typeof rows>();
   const [edited, setEdited] = useState(false);
   const setMessage = (value: string) => {
     setEdited(true);
@@ -124,6 +128,10 @@ export function useWorkingCopy() {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
   const push = async () => {
+    if (!navigator.onLine || !isConnected()) {
+      setError(t("pushOffline"));
+      return;
+    }
     setBusy(true);
     setRef(false);
     setError("");
@@ -176,7 +184,7 @@ export function useWorkingCopy() {
       }
       setEdited(false);
       setError(t("workingSuccess"));
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      window.dispatchEvent(new Event("shelf-refresh"));
     } catch (e) {
       setQuick(false);
       if (e instanceof ConflictError) setConflicts(e.paths);
@@ -196,6 +204,16 @@ export function useWorkingCopy() {
       setRepoOverride("");
     }
   };
+  useEffect(() => {
+    if (!deferred) return;
+    if (deferred !== rows) {
+      setDeferred(undefined);
+      setError(t("pushBatchChanged"));
+    } else if (!offline) {
+      setDeferred(undefined);
+      void push();
+    }
+  }, [offline, rows, deferred]);
   const shown = filterLinkedChanges(rows, filter),
     groups = new Map<string, typeof rows>();
   for (const row of shown) {
@@ -211,6 +229,9 @@ export function useWorkingCopy() {
     groups.set(key, [...(groups.get(key) || []), row]);
   }
   return {
+    offline,
+    deferred: deferred === rows,
+    setDeferred: (enabled: boolean) => setDeferred(enabled ? rows : undefined),
     commits,
     quick,
     anchor,

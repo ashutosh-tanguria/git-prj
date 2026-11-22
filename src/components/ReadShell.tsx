@@ -1,9 +1,18 @@
 import type { CloudLocations } from "./cloudTypes";
 import { Sash } from "./Sash";
-import { useEffect, useRef, type ReactNode, type CSSProperties } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  type ReactNode,
+  type CSSProperties,
+} from "react";
 import { Locations } from "./Locations";
 import { Inspector } from "./Inspector";
-import { PaneLayer } from "./PaneLayer";
+const PaneLayer = lazy(() =>
+  import("./PaneLayer").then(({ PaneLayer }) => ({ default: PaneLayer })),
+);
 import { usePanels } from "./usePanels";
 import { ActionIcon } from "../ui/ActionIcon";
 import { t } from "../i18n";
@@ -33,8 +42,16 @@ export function ReadShell({
   const restore = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if (onSplit && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.code === "Backslash" &&
-        !(e.target as HTMLElement).closest('input,textarea,[contenteditable="true"],[role="dialog"]')) {
+      if (
+        onSplit &&
+        (e.ctrlKey || e.metaKey) &&
+        !e.shiftKey &&
+        !e.altKey &&
+        e.code === "Backslash" &&
+        !(e.target as HTMLElement).closest(
+          'input,textarea,[contenteditable="true"],[role="dialog"]',
+        )
+      ) {
         e.preventDefault();
         if (!e.repeat) onSplit();
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
@@ -60,7 +77,10 @@ export function ReadShell({
       }
     };
     const command = (event: Event) => {
-      if ((event as CustomEvent<{ action: string }>).detail.action === "splitView") onSplit?.();
+      if (
+        (event as CustomEvent<{ action: string }>).detail.action === "splitView"
+      )
+        onSplit?.();
     };
     window.addEventListener("keydown", key);
     window.addEventListener("shelf-command", command);
@@ -184,24 +204,28 @@ export function ReadShell({
         )}
       </div>
       {panels.locations && panels.width < 900 && (
-        <PaneLayer kind="locations" onClose={() => close("locations")}>
-          <div id="locations" tabIndex={-1}>
-            <Locations repos={roots} clouds={clouds} />
-          </div>
-        </PaneLayer>
+        <Suspense fallback={null}>
+          <PaneLayer kind="locations" onClose={() => close("locations")}>
+            <div id="locations" tabIndex={-1}>
+              <Locations repos={roots} clouds={clouds} />
+            </div>
+          </PaneLayer>
+        </Suspense>
       )}
       {panels.inspector && panels.width < 900 && (
-        <PaneLayer kind="inspector" onClose={() => close("inspector")}>
-          <div id="inspector" tabIndex={-1}>
-            <Inspector
-              key={selectionBlob ? "viewer" : "selection"}
-              defaultTab={selectionBlob ? "details" : "preview"}
-              previewBlob={selectionBlob}
-              entries={selection}
-              visibility={visibility}
-            />
-          </div>
-        </PaneLayer>
+        <Suspense fallback={null}>
+          <PaneLayer kind="inspector" onClose={() => close("inspector")}>
+            <div id="inspector" tabIndex={-1}>
+              <Inspector
+                key={selectionBlob ? "viewer" : "selection"}
+                defaultTab={selectionBlob ? "details" : "preview"}
+                previewBlob={selectionBlob}
+                entries={selection}
+                visibility={visibility}
+              />
+            </div>
+          </PaneLayer>
+        </Suspense>
       )}
     </>
   );

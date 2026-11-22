@@ -1,3 +1,4 @@
+import "../i18n/storage";
 import { DestinationEditor } from "./DestinationEditor";
 import { WorkingOverride } from "./WorkingOverride";
 import { WorkingRows } from "./WorkingRows";
@@ -14,6 +15,9 @@ export function WorkingReview({
   state: ReturnType<typeof useWorkingCopy>;
 }) {
   const {
+    offline,
+    deferred,
+    setDeferred,
     repoOverride,
     setRepoOverride,
     overrideConfirmed,
@@ -104,6 +108,7 @@ export function WorkingReview({
         ))}
         <Button
           isDisabled={
+            offline ||
             busy ||
             !rows.length ||
             !message.trim() ||
@@ -114,6 +119,26 @@ export function WorkingReview({
         >
           {t("workingPush")}
         </Button>
+        {(offline || deferred) && (
+          <div>
+            <p role="status">{t("pushOffline")}</p>
+            <label>
+              <input
+                type="checkbox"
+                checked={deferred}
+                disabled={
+                  busy ||
+                  !rows.length ||
+                  !message.trim() ||
+                  !!conflicts.length ||
+                  rows.some((row) => row.verdict.level === "block")
+                }
+                onChange={(event) => setDeferred(event.currentTarget.checked)}
+              />
+              {t("pushWhenOnline")}
+            </label>
+          </div>
+        )}
         {busy && (
           <Button isDisabled={ref} onPress={() => controller.current?.abort()}>
             {t(ref ? "workingRef" : "workingCancel")}

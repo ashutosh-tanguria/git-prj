@@ -31,6 +31,15 @@ export function AddressBar({
   };
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
+      if (
+        onRefresh &&
+        (e.ctrlKey || e.metaKey) &&
+        !e.shiftKey &&
+        e.key.toLowerCase() === "r"
+      ) {
+        e.preventDefault();
+        onRefresh();
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
         e.preventDefault();
         edit();
@@ -38,7 +47,7 @@ export function AddressBar({
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [value]);
+  }, [value, onRefresh]);
   const parent = () => {
     try {
       const r = parseRef(value);

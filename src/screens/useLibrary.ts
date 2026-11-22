@@ -10,16 +10,19 @@ import {
 } from "../lib/refs";
 import { t } from "../i18n";
 import type { MediaProgress } from "../services/mediaRead";
-export function useLibrary() {
+export function useLibrary(offline: boolean) {
   const previewRequest = useRef<AbortController | null>(null);
   const [previewOrder, setPreviewOrder] = useState<Entry[]>([]);
   const [selection, setSelection] = useState<Entry[]>([]);
+  const [offlineAccount, setOfflineAccount] = useState("");
+  const [offlineRoots, setOfflineRoots] = useState<Repo[]>([]);
   const [account, setAccount] = useState("");
   const [token, setToken] = useState("");
   const [roots, setRoots] = useState<Repo[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [hash, setHash] = useState(location.hash);
   const [refreshVersion, refresh] = useState(0);
+  const appliedRefresh = useRef(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [blob, setBlob] = useState<Blob>();
@@ -33,6 +36,27 @@ export function useLibrary() {
     /* Invalid routes are shown as typed UI errors below. */
   }
   const key = ref ? refString(ref) : "";
+  const activeAccount = account || (offline ? offlineAccount : "");
+  useEffect(() => {
+    let active = true;
+    void import("../services/githubCache")
+      .then((cache) => cache.rememberedGitHub())
+      .then((saved) => {
+        if (active && saved) {
+          setOfflineAccount(saved.account);
+          setOfflineRoots(saved.roots);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    const force = () => refresh((version) => version + 1);
+    window.addEventListener("shelf-refresh", force);
+    return () => window.removeEventListener("shelf-refresh", force);
+  }, []);
   useEffect(() => {
     const listener = () => setHash(location.hash);
     window.addEventListener("hashchange", listener);
@@ -40,7 +64,7 @@ export function useLibrary() {
   }, []);
   useEffect(() => {
     setSelection([]);
-    if (!account || !key) return;
+    if (!activeAccount || !key) return;
     const controller = new AbortController();
     previewRequest.current = controller;
     setLoading(true);
@@ -48,55 +72,74 @@ export function useLibrary() {
     setBlob(undefined);
     setMediaProgress(undefined);
     const parsed = parseRef(key);
-    const action = hash.startsWith("#/view/")
-      ? library
-          .read(parsed, controller.signal, (value) => {
-            if (!controller.signal.aborted) setMediaProgress(value);
-          })
-          .then(async (value) => {
-            if (controller.signal.aborted) return;
-            setBlob(value);
-            const fallback: Entry = {
-              name: parsed.path.split("/").at(-1) || "",
-              path: parsed.path,
-              ref: key,
-              size: value.size,
-              sha: "",
-              kind: "file",
-            };
-            setSelection([fallback]);
-            const results = await Promise.allSettled([
-              library.list(
-                {
-                  ...parsed,
-                  path: parsed.path.split("/").slice(0, -1).join("/"),
-                },
-                controller.signal,
-              ),
-              library.metadata(key, controller.signal),
-            ]);
-            if (controller.signal.aborted) return;
-            const listed =
-              results[0].status === "fulfilled"
-                ? results[0].value.find((entry) => entry.ref === key)
-                : undefined;
-            const metadata =
-              results[1].status === "fulfilled" ? results[1].value : {};
-            setSelection([{ ...(listed || fallback), ...metadata }]);
-          })
-      : library.list(parsed, controller.signal).then(setEntries);
+    const action = import("../services/githubCache").then(
+      ({ readGitHub, listGitHub }) =>
+        hash.startsWith("#/view/")
+          ? readGitHub(activeAccount, parsed, controller.signal, (value) => {
+              if (!controller.signal.aborted) setMediaProgress(value);
+            }).then(async (value) => {
+              if (controller.signal.aborted) return;
+              setBlob(value);
+              const fallback: Entry = {
+                name: parsed.path.split("/").at(-1) || "",
+                path: parsed.path,
+                ref: key,
+                size: value.size,
+                sha: "",
+                kind: "file",
+              };
+              setSelection([fallback]);
+              const results = await Promise.allSettled([
+                listGitHub(
+                  activeAccount,
+                  {
+                    ...parsed,
+                    path: parsed.path.split("/").slice(0, -1).join("/"),
+                  },
+                  { signal: controller.signal },
+                ),
+                offline
+                  ? Promise.resolve({})
+                  : library.metadata(key, controller.signal),
+              ]);
+              if (controller.signal.aborted) return;
+              const listed =
+                results[0].status === "fulfilled"
+                  ? results[0].value.find((entry) => entry.ref === key)
+                  : undefined;
+              const metadata =
+                results[1].status === "fulfilled" ? results[1].value : {};
+              setSelection([{ ...(listed || fallback), ...metadata }]);
+            })
+          : listGitHub(activeAccount, parsed, {
+              signal: controller.signal,
+              force: refreshVersion !== appliedRefresh.current,
+              onUpdate: setEntries,
+            }).then((rows) => {
+              if (!controller.signal.aborted) {
+                setEntries(rows);
+                appliedRefresh.current = refreshVersion;
+              }
+            }),
+    );
     void action
       .catch((error: Error) => {
         if (!controller.signal.aborted)
           setError(
-            t(error.message === "mediaLimit" ? "mediaLimit" : "readError"),
+            t(
+              error.message === "mediaLimit"
+                ? "mediaLimit"
+                : error.message === "OFFLINE"
+                  ? "offlineMissing"
+                  : "readError",
+            ),
           );
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [account, key, hash, refreshVersion]);
+  }, [activeAccount, key, hash, refreshVersion, offline]);
   async function connect() {
     setLoading(true);
     setError("");
@@ -106,6 +149,11 @@ export function useLibrary() {
       const repos = await library.roots();
       setRoots(repos);
       setAccount(login);
+      setOfflineAccount(login);
+      setOfflineRoots(repos);
+      void import("../services/githubCache")
+        .then((cache) => cache.rememberGitHub(login, repos))
+        .catch(() => {});
       if (!ref && repos[0]) {
         const [owner, repo] = repos[0].full_name.split("/");
         location.hash = explorerRoute({
@@ -140,7 +188,9 @@ export function useLibrary() {
     setBlob(undefined);
     setMediaProgress(undefined);
     try {
-      const bytes = await library.read(
+      const { readGitHub } = await import("../services/githubCache");
+      const bytes = await readGitHub(
+        activeAccount,
         parseRef(entry.ref),
         controller.signal,
         (value) => {
@@ -181,6 +231,15 @@ export function useLibrary() {
     previewOrder,
     previewRequest,
     account,
+    activeAccount,
+    displayedRoots: account ? roots : offlineRoots,
+    forgetOffline: () => {
+      setOfflineAccount("");
+      setOfflineRoots([]);
+      void import("../services/githubCache")
+        .then((cache) => cache.forgetGitHub())
+        .catch(() => {});
+    },
     setAccount,
     token,
     setToken,

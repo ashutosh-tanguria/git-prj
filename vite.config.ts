@@ -3,6 +3,7 @@ import {
   ONE_DRIVE_DOWNLOAD_SUFFIX,
   ONE_DRIVE_UPLOAD_SUFFIX,
 } from "./src/providers/onedrive/hosts.ts";
+import { offlineShell } from "./offline-shell.ts";
 import { defineConfig } from "vite";
 export default defineConfig(({ mode }) => {
   const sandbox =
@@ -33,6 +34,7 @@ export default defineConfig(({ mode }) => {
     define: { __STYLEGUIDE__: JSON.stringify(mode === "styleguide") },
     plugins: [
       msw(),
+      offlineShell(),
       {
         name: "app-opener-policy",
         configurePreviewServer(server) {

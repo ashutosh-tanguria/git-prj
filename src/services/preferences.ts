@@ -4,7 +4,10 @@ function database() {
     const request = indexedDB.open("shelf-preferences", 1);
     request.onupgradeneeded = () =>
       request.result.createObjectStore("preferences");
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      request.result.onversionchange = () => request.result.close();
+      resolve(request.result);
+    };
     request.onerror = () => reject(request.error);
   }));
 }

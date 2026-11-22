@@ -27,7 +27,7 @@ export function usePushChoice(
       setQuick(false);
       void (async () => {
         const first = rows[0];
-        if (!first) {
+        if (!first || !navigator.onLine) {
           setQuick(false);
           onOpenRef.current();
           return;

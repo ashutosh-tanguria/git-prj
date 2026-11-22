@@ -1,3 +1,4 @@
+import { StorageSettings } from "./StorageSettings";
 import { HomeUpload } from "./HomeUpload";
 import "../i18n/m3b";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -15,7 +16,13 @@ import type { Repo, Entry } from "../services/library";
 import type { GitRef } from "../lib/refs";
 import { parseRef } from "../lib/refs";
 import { sameLocation } from "../services/folderTypes";
-import { githubEndpoint, githubTransferSource, requestTransfer, transferClipboardGet, transferClipboardSet } from "../services/transferRequests";
+import {
+  githubEndpoint,
+  githubTransferSource,
+  requestTransfer,
+  transferClipboardGet,
+  transferClipboardSet,
+} from "../services/transferRequests";
 import type { CloudLibrary } from "./cloudTypes";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
@@ -56,34 +63,86 @@ export function LibraryCommands({
     );
   }, []);
   const dispatch = async (action: string) => {
+    if (action === "push" && !navigator.onLine) {
+      setNotice(t("pushOffline"));
+      return;
+    }
     if (["splitView", "localImport", "localExport"].includes(action)) return;
     const cloudDestination = cloud?.transferDestination;
-    const gitDestination = current && account && githubEndpoint(account, current);
+    const gitDestination =
+      current && account && githubEndpoint(account, current);
     const destination = cloudDestination || gitDestination;
     const sources = cloud?.active
       ? cloud.transferSelection
-      : account ? selection.map((entry) => githubTransferSource(account, entry)) : [];
+      : account
+        ? selection.map((entry) => githubTransferSource(account, entry))
+        : [];
     if (action === "moveTo" || action === "copyTo") {
       if (!sources.length) setNotice(t("transferSelectFiles"));
-      else requestTransfer({ items: sources.map((source) => ({ source })), move: action === "moveTo" });
+      else
+        requestTransfer({
+          items: sources.map((source) => ({ source })),
+          move: action === "moveTo",
+        });
       return;
     }
     if (action === "cut" || action === "copy") {
-      transferClipboardSet(sources.length
-        ? { items: sources.map((source) => ({ source })), move: action === "cut" }
-        : undefined);
+      transferClipboardSet(
+        sources.length
+          ? {
+              items: sources.map((source) => ({ source })),
+              move: action === "cut",
+            }
+          : undefined,
+      );
       if (cloud?.active) {
         setNotice(sources.length && action === "cut" ? t("folderCutNote") : "");
         return;
       }
     }
     const marked = action === "paste" ? transferClipboardGet() : undefined;
-    if (marked && destination && (destination.provider !== "github" ||
-      !marked.items.every(({ source }) => "endpoint" in source &&
-        source.endpoint.provider === "github" && current &&
-        source.endpoint.locationId === destination.locationId &&
-        sameLocation(parseRef(source.entry.ref), current)))) {
+    if (
+      marked &&
+      destination &&
+      (destination.provider !== "github" ||
+        !marked.items.every(
+          ({ source }) =>
+            "endpoint" in source &&
+            source.endpoint.provider === "github" &&
+            current &&
+            source.endpoint.locationId === destination.locationId &&
+            sameLocation(parseRef(source.entry.ref), current),
+        ))
+    ) {
       requestTransfer({ ...marked, target: destination });
+      return;
+    }
+    if (["settings", "storageWipe"].includes(action)) {
+      previousRoute.current = location.hash;
+      location.hash = "#/settings/keyboard";
+      setAction(action);
+      return;
+    }
+    if (action === "keepOffline" && !cloud?.active && account) {
+      try {
+        const { readGitHub } = await import("../services/githubCache");
+        await Promise.all(
+          selection
+            .filter((entry) => entry.kind === "file")
+            .map((entry) =>
+              readGitHub(
+                account,
+                parseRef(entry.ref),
+                undefined,
+                undefined,
+                true,
+              ),
+            ),
+        );
+        setNotice(t("keptOffline"));
+      } catch {
+        setNotice(t("storageFull"));
+      }
       return;
     }
     if (action === "previewSite" || cloudCommand?.(action)) return;
@@ -114,16 +173,13 @@ export function LibraryCommands({
     if (action === "rename" && selection.length === 1)
       setName(selection[0].name);
     setAction(action);
-    if (action === "settings") {
-      previousRoute.current = location.hash;
-      location.hash = "#/settings/keyboard";
-    }
     if (action === "paste" && current) setJob(() => clipboardJob(current));
   };
   useCommandRegistry(bindings, dispatch);
   useEffect(() => {
     const route = () => {
-      if (location.hash === "#/settings/keyboard") setAction("settings");
+      if (location.hash === "#/settings/keyboard")
+        setAction((value) => (value === "storageWipe" ? value : "settings"));
     };
     route();
     window.addEventListener("hashchange", route);
@@ -133,7 +189,10 @@ export function LibraryCommands({
       (r) => r.full_name === current?.owner + "/" + current?.repo,
     ),
     close = () => {
-      if (action === "settings" && location.hash === "#/settings/keyboard")
+      if (
+        ["settings", "storageWipe"].includes(action) &&
+        location.hash === "#/settings/keyboard"
+      )
         location.hash =
           previousRoute.current ||
           (previous.current
@@ -179,7 +238,11 @@ export function LibraryCommands({
     >
       <Dialog>
         <Heading slot="title">
-          {t(action === "settings" ? "commandSettings" : action)}
+          {t(
+            ["settings", "storageWipe"].includes(action)
+              ? "commandSettings"
+              : action,
+          )}
         </Heading>
         {action === "uploadFiles" || action === "uploadFolder" ? (
           <HomeUpload
@@ -187,8 +250,9 @@ export function LibraryCommands({
             onClose={close}
             directory={action === "uploadFolder"}
           />
-        ) : action === "settings" ? (
+        ) : ["settings", "storageWipe"].includes(action) ? (
           <>
+            <StorageSettings startWipe={action === "storageWipe"} />
             {providerSettings}
             <ShortcutSettings
               bindings={bindings}

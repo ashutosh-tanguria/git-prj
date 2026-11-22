@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Dialog, Heading, Modal } from "react-aria-components";
+import { useOffline } from "./useOffline";
+import { cacheData } from "../services/cacheData";
+import { listCloud, readCloud } from "../services/cloudCache";
+import { QuickLook } from "./QuickLook";
+import { ReadViewer } from "../viewers/ReadViewer";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import { DriveProvider } from "../providers/gdrive/client";
@@ -23,6 +28,7 @@ import { CloudProviderRows, CloudQuota } from "./CloudProviderRows";
 import type { CloudLibrary } from "./cloudTypes";
 import { requestTransfer } from "../services/transferRequests";
 import "../i18n/cloud";
+import "../i18n/storage";
 import styles from "./Library.module.css";
 import cloudStyles from "./Cloud.module.css";
 
@@ -93,6 +99,9 @@ export default function CloudIntegration({
 }: {
   children(cloud: CloudLibrary): ReactNode;
 }) {
+  const offline = useOffline();
+  const [preview, setPreview] = useState<{ item: Entry; bytes: Blob }>();
+  const [deferred, setDeferred] = useState<{ ids: string; root: string }>();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [folder, setFolder] = useState(currentRef);
   const [rows, setRows] = useState<Entry[]>([]);
@@ -109,6 +118,7 @@ export default function CloudIntegration({
     null,
   );
   const [revision, setRevision] = useState(0);
+  const appliedRefresh = useRef(0);
   const paths = useRef(new Map<string, string>());
   const folderLabels = useRef(new Map<string, string>());
   const serial = useRef(false);
@@ -122,6 +132,7 @@ export default function CloudIntegration({
       .filter(({ provider }) => provider.isConnected())
       .map(({ provider }) => provider.id as CloudId),
   );
+  const queuedIds = queued.map((item) => item.id).join(",");
   const active = !!folder && !!session;
   const refresh = () => setRevision((value) => value + 1);
   function open(ref: string) {
@@ -132,6 +143,35 @@ export default function CloudIntegration({
     open(paths.current.get(folder) ?? session.root.root);
   }
 
+  useEffect(() => {
+    if (!offline) return;
+    let active = true;
+    void cacheData
+      .get<Location[]>("settings", "cloud-roots")
+      .then((roots) => {
+        if (!active || !roots) return;
+        setSessions((current) => [
+          ...current,
+          ...roots
+            .filter(
+              (root) =>
+                !current.some(
+                  (session) => session.root.provider === root.provider,
+                ),
+            )
+            .map((root) => ({
+              root,
+              provider: new adapters[root.provider as CloudId](
+                authorizers[root.provider as CloudId](""),
+              ),
+            })),
+        ]);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [offline]);
   useEffect(() => {
     const navigate = () => {
       if (location.hash.startsWith("#/settings/")) return;
@@ -159,37 +199,45 @@ export default function CloudIntegration({
     setRows([]);
     setSelected(undefined);
     setQuota(null);
-    if (!session?.provider.isConnected() || !folder) return;
+    if (!session || !folder || (!offline && !session.provider.isConnected()))
+      return;
     const controller = new AbortController();
     const { provider } = session;
-    void provider
-      .list(folder, { signal: controller.signal })
-      .then((items) => {
-        if (controller.signal.aborted) return;
-        for (const item of items) if (item.kind === "dir") {
+    const apply = (items: Entry[]) => {
+      if (controller.signal.aborted) return;
+      for (const item of items)
+        if (item.kind === "dir") {
           paths.current.set(item.ref, folder);
           folderLabels.current.set(item.ref, item.name);
         }
-        setRows(items);
-      })
+      setRows(items);
+      appliedRefresh.current = revision;
+    };
+    void listCloud(session.root, provider, folder, {
+      signal: controller.signal,
+      force: appliedRefresh.current !== revision,
+      onUpdate: apply,
+    })
+      .then(apply)
       .catch((error: unknown) => {
         if (!controller.signal.aborted) setFailure(message(error));
       });
-    void provider
-      .quota()
-      .then((value) => {
-        if (!controller.signal.aborted) setQuota(value);
-      })
-      .catch((error: unknown) => {
-        if (
-          !controller.signal.aborted &&
-          error instanceof ProviderError &&
-          error.code === "AUTH_EXPIRED"
-        )
-          setFailure(message(error));
-      });
+    if (!offline)
+      void provider
+        .quota()
+        .then((value) => {
+          if (!controller.signal.aborted) setQuota(value);
+        })
+        .catch((error: unknown) => {
+          if (
+            !controller.signal.aborted &&
+            error instanceof ProviderError &&
+            error.code === "AUTH_EXPIRED"
+          )
+            setFailure(message(error));
+        });
     return () => controller.abort();
-  }, [session, folder, revision]);
+  }, [session, folder, revision, offline]);
 
   async function run(action: () => Promise<void>) {
     if (serial.current) return;
@@ -205,12 +253,24 @@ export default function CloudIntegration({
       setBusy(false);
     }
   }
+  async function rememberCloud(id: CloudId, root?: Location) {
+    const saved = await cacheData
+      .get<Location[]>("settings", "cloud-roots")
+      .catch(() => undefined);
+    await cacheData
+      .put("settings", "cloud-roots", [
+        ...(saved ?? []).filter((item) => item.provider !== id),
+        ...(root ? [root] : []),
+      ])
+      .catch(() => {});
+  }
   function toggle(id: CloudId) {
     void run(async () => {
       const old = sessions.find(({ provider }) => provider.id === id);
       if (old?.provider.isConnected()) {
         await old.provider.disconnect();
         setSessions((items) => items.filter((item) => item !== old));
+        await rememberCloud(id);
         if (old === session) location.hash = "#/";
         return;
       }
@@ -226,6 +286,7 @@ export default function CloudIntegration({
           ...items.filter((item) => item !== old),
           { provider, root },
         ]);
+        await rememberCloud(id, root);
         open(root.root);
       } catch (error) {
         await provider.disconnect();
@@ -236,7 +297,11 @@ export default function CloudIntegration({
   function command(action: string) {
     if (!session || !active || action === "settings") return false;
     if (busy) return true;
-    if (!session.provider.isConnected()) {
+    if (action === "keepOffline") {
+      if (selected) pin(selected);
+      return true;
+    }
+    if (!offline && !session.provider.isConnected()) {
       setFailure(t("providerAUTH_EXPIRED"));
       return true;
     }
@@ -380,7 +445,8 @@ export default function CloudIntegration({
     setOperation(undefined);
   }
   function push() {
-    if (!session) return;
+    if (!session || !navigator.onLine || !session.provider.isConnected())
+      return;
     void run(async () => {
       const result = await cloudStaging.push(session.provider, session.root, {
         onProgress: (id, sent, total) => setProgress({ id, sent, total }),
@@ -395,11 +461,50 @@ export default function CloudIntegration({
       } else setOperation(undefined);
     });
   }
+  useEffect(() => {
+    if (!deferred) return;
+    if (deferred.root !== session?.root.id || deferred.ids !== queuedIds) {
+      setDeferred(undefined);
+      setFailure(t("pushBatchChanged"));
+    } else if (!offline) {
+      setDeferred(undefined);
+      push();
+    }
+  }, [deferred, queuedIds, offline, session]);
+  function filePath(item: Entry) {
+    const parts = [item.name];
+    let step = folder;
+    while (folderLabels.current.has(step) && parts.length < 100) {
+      parts.unshift(folderLabels.current.get(step)!);
+      step = paths.current.get(step) ?? "";
+    }
+    return parts.join("/");
+  }
+  function pin(item: Entry) {
+    if (!session) return;
+    void run(async () => {
+      await readCloud(session.root, session.provider, item, filePath(item), {
+        pin: true,
+      });
+    });
+  }
+  useEffect(() => {
+    const listener = (event: Event) =>
+      pin((event as CustomEvent<Entry>).detail);
+    window.addEventListener("shelf-cloud-pin", listener);
+    return () => window.removeEventListener("shelf-cloud-pin", listener);
+  });
   function download(item: Entry, version?: string) {
     if (session)
       void run(async () =>
         saveDownload(
-          await session.provider.read(item.ref, { version }),
+          await readCloud(
+            session.root,
+            session.provider,
+            item,
+            filePath(item),
+            { version },
+          ),
           item.name,
         ),
       );
@@ -453,21 +558,42 @@ export default function CloudIntegration({
     refresh,
     parent,
     command,
-    transferDestination: active && session?.provider.isConnected()
-      ? { provider: session.root.provider as CloudId, locationId: session.root.id, ref: folder }
-      : undefined,
-    transferSelection: selected && session
-      ? [{ entry: selected, endpoint: { provider: session.root.provider as CloudId, locationId: session.root.id, ref: selected.ref } }]
-      : [],
-    transferProvider: (endpoint) => sessions.find(({ root, provider }) =>
-      root.id === endpoint.locationId && root.provider === endpoint.provider && provider.isConnected(),
-    )?.provider,
+    transferDestination:
+      active && session?.provider.isConnected()
+        ? {
+            provider: session.root.provider as CloudId,
+            locationId: session.root.id,
+            ref: folder,
+          }
+        : undefined,
+    transferSelection:
+      selected && session
+        ? [
+            {
+              entry: selected,
+              endpoint: {
+                provider: session.root.provider as CloudId,
+                locationId: session.root.id,
+                ref: selected.ref,
+              },
+            },
+          ]
+        : [],
+    transferProvider: (endpoint) =>
+      sessions.find(
+        ({ root, provider }) =>
+          root.id === endpoint.locationId &&
+          root.provider === endpoint.provider &&
+          provider.isConnected(),
+      )?.provider,
     locations: {
       active: folder,
       roots: sessions.map(({ root }) => root),
       refresh: revision,
       path: (ref) => {
-        const root = sessions.find(({ provider }) => ref.startsWith(cloudPrefix[provider.id as CloudId]))?.root.root;
+        const root = sessions.find(({ provider }) =>
+          ref.startsWith(cloudPrefix[provider.id as CloudId]),
+        )?.root.root;
         if (!root) return;
         const parts: string[] = [];
         const seen = new Set<string>();
@@ -487,11 +613,12 @@ export default function CloudIntegration({
           ref.startsWith(cloudPrefix[provider.id as CloudId]),
         );
         if (!current) return [];
-        const items = await current.provider.list(ref);
-        for (const item of items) if (item.kind === "dir") {
-          paths.current.set(item.ref, ref);
-          folderLabels.current.set(item.ref, item.name);
-        }
+        const items = await listCloud(current.root, current.provider, ref);
+        for (const item of items)
+          if (item.kind === "dir") {
+            paths.current.set(item.ref, ref);
+            folderLabels.current.set(item.ref, item.name);
+          }
         return items;
       },
     },
@@ -547,7 +674,7 @@ export default function CloudIntegration({
         {folder !== session.root.root && (
           <Button onPress={parent}>{t("cloudParent")}</Button>
         )}
-        {session.provider.isConnected() ? (
+        {offline || session.provider.isConnected() ? (
           <>
             <table className={cloudStyles.files} data-file-command-scope>
               <thead>
@@ -558,16 +685,35 @@ export default function CloudIntegration({
               </thead>
               <tbody>
                 {rows.map((item) => (
-                  <tr key={item.ref} onContextMenu={(event) => {
-                    if (item.kind !== "file" || matchMedia("(pointer: coarse)").matches) return;
-                    event.preventDefault();
-                    window.dispatchEvent(new CustomEvent("shelf-site-context", { detail: {
-                      sources: [{ entry: item, endpoint: {
-                        provider: session.root.provider, locationId: session.root.id, ref: item.ref,
-                      } }],
-                      x: event.clientX, y: event.clientY,
-                    } }));
-                  }}>
+                  <tr
+                    key={item.ref}
+                    onContextMenu={(event) => {
+                      if (
+                        item.kind !== "file" ||
+                        matchMedia("(pointer: coarse)").matches
+                      )
+                        return;
+                      event.preventDefault();
+                      window.dispatchEvent(
+                        new CustomEvent("shelf-site-context", {
+                          detail: {
+                            sources: [
+                              {
+                                entry: item,
+                                endpoint: {
+                                  provider: session.root.provider,
+                                  locationId: session.root.id,
+                                  ref: item.ref,
+                                },
+                              },
+                            ],
+                            x: event.clientX,
+                            y: event.clientY,
+                          },
+                        }),
+                      );
+                    }}
+                  >
                     <td>
                       {item.kind === "dir" ? (
                         <Button variant="quiet" onPress={() => open(item.ref)}>
@@ -598,15 +744,45 @@ export default function CloudIntegration({
             {selected && (
               <div className={cloudStyles.actions}>
                 {[true, false].map((move) => (
-                  <Button key={String(move)} onPress={() => requestTransfer({
-                    items: [{ source: { entry: selected, endpoint: {
-                      provider: session.root.provider as CloudId, locationId: session.root.id, ref: selected.ref,
-                    } } }],
-                    move,
-                  })}>
+                  <Button
+                    key={String(move)}
+                    onPress={() =>
+                      requestTransfer({
+                        items: [
+                          {
+                            source: {
+                              entry: selected,
+                              endpoint: {
+                                provider: session.root.provider as CloudId,
+                                locationId: session.root.id,
+                                ref: selected.ref,
+                              },
+                            },
+                          },
+                        ],
+                        move,
+                      })
+                    }
+                  >
                     {t(move ? "moveTo" : "copyTo")}
                   </Button>
                 ))}
+                <Button
+                  isDisabled={busy}
+                  onPress={() =>
+                    void run(async () => {
+                      const bytes = await readCloud(
+                        session.root,
+                        session.provider,
+                        selected,
+                        filePath(selected),
+                      );
+                      setPreview({ item: selected, bytes });
+                    })
+                  }
+                >
+                  {t("open")}
+                </Button>
                 <Button isDisabled={busy} onPress={() => download(selected)}>
                   {t("download")}
                 </Button>
@@ -655,87 +831,128 @@ export default function CloudIntegration({
             ))}
           </ul>
           <Button
-            isDisabled={!queued.length || busy}
+            isDisabled={(!offline && !queued.length) || busy}
             onPress={() => command("push")}
           >
-            {t("push")}
+            {t(offline ? "pushWhenOnline" : "push")}
           </Button>
         </section>
       </section>
     ),
-    dialogs: operation && (
-      <Modal
-        isOpen
-        className={styles.workingPanel + " " + styles.formPanel}
-        onOpenChange={(open) => {
-          if (!open && !busy) setOperation(undefined);
-        }}
+    dialogs: preview ? (
+      <QuickLook
+        title={preview.item.name}
+        onClose={() => setPreview(undefined)}
       >
-        <Dialog>
-          <Heading slot="title">
-            {t(operation === "versions" ? "cloudVersions" : operation)}
-          </Heading>
-          {operation === "push" ? (
-            <>
-              <p>{t("cloudSequential")}</p>
-              <ul>
-                {queued.map((item) => (
-                  <li key={item.id}>
-                    {t(
-                      item.op === "add"
-                        ? "uploadFiles"
-                        : item.op === "mkdir"
-                          ? "newFolder"
-                          : item.op === "modify"
-                            ? "cloudReplace"
-                            : item.op,
-                    )}{" "}
-                    · {item.label}
-                    {evaluateName(item.name ?? item.label, "unknown").level ===
-                      "warn" && <p>{t("cloudSensitive")}</p>}
-                    {progress?.id === item.id && (
-                      <progress
-                        aria-label={item.label}
-                        value={progress.sent}
-                        max={progress.total || 1}
+        <ReadViewer
+          blob={preview.bytes}
+          name={preview.item.name}
+          fileKey={preview.item.ref}
+        />
+      </QuickLook>
+    ) : (
+      operation && (
+        <Modal
+          isOpen
+          className={styles.workingPanel + " " + styles.formPanel}
+          onOpenChange={(open) => {
+            if (!open && !busy) setOperation(undefined);
+          }}
+        >
+          <Dialog>
+            <Heading slot="title">
+              {t(operation === "versions" ? "cloudVersions" : operation)}
+            </Heading>
+            {operation === "push" ? (
+              <>
+                <p>{t("cloudSequential")}</p>
+                <ul>
+                  {queued.map((item) => (
+                    <li key={item.id}>
+                      {t(
+                        item.op === "add"
+                          ? "uploadFiles"
+                          : item.op === "mkdir"
+                            ? "newFolder"
+                            : item.op === "modify"
+                              ? "cloudReplace"
+                              : item.op,
+                      )}{" "}
+                      · {item.label}
+                      {evaluateName(item.name ?? item.label, "unknown")
+                        .level === "warn" && <p>{t("cloudSensitive")}</p>}
+                      {progress?.id === item.id && (
+                        <progress
+                          aria-label={item.label}
+                          value={progress.sent}
+                          max={progress.total || 1}
+                        />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant="primary"
+                  isDisabled={
+                    offline ||
+                    busy ||
+                    !queued.length ||
+                    !session?.provider.isConnected()
+                  }
+                  onPress={push}
+                >
+                  {t("push")}
+                </Button>
+                {offline && session && (
+                  <div>
+                    <p role="status">{t("pushOffline")}</p>
+                    <label>
+                      <input
+                        type="checkbox"
+                        disabled={
+                          !queued.length || !session.provider.isConnected()
+                        }
+                        checked={
+                          deferred?.ids === queuedIds &&
+                          deferred.root === session.root.id
+                        }
+                        onChange={(event) =>
+                          setDeferred(
+                            event.target.checked
+                              ? { ids: queuedIds, root: session.root.id }
+                              : undefined,
+                          )
+                        }
                       />
-                    )}
+                      {t("pushWhenOnline")}
+                    </label>
+                  </div>
+                )}
+              </>
+            ) : operation === "versions" ? (
+              <ul>
+                {versions.map((version) => (
+                  <li key={version.id}>
+                    {version.label} {version.modified}
+                    <Button
+                      isDisabled={busy}
+                      onPress={() => selected && download(selected, version.id)}
+                    >
+                      {t("download")}
+                    </Button>
                   </li>
                 ))}
               </ul>
-              <Button
-                variant="primary"
-                isDisabled={
-                  busy || !queued.length || !session?.provider.isConnected()
-                }
-                onPress={push}
-              >
-                {t("push")}
-              </Button>
-            </>
-          ) : operation === "versions" ? (
-            <ul>
-              {versions.map((version) => (
-                <li key={version.id}>
-                  {version.label} {version.modified}
-                  <Button
-                    isDisabled={busy}
-                    onPress={() => selected && download(selected, version.id)}
-                  >
-                    {t("download")}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            inputs
-          )}
-          {failure && <p role="alert">{failure}</p>}
-          <Button isDisabled={busy} onPress={() => setOperation(undefined)}>
-            {t("cancel")}
-          </Button>
-        </Dialog>
-      </Modal>
+            ) : (
+              inputs
+            )}
+            {failure && <p role="alert">{failure}</p>}
+            <Button isDisabled={busy} onPress={() => setOperation(undefined)}>
+              {t("cancel")}
+            </Button>
+          </Dialog>
+        </Modal>
+      )
     ),
   });
 }

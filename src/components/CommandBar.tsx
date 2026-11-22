@@ -1,3 +1,4 @@
+import "../i18n/storage";
 import { useState, useRef, useId } from "react";
 import { iconPaths } from "../ui/ActionIcon";
 import { t } from "../i18n";
@@ -71,16 +72,32 @@ export function LaterAction({
     </span>
   );
 }
-export function CommandBar({ split = false }: { split?: boolean }) {
+export function CommandBar({
+  split = false,
+  offline = false,
+  keepOffline = false,
+}: {
+  split?: boolean;
+  offline?: boolean;
+  keepOffline?: boolean;
+}) {
   return (
     <nav className={styles.command} aria-label={t("commandBar")}>
       <div className={styles.desktop}>
-        <CommandActions split={split} />
+        <CommandActions
+          split={split}
+          offline={offline}
+          keepOffline={keepOffline}
+        />
       </div>
       <details className={styles.overflow}>
         <summary aria-label={t("commandBar")}>...</summary>
         <div>
-          <CommandActions split={split} />
+          <CommandActions
+            split={split}
+            offline={offline}
+            keepOffline={keepOffline}
+          />
         </div>
       </details>
     </nav>
@@ -90,22 +107,28 @@ export function CommandAction({
   action,
   icon,
   pressed,
+  disabledReason,
 }: {
   action: string;
   icon?: string;
   pressed?: boolean;
+  disabledReason?: string;
 }) {
   return (
     <Button
       data-action={action}
-      aria-label={t(action)}
+      aria-label={
+        disabledReason ? t(action) + ". " + disabledReason : t(action)
+      }
+      aria-disabled={!!disabledReason || undefined}
       aria-pressed={pressed}
       onPress={() =>
-        action === "previewSite"
+        !disabledReason &&
+        (action === "previewSite"
           ? openSitePreview()
           : window.dispatchEvent(
               new CustomEvent("shelf-command", { detail: { action } }),
-            )
+            ))
       }
     >
       <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -115,7 +138,15 @@ export function CommandAction({
     </Button>
   );
 }
-function CommandActions({ split }: { split: boolean }) {
+function CommandActions({
+  split,
+  offline,
+  keepOffline,
+}: {
+  split: boolean;
+  offline: boolean;
+  keepOffline: boolean;
+}) {
   const siteAvailable = useSiteAvailable();
   return (
     <>
@@ -130,15 +161,30 @@ function CommandActions({ split }: { split: boolean }) {
           icon="M2 4h5l2 2h5v8H2ZM8 12V7m-2 2 2-2 2 2"
         />
         <CommandAction action="newRepository" />
-        <CommandAction action="localImport" icon="M2 4h5l2 2h5v8H2M8 8v4m-2-2h4" />
-        {!split && <CommandAction action="localExport" icon="M8 2v8m-3-3 3 3 3-3M2 11v3h12v-3" />}
+        <CommandAction
+          action="localImport"
+          icon="M2 4h5l2 2h5v8H2M8 8v4m-2-2h4"
+        />
+        {!split && (
+          <CommandAction
+            action="localExport"
+            icon="M8 2v8m-3-3 3 3 3-3M2 11v3h12v-3"
+          />
+        )}
       </div>
       <div>
         <CommandAction action="cut" icon="m3 2 10 12M13 2 3 14M2 9h4v5H2Z" />
         <CommandAction action="copy" icon="M6 6h8v8H6ZM2 10V2h8" />
         <CommandAction action="paste" icon="M5 3H2v11h12V3h-3M5 2h6v3H5Z" />
-        {!split && <CommandAction action="moveTo" icon="M2 4h5l2 2h5v8H2m2-4h7m-3-3 3 3-3 3" />}
-        {!split && <CommandAction action="copyTo" icon="M2 4h5l2 2h5v8H2m3-4h6m-3-3v6" />}
+        {!split && (
+          <CommandAction
+            action="moveTo"
+            icon="M2 4h5l2 2h5v8H2m2-4h7m-3-3 3 3-3 3"
+          />
+        )}
+        {!split && (
+          <CommandAction action="copyTo" icon="M2 4h5l2 2h5v8H2m3-4h6m-3-3v6" />
+        )}
         <CommandAction action="rename" />
         <CommandAction action="delete" icon="M2 4h12M5 4V2h6v2M4 4v10h8V4" />
       </div>
@@ -150,7 +196,12 @@ function CommandActions({ split }: { split: boolean }) {
           {t("sortMenu")}
         </button>
         <CommandAction action="settings" />
-        <CommandAction action="splitView" pressed={split} icon="M2 2h12v12H2ZM8 2v12" />
+        {keepOffline && <CommandAction action="keepOffline" />}
+        <CommandAction
+          action="splitView"
+          pressed={split}
+          icon="M2 2h12v12H2ZM8 2v12"
+        />
         {siteAvailable && <CommandAction action="previewSite" />}
         <LaterAction
           action="viewMenu"
@@ -159,7 +210,11 @@ function CommandActions({ split }: { split: boolean }) {
         />
       </div>
       <div className={styles.push}>
-        <CommandAction action="push" icon="M8 13V3m-4 4 4-4 4 4" />
+        <CommandAction
+          action="push"
+          disabledReason={offline ? t("pushOffline") : undefined}
+          icon="M8 13V3m-4 4 4-4 4 4"
+        />
       </div>
     </>
   );

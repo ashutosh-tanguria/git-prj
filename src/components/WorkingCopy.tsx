@@ -69,7 +69,13 @@ export function WorkingCopy() {
       >
         {t("workingTitle")}
       </Button>
-      <Button onPress={() => window.dispatchEvent(new Event("working-review"))}>
+      <Button
+        isDisabled={state.offline}
+        aria-label={
+          state.offline ? t("workingPush") + ". " + t("pushOffline") : undefined
+        }
+        onPress={() => window.dispatchEvent(new Event("working-review"))}
+      >
         {t("workingPush")}
       </Button>
       <Button onPress={() => void download()} isDisabled={!rows.length}>
@@ -99,7 +105,7 @@ export function WorkingCopy() {
         </span>
       )}
       {open &&
-        (quick ? (
+        (quick && !state.offline ? (
           <QuickPush
             rows={rows}
             message={message}

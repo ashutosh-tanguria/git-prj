@@ -1,4 +1,12 @@
 # Shelf progress
+### M5a slice 1: Cache and offline
+
+- Status: The byte cache, pins, version checks, folder cache, offline Push controls, and Storage actions are wired. The full check passed with 282 tests and a 145483-byte gzip shell.
+- Decisions: Cache records are scoped by provider account. Existing credentials remain in memory. The reconnect option is tied to the reviewed batch and the current session. The service worker caches app assets and never handles provider requests.
+- Not done: Full-text search, filename search, and final browser acceptance follow.
+- Manual steps: Browser and account checks follow the final M5a checklist.
+- Known issues: Private browser storage can be purged by the browser. Real-account ETag visibility and provider behavior still need owner verification.
+
 ### M5a licence checker
 
 - Status: Locked SPDX alternatives are evaluated and JSZip is approved under MIT. The checker and the full check passed with 278 tests.

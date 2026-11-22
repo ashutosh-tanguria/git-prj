@@ -4,20 +4,25 @@ import { lazy, Suspense, useState } from "react";
 import { GuardMount } from "../components/GuardMount";
 import { VisibilityBadge } from "../components/VisibilityBadge";
 import { useLibrary } from "./useLibrary";
-import { CommandBar } from "../components/CommandBar";
 import { library } from "../services/library";
 import { explorerRoute, parseRef } from "../lib/refs";
 import { ReadShell } from "../components/ReadShell";
 import { FileTable } from "../components/FileTable";
 import { AddressBar } from "../components/AddressBar";
 import { GuardStrip, PendingTray, StatusBar } from "../components/ReadChrome";
-import { LibraryPreview } from "../components/LibraryPreview";
 import { ReadViewer } from "../viewers/ReadViewer";
 import { ConnectPanel } from "../components/ConnectPanel";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import { MediaStatus } from "../components/MediaStatus";
 import styles from "../components/Library.module.css";
+import { useOffline } from "../components/useOffline";
+import { CommandBar } from "../components/CommandBar";
+const LibraryPreview = lazy(() =>
+  import("../components/LibraryPreview").then(({ LibraryPreview }) => ({
+    default: LibraryPreview,
+  })),
+);
 const LibraryCommands = lazy(() =>
   import("../components/LibraryCommands").then((m) => ({
     default: m.LibraryCommands,
@@ -29,7 +34,9 @@ const SiteEntry = lazy(() =>
   })),
 );
 const CloudIntegration = lazy(() => import("../components/CloudIntegration"));
-const TransferIntegration = lazy(() => import("../components/TransferIntegration"));
+const TransferIntegration = lazy(
+  () => import("../components/TransferIntegration"),
+);
 const SplitWorkspace = lazy(() => import("../components/SplitWorkspace"));
 const LocalFolderTools = lazy(() => import("../components/LocalFolderTools"));
 export default function Library() {
@@ -45,7 +52,8 @@ export default function Library() {
 function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   const [notice, setNotice] = useState("");
   const [split, setSplit] = useState(false);
-  const state = useLibrary();
+  const offline = useOffline();
+  const state = useLibrary(offline);
   const {
     refresh,
     visibility,
@@ -79,6 +87,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
     setPreview(undefined);
     setSelection([]);
     library.disconnect();
+    state.forgetOffline();
     setAccount("");
     setRoots([]);
     setEntries([]);
@@ -92,7 +101,14 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   };
   return (
     <div className={styles.shell}>
-      <CommandBar split={split} />
+      <CommandBar
+        split={split}
+        offline={offline}
+        keepOffline={
+          selection.some((entry) => entry.kind === "file") ||
+          !!cloud?.transferSelection.length
+        }
+      />
       <header className={styles.brand}>
         <h1>Shelf</h1>
         {account && (
@@ -115,7 +131,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         }}
       />
       <ReadShell
-        roots={roots}
+        roots={state.displayedRoots}
         clouds={cloud?.locations}
         selection={selection}
         visibility={visibility}
@@ -145,11 +161,16 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         {notice && <p role="status">{notice}</p>}
         {split ? (
           <Suspense fallback={<p role="status">{t("loadingRead")}</p>}>
-            <SplitWorkspace account={account} roots={roots} current={ref} cloud={cloud} />
+            <SplitWorkspace
+              account={account}
+              roots={roots}
+              current={ref}
+              cloud={cloud}
+            />
           </Suspense>
         ) : cloud?.active ? (
           cloud.content
-        ) : !account ? (
+        ) : !state.activeAccount ? (
           <ConnectPanel {...connection} providerRows={cloud?.connectRows} />
         ) : (
           <>
@@ -180,15 +201,28 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         {loading && <p role="status">{t("loadingRead")}</p>}
         {error && <p role="alert">{error}</p>}
       </ReadShell>
-      {account && ref && (
-        <GuardMount key={key} roots={roots} current={ref} entries={entries} account={account} cloud={cloud} />
+      {state.activeAccount && ref && (
+        <GuardMount
+          key={key}
+          roots={state.displayedRoots}
+          current={ref}
+          entries={entries}
+          account={state.activeAccount}
+          cloud={cloud}
+        />
       )}
       <Suspense fallback={null}>
-        <LocalFolderTools account={account} roots={roots} current={ref} cloud={cloud} selection={selection} />
+        <LocalFolderTools
+          account={account}
+          roots={roots}
+          current={ref}
+          cloud={cloud}
+          selection={selection}
+        />
         <SiteEntry
           current={account && !cloud?.active ? ref : null}
           selection={selection}
-          account={account}
+          account={state.activeAccount}
         />
         <LibraryCommands
           current={ref}
@@ -196,7 +230,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
           roots={roots}
           cloudCommand={cloud?.command}
           cloud={cloud}
-          account={account}
+          account={state.activeAccount}
           providerSettings={
             cloud && (
               <>
@@ -236,8 +270,13 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
             );
           }}
         />
-        <TransferIntegration account={account} roots={roots} current={ref} cloud={cloud}
-          refreshed={cloud?.active ? cloud.refresh : refresh} />
+        <TransferIntegration
+          account={account}
+          roots={roots}
+          current={ref}
+          cloud={cloud}
+          refreshed={cloud?.active ? cloud.refresh : refresh}
+        />
       </Suspense>
       {cloud?.active ? (
         <StatusBar account="" extra={cloud.status} />
@@ -257,7 +296,11 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         </>
       )}
       {cloud?.dialogs}
-      <LibraryPreview state={state} />
+      {preview && (
+        <Suspense fallback={null}>
+          <LibraryPreview state={state} />
+        </Suspense>
+      )}
     </div>
   );
 }

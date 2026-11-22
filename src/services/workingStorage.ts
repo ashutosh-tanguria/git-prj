@@ -7,7 +7,10 @@ function db() {
       request.result.createObjectStore("meta");
       request.result.createObjectStore("bytes");
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      request.result.onversionchange = () => request.result.close();
+      resolve(request.result);
+    };
     request.onerror = () => reject(request.error);
   }));
 }
@@ -105,18 +108,21 @@ export const transferStorage = {
   ): Promise<Blob> {
     if (!response.body) throw Error("transferReadFailed");
     let total = 0;
-    const body = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        total += chunk.length;
-        if (total > expected) throw Error("transferSourceChanged");
-        progress(total);
-        controller.enqueue(chunk);
-      },
-      flush() {
-        if (total !== expected) throw Error("transferSourceChanged");
-      },
-    }));
-    const type = response.headers.get("Content-Type") ?? "application/octet-stream";
+    const body = response.body.pipeThrough(
+      new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          total += chunk.length;
+          if (total > expected) throw Error("transferSourceChanged");
+          progress(total);
+          controller.enqueue(chunk);
+        },
+        flush() {
+          if (total !== expected) throw Error("transferSourceChanged");
+        },
+      }),
+    );
+    const type =
+      response.headers.get("Content-Type") ?? "application/octet-stream";
     if (navigator.storage?.getDirectory) {
       const root = await navigator.storage.getDirectory();
       const dir = await root.getDirectoryHandle("staged", { create: true });

@@ -1,4 +1,9 @@
-import { list, request, ProviderError } from "../providers/github/client";
+import {
+  list,
+  request,
+  ProviderError,
+  type Entry,
+} from "../providers/github/client";
 import "../i18n/preview";
 import { refString, type GitRef } from "../lib/refs";
 import { repoRoot } from "./githubTree";
@@ -14,11 +19,14 @@ export async function readMedia(
   ref: GitRef,
   signal?: AbortSignal,
   progress?: (value: MediaProgress) => void,
+  knownEntry?: Entry,
 ) {
-  const files = await list(
-    { ...ref, path: ref.path.split("/").slice(0, -1).join("/") },
-    signal,
-  );
+  const files = knownEntry
+    ? [knownEntry]
+    : await list(
+        { ...ref, path: ref.path.split("/").slice(0, -1).join("/") },
+        signal,
+      );
   const entry = files.find(
     (file) => file.path === ref.path && file.kind === "file",
   );
@@ -26,7 +34,7 @@ export async function readMedia(
   if (entry.size > MEDIA_CAP) throw new ProviderError("mediaLimit");
   progress?.({ loaded: 0, total: entry.size });
   const key = await mediaCacheKey(refString(ref), entry.sha);
-  const cached = await getMedia(key);
+  const cached = knownEntry ? undefined : await getMedia(key);
   signal?.throwIfAborted();
   if (cached) {
     progress?.({ loaded: cached.size, total: cached.size, cached: true });
@@ -61,6 +69,7 @@ export async function readMedia(
   const blob = new Blob(parts, {
     type: response.headers.get("Content-Type") || "application/octet-stream",
   });
+  if (knownEntry) return blob;
   const saved = await putMedia(key, blob);
   signal?.throwIfAborted();
   progress?.({

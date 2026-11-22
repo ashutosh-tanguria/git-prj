@@ -19,8 +19,12 @@ export interface Entry {
 }
 let token = "";
 let login = "";
-export function isConnected() { return !!token; }
-export function isConnectedAs(account: string) { return !!token && login.toLowerCase() === account.toLowerCase(); }
+export function isConnected() {
+  return !!token;
+}
+export function isConnectedAs(account: string) {
+  return !!token && login.toLowerCase() === account.toLowerCase();
+}
 export function clearToken() {
   token = "";
   login = "";
@@ -30,6 +34,7 @@ export async function request(
   signal?: AbortSignal,
   raw = false,
   init: RequestInit = {},
+  conditional = false,
 ): Promise<Response> {
   const url = new URL(path, "https://api.github.com");
   if (url.origin !== "https://api.github.com")
@@ -46,28 +51,42 @@ export async function request(
           ? "application/vnd.github.raw+json"
           : "application/vnd.github+json",
         ...(token ? { Authorization: "Bearer " + token } : {}),
+        ...init.headers,
       },
     });
   } catch (error) {
     if (signal?.aborted) throw error;
     throw new ProviderError("OFFLINE", true);
   }
+  if (conditional && res.status === 304) return res;
   if (!res.ok) {
     if (res.status === 401) clearToken();
     throw new ProviderError(
-      res.status === 409 ? "EMPTY_REPO" : res.status === 412 || res.status === 422 ? "CONFLICT" : res.status === 413 ? "TOO_LARGE" : res.status === 507 ? "QUOTA" : res.status === 429
-        ? "RATE_LIMITED"
-        : res.status === 401
-          ? "AUTH_EXPIRED"
-          : res.status === 403
-            ? res.headers.get("x-ratelimit-remaining") === "0"
-              ? "RATE_LIMITED"
-              : "PERMISSION"
-            : res.status === 404
-              ? "NOT_FOUND"
-              : "PROVIDER_DOWN",
+      res.status === 409
+        ? "EMPTY_REPO"
+        : res.status === 412 || res.status === 422
+          ? "CONFLICT"
+          : res.status === 413
+            ? "TOO_LARGE"
+            : res.status === 507
+              ? "QUOTA"
+              : res.status === 429
+                ? "RATE_LIMITED"
+                : res.status === 401
+                  ? "AUTH_EXPIRED"
+                  : res.status === 403
+                    ? res.headers.get("x-ratelimit-remaining") === "0"
+                      ? "RATE_LIMITED"
+                      : "PERMISSION"
+                    : res.status === 404
+                      ? "NOT_FOUND"
+                      : "PROVIDER_DOWN",
       res.status >= 500,
-      { retryAfter: res.headers.has("Retry-After") ? Number(res.headers.get("Retry-After")) : undefined },
+      {
+        retryAfter: res.headers.has("Retry-After")
+          ? Number(res.headers.get("Retry-After"))
+          : undefined,
+      },
     );
   }
   return res;
@@ -105,6 +124,13 @@ export async function list(
   ref: GitRef,
   signal?: AbortSignal,
 ): Promise<Entry[]> {
+  return (await listVersioned(ref, signal)).entries ?? [];
+}
+export async function listVersioned(
+  ref: GitRef,
+  signal?: AbortSignal,
+  etag?: string,
+): Promise<{ entries?: Entry[]; etag?: string }> {
   const base =
     "/repos/" +
     encodeURIComponent(ref.owner) +
@@ -112,10 +138,21 @@ export async function list(
     encodeURIComponent(ref.repo);
   let sha = ref.branch;
   let tree: TreeItem[] = [];
+  let version: string | undefined;
   for (const part of [...ref.path.split("/").filter(Boolean), ""]) {
-    const data = (await (
-      await request(base + "/git/trees/" + encodeURIComponent(sha), signal)
-    ).json()) as { tree: TreeItem[]; truncated: boolean };
+    const response = await request(
+      base + "/git/trees/" + encodeURIComponent(sha),
+      signal,
+      false,
+      !part && etag ? { headers: { "If-None-Match": etag } } : {},
+      !part && !!etag,
+    );
+    if (response.status === 304) return {};
+    if (!part) version = response.headers.get("ETag") ?? undefined;
+    const data = (await response.json()) as {
+      tree: TreeItem[];
+      truncated: boolean;
+    };
     if (data.truncated) throw new ProviderError("TOO_LARGE");
     tree = data.tree;
     if (part) {
@@ -124,22 +161,25 @@ export async function list(
       sha = dir.sha;
     }
   }
-  return tree.map((item) => {
-    const path = [ref.path, item.path].filter(Boolean).join("/");
-    return {
-      name: item.path,
-      path,
-      sha: item.sha,
-      size: item.size || 0,
-      kind:
-        item.type === "tree"
-          ? "dir"
-          : item.mode === "100644" || item.mode === "100755"
-            ? "file"
-            : "special",
-      ref: refString({ ...ref, path }),
-    };
-  });
+  return {
+    etag: version,
+    entries: tree.map((item) => {
+      const path = [ref.path, item.path].filter(Boolean).join("/");
+      return {
+        name: item.path,
+        path,
+        sha: item.sha,
+        size: item.size || 0,
+        kind:
+          item.type === "tree"
+            ? "dir"
+            : item.mode === "100644" || item.mode === "100755"
+              ? "file"
+              : "special",
+        ref: refString({ ...ref, path }),
+      };
+    }),
+  };
 }
 export function openRead(ref: GitRef, signal?: AbortSignal, blobSha?: string) {
   return request(
@@ -147,10 +187,12 @@ export function openRead(ref: GitRef, signal?: AbortSignal, blobSha?: string) {
       encodeURIComponent(ref.owner) +
       "/" +
       encodeURIComponent(ref.repo) +
-      (blobSha ? "/git/blobs/" + encodeURIComponent(blobSha) : "/contents/" +
-      ref.path.split("/").map(encodeURIComponent).join("/") +
-      "?ref=" +
-      encodeURIComponent(ref.branch)),
+      (blobSha
+        ? "/git/blobs/" + encodeURIComponent(blobSha)
+        : "/contents/" +
+          ref.path.split("/").map(encodeURIComponent).join("/") +
+          "?ref=" +
+          encodeURIComponent(ref.branch)),
     signal,
     true,
   );

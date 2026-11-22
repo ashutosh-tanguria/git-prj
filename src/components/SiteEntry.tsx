@@ -1,4 +1,5 @@
 import "../i18n/preview";
+import "../i18n/storage";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Entry } from "../services/library";
@@ -6,7 +7,10 @@ import { detectSite, type SiteTarget } from "../services/sitePreview";
 import { refString, type GitRef } from "../lib/refs";
 import { SitePreview } from "./SitePreview";
 import { t } from "../i18n";
-import { githubTransferSource, requestTransfer } from "../services/transferRequests";
+import {
+  githubTransferSource,
+  requestTransfer,
+} from "../services/transferRequests";
 import type { TransferSource } from "../services/transferTypes";
 import styles from "./SitePreview.module.css";
 export function SiteEntry({
@@ -18,6 +22,7 @@ export function SiteEntry({
   selection: Entry[];
   account?: string;
 }) {
+  const [storageNotice, setStorageNotice] = useState("");
   const [target, setTarget] = useState<SiteTarget | null>(null),
     [opened, setOpened] = useState<SiteTarget>();
   const [menu, setMenu] = useState<{
@@ -63,16 +68,31 @@ export function SiteEntry({
     const controller = new AbortController();
     const context = (event: Event) => {
       const { entry, sources, x, y } = (
-        event as CustomEvent<{ entry?: Entry; sources?: TransferSource[]; x: number; y: number }>
+        event as CustomEvent<{
+          entry?: Entry;
+          sources?: TransferSource[];
+          x: number;
+          y: number;
+        }>
       ).detail;
-      const items = sources ?? (entry && account ? [githubTransferSource(account, entry)] : []);
+      const items =
+        sources ??
+        (entry && account ? [githubTransferSource(account, entry)] : []);
       const next = { sources: items, x, y };
       if (items.length) setMenu(next);
-      if (current && entry && (entry.kind === "dir" || /\.html?$/i.test(entry.name)))
+      if (
+        current &&
+        entry &&
+        (entry.kind === "dir" || /\.html?$/i.test(entry.name))
+      )
         void detectSite(current, [entry], controller.signal)
           .then((value) => {
             if (value && !controller.signal.aborted)
-              setMenu((old) => old === next || !items.length ? { ...next, target: value } : old);
+              setMenu((old) =>
+                old === next || !items.length
+                  ? { ...next, target: value }
+                  : old,
+              );
           })
           .catch(() => undefined);
     };
@@ -104,6 +124,7 @@ export function SiteEntry({
   }, [menu]);
   return (
     <>
+      {storageNotice && <p role="status">{storageNotice}</p>}
       {menu &&
         createPortal(
           <div
@@ -118,27 +139,99 @@ export function SiteEntry({
             }}
             onKeyDown={(event) => {
               if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
-              const buttons = [...event.currentTarget.querySelectorAll("button")];
-              const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
-              buttons[(current + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length]?.focus();
+              const buttons = [
+                ...event.currentTarget.querySelectorAll("button"),
+              ];
+              const current = buttons.indexOf(
+                document.activeElement as HTMLButtonElement,
+              );
+              buttons[
+                (current +
+                  (event.key === "ArrowDown" ? 1 : -1) +
+                  buttons.length) %
+                  buttons.length
+              ]?.focus();
               event.preventDefault();
             }}
           >
-            {menu.target && <button
-              role="menuitem"
-              onClick={() => {
-                setOpened(menu.target);
-                setMenu(undefined);
-              }}
-            >
-              {t("previewSite")}
-            </button>}
-            {menu.sources.length > 0 && [true, false].map((move) => (
-              <button key={String(move)} role="menuitem" onClick={() => {
-                requestTransfer({ items: menu.sources.map((source) => ({ source })), move });
-                setMenu(undefined);
-              }}>{t(move ? "moveTo" : "copyTo")}</button>
-            ))}
+            {menu.target && (
+              <button
+                role="menuitem"
+                onClick={() => {
+                  setOpened(menu.target);
+                  setMenu(undefined);
+                }}
+              >
+                {t("previewSite")}
+              </button>
+            )}
+            {menu.sources.some(
+              (source) => "endpoint" in source && source.entry.kind === "file",
+            ) && (
+              <button
+                role="menuitem"
+                onClick={() => {
+                  const sources = menu.sources.filter(
+                    (source) =>
+                      "endpoint" in source && source.entry.kind === "file",
+                  );
+                  setMenu(undefined);
+                  void Promise.all(
+                    sources.map(async (source) => {
+                      if (!("endpoint" in source)) return;
+                      if (source.endpoint.provider === "github") {
+                        const { readGitHub } =
+                          await import("../services/githubCache");
+                        const { parseRef } = await import("../lib/refs");
+                        await readGitHub(
+                          account,
+                          parseRef(source.entry.ref),
+                          undefined,
+                          undefined,
+                          true,
+                        );
+                      } else {
+                        window.dispatchEvent(
+                          new CustomEvent("shelf-cloud-pin", {
+                            detail: source.entry,
+                          }),
+                        );
+                      }
+                    }),
+                  ).then(
+                    () => {
+                      if (
+                        sources.some(
+                          (source) =>
+                            "endpoint" in source &&
+                            source.endpoint.provider === "github",
+                        )
+                      )
+                        setStorageNotice(t("keptOffline"));
+                    },
+                    () => setStorageNotice(t("storageFull")),
+                  );
+                }}
+              >
+                {t("keepOffline")}
+              </button>
+            )}
+            {menu.sources.length > 0 &&
+              [true, false].map((move) => (
+                <button
+                  key={String(move)}
+                  role="menuitem"
+                  onClick={() => {
+                    requestTransfer({
+                      items: menu.sources.map((source) => ({ source })),
+                      move,
+                    });
+                    setMenu(undefined);
+                  }}
+                >
+                  {t(move ? "moveTo" : "copyTo")}
+                </button>
+              ))}
           </div>,
           document.body,
         )}

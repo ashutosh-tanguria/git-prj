@@ -13,7 +13,10 @@ function db() {
       request.result.createObjectStore("meta", { keyPath: "key" });
       request.result.createObjectStore("bytes");
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      request.result.onversionchange = () => request.result.close();
+      resolve(request.result);
+    };
     request.onerror = () => reject(request.error);
   }));
 }

@@ -28,3 +28,21 @@ window.addEventListener("hashchange", () => {
   void render();
 });
 void render();
+
+if (
+  import.meta.env.PROD &&
+  !location.hash.startsWith("#/styleguide") &&
+  "serviceWorker" in navigator
+)
+  void navigator.serviceWorker.register("./offline-app.js").catch(() => {});
+
+if (typeof BroadcastChannel !== "undefined") {
+  const resets = new BroadcastChannel("shelf-reset");
+  resets.onmessage = ({ data }) => {
+    if (data === "start") root.unmount();
+    if (data === "finish") {
+      history.replaceState(null, "", location.pathname + location.search);
+      location.reload();
+    }
+  };
+}
