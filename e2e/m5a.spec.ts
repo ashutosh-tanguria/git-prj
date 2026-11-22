@@ -147,6 +147,9 @@ test("acceptance 8 restores page 50 of a 20 MB PDF while offline after reload", 
   await expect(
     page.locator('[data-pdf-page="50"][data-rendered="true"]'),
   ).toBeVisible();
+  await page.route("https://api.github.com/**", (route) =>
+    route.abort("internetdisconnected"),
+  );
   await context.setOffline(true);
   await expect(page.getByText("Offline", { exact: true })).toBeVisible();
   await page.reload();
@@ -241,6 +244,10 @@ test("Hindi search and Storage specimens reflow and remain accessible", async ({
     specimen.getByRole("combobox", { name: "कमांड और खोज" }),
   ).toBeVisible();
   await expect(specimen.getByRole("heading", { name: "स्टोरेज" })).toBeVisible();
+  await expect(
+    specimen.getByText("यह फ़ाइल ऑफ़लाइन उपलब्ध नहीं है।"),
+  ).toBeVisible();
+  await expect(specimen.getByText(/सेटिंग में कैश साफ़ करें/)).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

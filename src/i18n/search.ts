@@ -4,8 +4,7 @@ const en = {
   commandPalette: "Command palette",
   paletteInput: "Commands and search",
   paletteResults: "Palette results",
-  palettePrefixes:
-    "> Commands · / File names · ? Full text · @ Locations · # Tags",
+  palettePrefixes: "> Commands, / File names, ? Full text, @ Locations, # Tags",
   paletteCount_one: "{{count}} result",
   paletteCount_other: "{{count}} results",
   paletteNoTags: "No tags yet",
@@ -43,7 +42,7 @@ const hi = {
   commandPalette: "कमांड पैलेट",
   paletteInput: "कमांड और खोज",
   paletteResults: "पैलेट के नतीजे",
-  palettePrefixes: "> कमांड · / फ़ाइल नाम · ? पूरा टेक्स्ट · @ स्थान · # टैग",
+  palettePrefixes: "> कमांड, / फ़ाइल नाम, ? पूरा टेक्स्ट, @ स्थान, # टैग",
   paletteCount_one: "{{count}} नतीजा",
   paletteCount_other: "{{count}} नतीजे",
   paletteNoTags: "अभी कोई टैग नहीं है",

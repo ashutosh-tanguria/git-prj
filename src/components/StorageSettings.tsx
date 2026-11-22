@@ -102,6 +102,7 @@ export function StorageSettings({
       <Button isDisabled={busy || specimen} onPress={() => setConfirming(true)}>
         {t("storageWipe")}
       </Button>
+      {specimen && <p>{t("storageFull")}</p>}
       {confirming && (
         <div>
           <p role="alert">{t("storageConfirm")}</p>

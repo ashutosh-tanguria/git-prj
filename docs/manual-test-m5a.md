@@ -9,6 +9,7 @@ Use a disposable account and a private test repository. The automated browser ca
 3. Open a cached file again after changing it remotely. Verify that the viewer and search show the new version. Use Refresh or Ctrl+R to force a folder check. With an ETag visible to the browser, confirm the next refresh sends If-None-Match and handles a 304 response.
 4. With a connected session, go offline and open Review pending. Push should be disabled and explain why. Stage a new file in a cached location. Select Push when back online for the reviewed batch and restore connectivity. Verify that the usual guards still apply. Repeat with the checkbox cleared and verify that no automatic push runs. Changing which items are pending cancels the earlier batch authorization.
 5. With GitHub and each configured cloud provider connected, populate the cache and stage a disposable draft. Open another Shelf tab. Confirm Wipe all local data and verify that all sessions return to Connect, the cached files and draft disappear, and the storage limit and reading position reset. If you wipe while offline, restore connectivity for the app shell to reload.
+6. Return online and browse a folder containing both a cached file and a file you have never opened. Go offline and open each from the cached listing. Check that the cached file renders and Shelf explains that the other file is unavailable offline.
 
 ## Search and keyboard
 

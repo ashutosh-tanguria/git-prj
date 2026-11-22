@@ -62,6 +62,7 @@ export function SearchSpecimens() {
       <p>{t("index_tooLarge")}</p>
       <section aria-label={t("offline")}>
         <StatusBar account="" onlineOverride={false} />
+        <p>{t("offlineMissing")}</p>
         <p>{t("pushOffline")}</p>
         <Button isDisabled>{t("push")}</Button>
         <label>
