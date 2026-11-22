@@ -16,11 +16,13 @@ import { MediaStatus } from "./MediaStatus";
 import type { MediaProgress } from "../services/mediaRead";
 export function Inspector({
   entries,
+  account,
   visibility,
   defaultTab = "preview",
   previewBlob,
 }: {
   entries: Entry[];
+  account?: string;
   visibility: string;
   defaultTab?: string;
   previewBlob?: Blob;
@@ -33,6 +35,34 @@ export function Inspector({
     [error, setError] = useState("");
   const [mediaProgress, setMediaProgress] = useState<MediaProgress>();
   const entry = entries.length === 1 ? entries[0] : undefined;
+  const [cacheState, setCacheState] = useState("notCached");
+  useEffect(() => {
+    setCacheState("notCached");
+    if (!account || entry?.kind !== "file") return;
+    let active = true;
+    const update = () => {
+      void import("../services/fileCache")
+        .then((cache) =>
+          cache.findCachedFile({
+            scope: "github:" + account.toLowerCase(),
+            ref: entry.ref,
+          }),
+        )
+        .then((file) => {
+          if (active)
+            setCacheState(
+              file?.pinned ? "keptOffline" : file ? "cachedFile" : "notCached",
+            );
+        })
+        .catch(() => {});
+    };
+    update();
+    window.addEventListener("shelf-cache-changed", update);
+    return () => {
+      active = false;
+      window.removeEventListener("shelf-cache-changed", update);
+    };
+  }, [account, entry?.ref, entry?.kind]);
   useEffect(() => {
     setBlob(previewBlob);
     setError("");
@@ -41,11 +71,19 @@ export function Inspector({
       return;
     const controller = new AbortController();
     mediaRequest.current = controller;
-    void library
-      .read(parseRef(entry.ref), controller.signal, (value) => {
-        if (!controller.signal.aborted) setMediaProgress(value);
+    const ref = parseRef(entry.ref);
+    const progress = (value: MediaProgress) => {
+      if (!controller.signal.aborted) setMediaProgress(value);
+    };
+    const read = account
+      ? import("../services/githubCache").then((cache) =>
+          cache.readGitHub(account, ref, controller.signal, progress),
+        )
+      : library.read(ref, controller.signal, progress);
+    void read
+      .then((value) => {
+        if (!controller.signal.aborted) setBlob(value);
       })
-      .then(setBlob)
       .catch((error: Error) => {
         if (!controller.signal.aborted)
           setError(
@@ -53,7 +91,7 @@ export function Inspector({
           );
       });
     return () => controller.abort();
-  }, [entry?.ref, tab, previewBlob]);
+  }, [account, entry?.ref, tab, previewBlob]);
   return (
     <section aria-label={t("inspector")} className={styles.inspector}>
       <h2>{t("inspector")}</h2>
@@ -174,7 +212,7 @@ export function Inspector({
                     <VisibilityBadge visibility={visibility} />
                   </dd>
                   <dt>{t("cacheStatus")}</dt>
-                  <dd>{t("notCached")}</dd>
+                  <dd>{t(cacheState)}</dd>
                 </dl>
               )}
             </>

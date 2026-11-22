@@ -70,6 +70,7 @@ function currentRef() {
 }
 function message(error: unknown) {
   if (!(error instanceof ProviderError)) return t("providerUNKNOWN");
+  if (error.code === "storageFull") return t("storageFull");
   if (error.details.uncertain) return t("cloudUncertain");
   const copy = t(error.userMessage);
   return error.details.retryAfter === undefined
@@ -135,6 +136,10 @@ export default function CloudIntegration({
   const session = sessions.find(({ provider }) =>
     folder.startsWith(cloudPrefix[provider.id as CloudId]),
   );
+  const visibleRows =
+    filter.folder === folder && filter.query.trim()
+      ? rows.filter((item) => nameMatches(item.name, filter.query))
+      : rows;
   const queued = pending.filter((item) => item.locationId === session?.root.id);
   const connected = new Set(
     sessions
@@ -606,6 +611,13 @@ export default function CloudIntegration({
     refresh,
     parent,
     command,
+    signOutAll: async () => {
+      await Promise.allSettled(
+        sessions.map(({ provider }) => provider.disconnect()),
+      );
+      setSessions([]);
+      setDeferred(undefined);
+    },
     openTextResult: (item) => showCached(item, item),
     openFilenameResult: (item) =>
       item.kind === "dir" ? open(item.ref) : showCached(item),
@@ -742,72 +754,67 @@ export default function CloudIntegration({
                 </tr>
               </thead>
               <tbody>
-                {rows
-                  .filter(
-                    (item) =>
-                      filter.folder !== folder ||
-                      nameMatches(item.name, filter.query),
-                  )
-                  .map((item) => (
-                    <tr
-                      key={item.ref}
-                      onContextMenu={(event) => {
-                        if (
-                          item.kind !== "file" ||
-                          matchMedia("(pointer: coarse)").matches
-                        )
-                          return;
-                        event.preventDefault();
-                        window.dispatchEvent(
-                          new CustomEvent("shelf-site-context", {
-                            detail: {
-                              sources: [
-                                {
-                                  entry: item,
-                                  endpoint: {
-                                    provider: session.root.provider,
-                                    locationId: session.root.id,
-                                    ref: item.ref,
-                                  },
+                {visibleRows.map((item) => (
+                  <tr
+                    key={item.ref}
+                    onContextMenu={(event) => {
+                      if (
+                        item.kind !== "file" ||
+                        matchMedia("(pointer: coarse)").matches
+                      )
+                        return;
+                      event.preventDefault();
+                      window.dispatchEvent(
+                        new CustomEvent("shelf-site-context", {
+                          detail: {
+                            sources: [
+                              {
+                                entry: item,
+                                endpoint: {
+                                  provider: session.root.provider,
+                                  locationId: session.root.id,
+                                  ref: item.ref,
                                 },
-                              ],
-                              x: event.clientX,
-                              y: event.clientY,
-                            },
-                          }),
-                        );
-                      }}
-                    >
-                      <td>
-                        {item.kind === "dir" ? (
-                          <Button
-                            variant="quiet"
-                            onPress={() => open(item.ref)}
-                          >
-                            {item.name}
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="quiet"
-                            aria-pressed={selected?.ref === item.ref}
-                            onPress={() => setSelected(item)}
-                          >
-                            {item.name}
-                          </Button>
-                        )}
-                      </td>
-                      <td>
-                        {item.size === null
-                          ? t("unknown")
-                          : new Intl.NumberFormat(
-                              document.documentElement.lang,
-                            ).format(item.size) + " B"}
-                      </td>
-                    </tr>
-                  ))}
+                              },
+                            ],
+                            x: event.clientX,
+                            y: event.clientY,
+                          },
+                        }),
+                      );
+                    }}
+                  >
+                    <td>
+                      {item.kind === "dir" ? (
+                        <Button variant="quiet" onPress={() => open(item.ref)}>
+                          {item.name}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="quiet"
+                          aria-pressed={selected?.ref === item.ref}
+                          onPress={() => setSelected(item)}
+                        >
+                          {item.name}
+                        </Button>
+                      )}
+                    </td>
+                    <td>
+                      {item.size === null
+                        ? t("unknown")
+                        : new Intl.NumberFormat(
+                            document.documentElement.lang,
+                          ).format(item.size) + " B"}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-            {!rows.length && <p>{t("emptyFolder")}</p>}
+            {!visibleRows.length && (
+              <p role="status">
+                {t(visibleRows === rows ? "emptyFolder" : "searchNoMatches")}
+              </p>
+            )}
             {selected && (
               <div className={cloudStyles.actions}>
                 {[true, false].map((move) => (

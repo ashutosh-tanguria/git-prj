@@ -17,11 +17,23 @@ export function offlineShell(): Plugin {
         for (const stylesheet of chunk.viteMetadata?.importedCss ?? [])
           files.add(stylesheet);
       };
+      const startup = [
+        "/index.html",
+        "/src/screens/Library.tsx",
+        "/src/components/CloudIntegration.tsx",
+        "/src/components/LibraryCommands.tsx",
+        "/src/components/WorkingCopy.tsx",
+        "/src/components/TransferIntegration.tsx",
+        "/src/components/LocalFolderTools.tsx",
+        "/src/components/SiteEntry.tsx",
+        "/src/components/GuardController.tsx",
+        "/src/components/IndexingStatus.tsx",
+        "/src/services/githubCache.ts",
+      ];
       for (const asset of Object.values(bundle)) {
         if (
           asset.type === "chunk" &&
-          (asset.facadeModuleId?.endsWith("/src/screens/Library.tsx") ||
-            asset.facadeModuleId?.endsWith("/index.html"))
+          startup.some((path) => asset.facadeModuleId?.endsWith(path))
         )
           include(asset.fileName);
         if (asset.fileName.endsWith(".woff2")) files.add(asset.fileName);

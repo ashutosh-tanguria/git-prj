@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { staging } from "../services/workingStorage";
 import { exportWorking } from "../services/workingBackup";
 import { pushChanges, ConflictError } from "../services/githubPush";
+import { localWipeInProgress } from "../services/wipeLocalData";
 import { useOffline } from "./useOffline";
 import { isConnected } from "../providers/github/client";
 import { t } from "../i18n";
@@ -82,7 +83,7 @@ export function useWorkingCopy() {
   }, []);
   useEffect(() => {
     const unload = (e: BeforeUnloadEvent) => {
-      if (rows.length) {
+      if (rows.length && !localWipeInProgress()) {
         e.preventDefault();
         e.returnValue = "";
       }

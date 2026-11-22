@@ -56,7 +56,8 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       (async () => {
         const cache = await caches.open(cacheName);
-        const cached = await cache.match(request);
+        // Vite and static hosts may vary on Origin even for immutable build assets.
+        const cached = await cache.match(request, { ignoreVary: true });
         if (cached) return cached;
         const response = await fetch(request);
         if (response.ok)

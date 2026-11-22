@@ -77,19 +77,26 @@ export class OneDriveProvider extends SequentialProvider {
   private async json<T>(url: string, init?: RequestInit) {
     return (await this.request(url, init)).json() as Promise<T>;
   }
-  private async pages<T>(start: string, signal?: AbortSignal) {
+  private async pages<T>(start: string, signal?: AbortSignal, etag?: string) {
     const rows: T[] = [];
     const seen = new Set<string>();
     let url: string | undefined = start;
+    let version: string | undefined;
     while (url) {
       if (seen.has(url) || !url.startsWith(API + "/"))
         throw new ProviderError("PROVIDER_DOWN");
       seen.add(url);
-      const page: Page<T> = await this.json(url, { signal });
+      const response = await this.request(url, {
+        signal,
+        headers: url === start && etag ? { "If-None-Match": etag } : undefined,
+      });
+      if (response.status === 304) return { rows: undefined, etag };
+      if (url === start) version = response.headers.get("ETag") ?? undefined;
+      const page = (await response.json()) as Page<T>;
       rows.push(...page.value);
       url = page["@odata.nextLink"];
     }
-    return rows;
+    return { rows, etag: version };
   }
   async listRoots(): Promise<Location[]> {
     const root = await this.json<Item>(itemUrl(ROOT) + "?$select=id");
@@ -103,17 +110,23 @@ export class OneDriveProvider extends SequentialProvider {
     ];
   }
   async list(ref: string, opts?: { signal?: AbortSignal }) {
-    return (
-      await this.pages<Item>(itemUrl(ref) + "/children", opts?.signal)
-    ).map(entry);
+    return (await this.listVersioned(ref, opts)).entries ?? [];
+  }
+  async listVersioned(
+    ref: string,
+    opts?: { signal?: AbortSignal; etag?: string },
+  ) {
+    const page = await this.pages<Item>(
+      itemUrl(ref) + "/children",
+      opts?.signal,
+      opts?.etag,
+    );
+    return { entries: page.rows?.map(entry), etag: page.etag };
   }
   async stat(ref: string) {
     return entry(await this.json<Item>(itemUrl(ref)));
   }
-  async read(
-    ref: string,
-    opts?: ReadOptions,
-  ) {
+  async read(ref: string, opts?: ReadOptions) {
     const url =
       itemUrl(ref) +
       (opts?.version ? "/versions/" + encodeURIComponent(opts.version) : "");
@@ -140,7 +153,7 @@ export class OneDriveProvider extends SequentialProvider {
       id: string;
       lastModifiedDateTime?: string;
     }>(itemUrl(ref) + "/versions");
-    return versions.map((version) => ({
+    return (versions.rows ?? []).map((version) => ({
       id: version.id,
       label: version.id,
       modified: version.lastModifiedDateTime ?? null,

@@ -14,9 +14,11 @@ import "../i18n/storage";
 export function StorageSettings({
   startWipe = false,
   specimen = false,
+  beforeWipe,
 }: {
   startWipe?: boolean;
   specimen?: boolean;
+  beforeWipe?: () => Promise<void>;
 }) {
   const [usage, setUsage] = useState(0);
   const [cap, setCap] = useState("500");
@@ -111,6 +113,7 @@ export function StorageSettings({
             isDisabled={busy}
             onPress={() =>
               void run(async () => {
+                await beforeWipe?.();
                 await wipeLocalData();
                 history.replaceState(
                   null,

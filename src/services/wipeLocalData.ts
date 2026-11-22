@@ -7,7 +7,11 @@ const databaseNames = [
   "shelf-library",
 ];
 
+let wiping = false;
+export const localWipeInProgress = () => wiping;
+
 export async function wipeLocalData() {
+  wiping = true;
   clearToken();
   const channel =
     typeof BroadcastChannel === "undefined"
@@ -39,6 +43,9 @@ export async function wipeLocalData() {
     for (const storage of [localStorage, sessionStorage]) storage.clear();
     if (typeof caches !== "undefined")
       for (const name of await caches.keys()) await caches.delete(name);
+  } catch (error) {
+    wiping = false;
+    throw error;
   } finally {
     channel?.postMessage("finish");
     channel?.close();

@@ -11,6 +11,7 @@ export function FileTable(props: {
   onPreview: (entry: Entry, rows?: Entry[]) => void;
   onSelectionChange?: (entries: Entry[]) => void;
   locationKey?: string;
+  filtered?: boolean;
 }) {
   const table = useFileTable(props);
   const {
@@ -170,7 +171,11 @@ export function FileTable(props: {
           />
         )}
       </div>
-      {!rows.length && <p>{t("emptyFolder")}</p>}
+      {!rows.length && (
+        <p role="status">
+          {t(props.filtered ? "searchNoMatches" : "emptyFolder")}
+        </p>
+      )}
     </section>
   );
 }

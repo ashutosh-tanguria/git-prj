@@ -38,6 +38,7 @@ export async function providerFetch(
   if (res.url) allowedUrl(res.url, hosts);
   if (
     res.ok ||
+    (res.status === 304 && new Headers(init.headers).has("If-None-Match")) ||
     (res.status === 308 && url.startsWith("https://www.googleapis.com/upload/"))
   )
     return res;

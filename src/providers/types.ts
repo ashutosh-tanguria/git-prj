@@ -74,9 +74,18 @@ export interface StorageProvider {
   isConnected(): boolean;
   listRoots(): Promise<Location[]>;
   list(ref: string, opts?: { signal?: AbortSignal }): Promise<Entry[]>;
+  listVersioned?(
+    ref: string,
+    opts?: { signal?: AbortSignal; etag?: string },
+  ): Promise<{ entries?: Entry[]; etag?: string }>;
   stat(ref: string): Promise<Entry>;
   read(ref: string, opts?: ReadOptions): Promise<Blob>;
-  preflightTransfer?(ref: string, name: string, size: number, ctx: PushContext): Promise<void>;
+  preflightTransfer?(
+    ref: string,
+    name: string,
+    size: number,
+    ctx: PushContext,
+  ): Promise<void>;
   reserveCreate?(signal?: AbortSignal): Promise<string>;
   push(changes: Change[], ctx: PushContext): Promise<PushResult>;
   history(ref: string): Promise<VersionInfo[]>;

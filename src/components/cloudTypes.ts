@@ -27,6 +27,7 @@ export interface CloudLibrary {
   transferDestination?: TransferEndpoint;
   transferSelection: TransferSource[];
   transferProvider(endpoint: TransferEndpoint): StorageProvider | undefined;
+  signOutAll(): Promise<void>;
   openTextResult(item: TextMatch): void;
   openFilenameResult(item: NamedEntry): void;
   filterFolder(query: string): void;

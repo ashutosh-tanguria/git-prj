@@ -2,6 +2,7 @@ import i18next from "i18next";
 const en = {
   keepOffline: "Keep offline",
   keptOffline: "Available offline",
+  cachedFile: "Cached",
   pushOffline: "Push is disabled while offline.",
   pushWhenOnline: "Push when back online",
   pushBatchChanged: "The pending batch changed. Review it before pushing.",
@@ -24,6 +25,7 @@ const en = {
 const hi = {
   keepOffline: "ऑफ़लाइन रखें",
   keptOffline: "ऑफ़लाइन उपलब्ध है",
+  cachedFile: "कैश में है",
   pushOffline: "ऑफ़लाइन रहते हुए पुश बंद है।",
   pushWhenOnline: "ऑनलाइन होने पर पुश करें",
   pushBatchChanged: "लंबित बदलाव बदल गए हैं। पुश करने से पहले समीक्षा करें।",

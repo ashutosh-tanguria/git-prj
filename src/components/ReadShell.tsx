@@ -20,6 +20,7 @@ import type { Entry, Repo } from "../services/library";
 import styles from "./Library.module.css";
 export function ReadShell({
   roots,
+  account,
   clouds,
   selection,
   selectionBlob,
@@ -29,6 +30,7 @@ export function ReadShell({
   onSplit,
 }: {
   roots: Repo[];
+  account?: string;
   clouds?: CloudLocations;
   selection: Entry[];
   selectionBlob?: Blob;
@@ -150,7 +152,7 @@ export function ReadShell({
       >
         {panels.locations && panels.width >= 900 && (
           <aside id="locations" tabIndex={-1} className={styles.locationPane}>
-            <Locations repos={roots} clouds={clouds} />
+            <Locations repos={roots} clouds={clouds} account={account} />
           </aside>
         )}
         {panels.locations && panels.width >= 900 && (
@@ -198,6 +200,7 @@ export function ReadShell({
               defaultTab={selectionBlob ? "details" : "preview"}
               previewBlob={selectionBlob}
               entries={selection}
+              account={account}
               visibility={visibility}
             />
           </aside>
@@ -207,7 +210,7 @@ export function ReadShell({
         <Suspense fallback={null}>
           <PaneLayer kind="locations" onClose={() => close("locations")}>
             <div id="locations" tabIndex={-1}>
-              <Locations repos={roots} clouds={clouds} />
+              <Locations repos={roots} clouds={clouds} account={account} />
             </div>
           </PaneLayer>
         </Suspense>
@@ -221,6 +224,7 @@ export function ReadShell({
                 defaultTab={selectionBlob ? "details" : "preview"}
                 previewBlob={selectionBlob}
                 entries={selection}
+                account={account}
                 visibility={visibility}
               />
             </div>

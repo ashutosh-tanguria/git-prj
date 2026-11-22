@@ -12,9 +12,11 @@ import v2 from "./ExplorerV2.module.css";
 export function Locations({
   repos,
   clouds,
+  account,
 }: {
   repos: Repo[];
   clouds?: CloudLocations;
+  account?: string;
 }) {
   return (
     <LocationTree
@@ -25,15 +27,18 @@ export function Locations({
       }
       repos={repos}
       clouds={clouds}
+      account={account}
     />
   );
 }
 function LocationTree({
   repos,
   clouds,
+  account,
 }: {
   repos: Repo[];
   clouds?: CloudLocations;
+  account?: string;
 }) {
   const prefix = useId();
   const [nodes, setNodes] = useState(() => initial(repos, clouds?.roots)),
@@ -56,7 +61,11 @@ function LocationTree({
         const entries =
           node.provider && clouds
             ? await clouds.list(node.ref)
-            : await library.list(parseRef(node.ref));
+            : account
+              ? await import("../services/githubCache").then((cache) =>
+                  cache.listGitHub(account, parseRef(node.ref!)),
+                )
+              : await library.list(parseRef(node.ref));
         node.children = entries
           .filter((entry) => entry.kind === "dir")
           .map((entry) => ({

@@ -425,7 +425,10 @@ export function LibraryCommands({
             />
           ) : ["settings", "storageWipe"].includes(action) ? (
             <>
-              <StorageSettings startWipe={action === "storageWipe"} />
+              <StorageSettings
+                startWipe={action === "storageWipe"}
+                beforeWipe={cloud?.signOutAll}
+              />
               {providerSettings}
               <ShortcutSettings
                 bindings={bindings}

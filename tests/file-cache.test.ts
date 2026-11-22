@@ -121,3 +121,28 @@ it("wipes every Shelf database, private file directory and storage cache", async
   expect(clear).toHaveBeenCalledTimes(2);
   expect(deleteCache).toHaveBeenCalledWith("shelf-shell-test");
 });
+
+it("serves expired listings immediately, then conditionally revalidates with the saved ETag", async () => {
+  const { listCached } = await import("../src/services/listingCache");
+  const scope = "github:ada";
+  const ref = "folder";
+  await cacheData.put("listings", JSON.stringify([scope, ref]), {
+    scope,
+    ref,
+    entries: ["old"],
+    etag: '"cached"',
+    fetchedAt: Date.now() - 60_001,
+  });
+  const load = vi.fn(async () => ({ entries: ["new"], etag: '"fresh"' }));
+  const onUpdate = vi.fn();
+  expect(await listCached(scope, ref, load, { onUpdate })).toEqual(["old"]);
+  await vi.waitFor(() => expect(onUpdate).toHaveBeenCalledWith(["new"]));
+  expect(load).toHaveBeenCalledWith('"cached"');
+  expect(await listCached(scope, ref, load)).toEqual(["new"]);
+  expect(load).toHaveBeenCalledTimes(1);
+  const notModified = vi.fn(async () => ({}));
+  expect(await listCached(scope, ref, notModified, { force: true })).toEqual([
+    "new",
+  ]);
+  expect(notModified).toHaveBeenCalledWith('"fresh"');
+});

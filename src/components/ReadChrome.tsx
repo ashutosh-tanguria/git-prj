@@ -58,11 +58,13 @@ export function StatusBar({
   entries = [],
   selection = [],
   extra,
+  onlineOverride,
 }: {
   account: string;
   entries?: Entry[];
   selection?: Entry[];
   extra?: ReactNode;
+  onlineOverride?: boolean;
 }) {
   const online = useSyncExternalStore(subscribe, () => navigator.onLine);
   return (
@@ -75,7 +77,10 @@ export function StatusBar({
           }).format(selection.reduce((n, r) => n + r.size, 0) / 1048576),
         })}
       </span>
-      <span>{t(online ? "online" : "offline")}</span> <span>{account}</span>
+      <span aria-live="polite">
+        {t((onlineOverride ?? online) ? "online" : "offline")}
+      </span>{" "}
+      <span>{account}</span>
       {extra}
     </footer>
   );

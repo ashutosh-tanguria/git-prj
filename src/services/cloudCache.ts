@@ -1,11 +1,6 @@
 import type { Entry, Location, StorageProvider } from "../providers/types";
 import { ProviderError } from "../providers/types";
-import {
-  findCachedFile,
-  getCachedFile,
-  pinCachedFile,
-  storeCachedFile,
-} from "./fileCache";
+import { getCachedFile, pinCachedFile, storeCachedFile } from "./fileCache";
 import { listCached } from "./listingCache";
 
 export const cloudScope = (root: Location) => root.provider + ":" + root.id;
@@ -19,9 +14,10 @@ export function listCloud(
   return listCached(
     cloudScope(root),
     ref,
-    async () => ({
-      entries: await provider.list(ref, { signal: options?.signal }),
-    }),
+    async (etag) =>
+      provider.listVersioned
+        ? provider.listVersioned(ref, { signal: options?.signal, etag })
+        : { entries: await provider.list(ref, { signal: options?.signal }) },
     options,
   );
 }
@@ -43,9 +39,7 @@ export async function readCloud(
   };
   if (!navigator.onLine) return cached();
   try {
-    const known = await findCachedFile(ref);
-    const current =
-      known || !item.version ? await provider.stat(item.ref) : item;
+    const current = await provider.stat(item.ref);
     const identity = {
       ...ref,
       name: current.name,
@@ -59,11 +53,16 @@ export async function readCloud(
     }
     const bytes = await provider.read(item.ref, {
       signal: options.signal,
-      version: current.version ?? undefined,
     });
     options.signal?.throwIfAborted();
+    const latest = current.version
+      ? await provider.stat(item.ref).catch(() => undefined)
+      : undefined;
+    options.signal?.throwIfAborted();
     const saved =
-      current.version && (await storeCachedFile(identity, bytes, options.pin));
+      latest?.version &&
+      latest.version === current.version &&
+      (await storeCachedFile(identity, bytes, options.pin));
     if (options.pin && !saved) throw new ProviderError("storageFull");
     return bytes;
   } catch (error) {

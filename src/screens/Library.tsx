@@ -164,6 +164,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
       />
       <ReadShell
         roots={state.displayedRoots}
+        account={state.activeAccount}
         clouds={cloud?.locations}
         selection={selection}
         visibility={visibility}
@@ -232,6 +233,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
                       )
                     : entries
                 }
+                filtered={!!folderQuery.trim()}
                 onSelectionChange={setSelection}
                 locationKey={key}
                 onOpen={open}

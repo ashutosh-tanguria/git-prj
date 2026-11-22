@@ -1,4 +1,13 @@
 # Shelf progress
+### M5a complete (2026-11-22)
+
+- Status: Five commits deliver the licence correction, offline cache and Storage, full-text search, folder search and command palette, and English/Hindi specimens. M5a Chromium covers acceptance 8, 12 and 17.
+- Decisions: Switch view uses the existing Explorer and Split view. Reconnect Push authorization belongs to the reviewed batch and current session. The offline shell precaches compiled application assets and fonts, and caches viewer assets after use.
+- Not done: Real-account OAuth, provider conditional-response visibility, production performance and physical-device verification are owner checks. M5b and M6 are outside this milestone.
+- Manual steps: Follow docs/manual-test-m5a.md with disposable accounts and a private test repository.
+- Known issues: Browser storage can be evicted. Scanned PDFs require OCR outside M5a. Wiping while offline signs out and clears local data, with an online reload needed to restore the app shell.
+- Validation: The final check passed with 287 tests and a 148009-byte gzip shell. Eight Chromium cases passed, including 20 MB page 50 after an offline reload, phrase and highlight on page 12, wipe, palette keyboard navigation, Hindi accessibility, forced colours and 200 percent reflow. One refresh updated only light-default, dark-default and hindi-360. The licence checker passed.
+
 ### M5a slice 3: Search and command palette
 
 - Status: Ctrl+F filters the current folder. Ctrl+K opens the keyboard-accessible palette with all five prefixes. Chromium passed keyboard search, disabled ZIP and tag states, and page 12 selection. The full check passed with 286 tests.

@@ -4,6 +4,7 @@ import "../i18n/cloud";
 import "../i18n/transfers";
 import "../i18n/m3c";
 import type { TransferRequest } from "../services/transferRequests";
+import { localWipeInProgress } from "../services/wipeLocalData";
 import { transferPending } from "../services/transferJournal";
 import type { Approvals, Transfer } from "../services/transferTypes";
 import { transfers } from "../services/transfers";
@@ -60,8 +61,10 @@ export default function TransferIntegration({
   useEffect(() => {
     if (!pending.length) return;
     const protect = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
+      if (!localWipeInProgress()) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
     };
     window.addEventListener("beforeunload", protect);
     return () => window.removeEventListener("beforeunload", protect);
