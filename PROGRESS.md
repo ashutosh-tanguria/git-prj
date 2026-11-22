@@ -1,4 +1,12 @@
 # Shelf progress
+### M4b slice 3: PDF split (2026-11-22)
+
+- Status: The blocked-upload dialog and Size ledger can split a PDF in a lazy pdf-lib worker. Measured consecutive parts stage as guarded adds while the original remains untouched.
+- Decisions: Use 90 MiB for parts and refuse inputs above 300 MiB before reading. Try the source-size estimate, serialize and adjust against the measured bytes. Refuse existing or staged part names.
+- Not done: Split view, Local folder and final acceptance follow.
+- Manual steps: Exercise the generated parts in an owner-managed browser with a throwaway repo.
+- Known issues: Encrypted, corrupt or unsupported PDFs report a plain error. Generated fixture tests cover page order, immutable input, the single-page refusal and the input limit. Large-device memory behavior remains an owner check.
+
 ### M4b slice 2: Transfer actions (2026-11-22)
 
 - Status: Context menu and command bar Move to and Copy to, cross-provider and cross-repository Cut/Paste, connected-provider guard remedies, and Size ledger Move selected stage journal entries. Pending review shows one row per file, progress, retry, cancellation and recoverable-delete details.

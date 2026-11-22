@@ -2,10 +2,10 @@ import { FolderUpload } from "./FolderUpload";
 import { droppedFiles } from "../services/folderUpload";
 import { preference } from "../services/preferences";
 import { library } from "../services/library";
-import { request } from "../providers/github/client";
+import { openRead, request } from "../providers/github/client";
 import { stageUploads } from "../services/stageUploads";
-import type { GitRef } from "../lib/refs";
-import { useEffect, useRef, useState } from "react";
+import { parseRef, type GitRef } from "../lib/refs";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Modal, Dialog, Heading } from "react-aria-components";
 import { GuardReview } from "./GuardReview";
 import { SizeLedger } from "./GuardViews";
@@ -14,8 +14,10 @@ import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import { githubTransferSource, localTransferSource, requestTransfer } from "../services/transferRequests";
 import type { CloudLibrary } from "./cloudTypes";
+import type { PdfSplitSource } from "./PdfSplitReview";
 import guardStyles from "./Guards.module.css";
 import styles from "./Library.module.css";
+const SplitReview = lazy(() => import("./PdfSplitReview").then((module) => ({ default: module.PdfSplitReview })));
 export function GuardController({
   repo,
   entries,
@@ -34,7 +36,8 @@ export function GuardController({
     [targetRepo, setTargetRepo] = useState(repo),
     [targetEntries, setTargetEntries] = useState(entries),
     [error, setError] = useState(""),
-    [ledger, setLedger] = useState(false);
+    [ledger, setLedger] = useState(false),
+    [split, setSplit] = useState<{ source: PdfSplitSource; staged(): void }>();
   const input = useRef<HTMLInputElement>(null),
     dialog = useRef<HTMLElement>(null);
   const chooseFiles = async (files: File[]) => {
@@ -120,6 +123,7 @@ export function GuardController({
             if (!open) {
               setFiles(undefined);
               setLedger(false);
+              setSplit(undefined);
             }
           }}
         >
@@ -132,12 +136,29 @@ export function GuardController({
               onPress={() => {
                 setFiles(undefined);
                 setLedger(false);
+                setSplit(undefined);
               }}
             >
               {t(files ? "dontStage" : "close")}
             </Button>
-            {ledger ? (
+            {split ? (
+              <Suspense fallback={<p role="status">{t("splitPdfWorking")}</p>}>
+                <SplitReview
+                  source={split.source}
+                  target={ledger ? current : target}
+                  entries={ledger ? entries : targetEntries}
+                  repo={ledger ? repo : targetRepo}
+                  onClose={() => setSplit(undefined)}
+                  onStaged={() => { split.staged(); setSplit(undefined); }}
+                />
+              </Suspense>
+            ) : ledger ? (
               <SizeLedger repo={repo} entries={entries}
+                onSplit={(file) => setSplit({
+                  source: { name: file.name, size: file.size,
+                    read: async (signal) => (await openRead(parseRef(file.ref), signal, file.sha)).blob() },
+                  staged: () => setLedger(false),
+                })}
                 onMove={account ? (selected) => {
                   requestTransfer({ items: selected.map((entry) => ({ source: githubTransferSource(account, entry) })),
                     move: true, onStaged: () => setLedger(false) });
@@ -146,6 +167,17 @@ export function GuardController({
               <GuardReview
                 key={files?.map((f) => f.name + f.size).join("|")}
                 files={files || []}
+                onSplit={(index) => {
+                  const file = files?.[index];
+                  if (!file) return;
+                  setSplit({
+                    source: { name: file.name, size: file.size, read: async () => file },
+                    staged: () => {
+                      const remaining = files?.filter((_, item) => item !== index);
+                      setFiles(remaining?.length ? remaining : undefined);
+                    },
+                  });
+                }}
                 remedies={cloud ? (index) => {
                   const file = files?.[index];
                   if (!file) return;

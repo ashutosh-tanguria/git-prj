@@ -45,16 +45,19 @@ export function SizeLedger({
   repo,
   entries,
   onMove,
+  onSplit,
 }: {
   repo: Repo;
   entries: Entry[];
   onMove?(entries: Entry[]): void;
+  onSplit?(entry: Entry): void;
 }) {
   const [selected, setSelected] = useState<string[]>([]);
   const files = entries
     .filter((e) => e.kind === "file")
     .sort((a, b) => b.size - a.size)
     .slice(0, 20);
+  const chosen = files.filter((file) => selected.includes(file.ref));
   return (
     <section className={styles.ledger}>
       <RepoMeter repo={repo} />
@@ -67,7 +70,7 @@ export function SizeLedger({
       {files.map((file) => (
         <div key={file.ref} className={styles.ledgerRow}>
           <label>
-            <input type="checkbox" disabled={!onMove} checked={selected.includes(file.ref)}
+            <input type="checkbox" disabled={!onMove && !onSplit} checked={selected.includes(file.ref)}
               onChange={(event) => {
                 const checked = event.target.checked;
                 setSelected((old) => checked ? [...old, file.ref] : old.filter((ref) => ref !== file.ref));
@@ -95,9 +98,11 @@ export function SizeLedger({
         </div>
       ))}
       {onMove ? <Button isDisabled={!selected.length}
-        onPress={() => onMove(files.filter((file) => selected.includes(file.ref)))}>
+        onPress={() => onMove(chosen)}>
         {t("moveSelected")}
-      </Button> : <p>{t("ledgerReadOnly")}</p>}
+      </Button> : !onSplit && <p>{t("ledgerReadOnly")}</p>}
+      {onSplit && <Button isDisabled={chosen.length !== 1 || !/\.pdf$/i.test(chosen[0]?.name)}
+        onPress={() => onSplit(chosen[0])}>{t("splitPdf")}</Button>}
     </section>
   );
 }

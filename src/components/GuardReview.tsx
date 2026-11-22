@@ -20,12 +20,14 @@ export function GuardReview({
   onStage,
   stagedBytes = 0,
   remedies,
+  onSplit,
 }: {
   files: readonly { name: string; size: number }[];
   repo: Repo;
   onStage?: (approval: GuardApproval) => Promise<void>;
   stagedBytes?: number;
   remedies?(index: number): ReactNode;
+  onSplit?(index: number): void;
 }) {
   const [ack, setAck] = useState<string[]>([]),
     [publicConfirmed, setPublic] = useState(false),
@@ -107,6 +109,7 @@ export function GuardReview({
           visibility={visibility}
           check={check}
           remedies={remedies?.(i)}
+          onSplit={onSplit ? () => onSplit(i) : undefined}
         />
       ))}
       <p>{t(batch.code)}</p>
