@@ -1,6 +1,6 @@
 import { HomeUpload } from "./HomeUpload";
 import "../i18n/m3b";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Modal, Dialog, Heading } from "react-aria-components";
 import { CreateRepository } from "./CreateRepository";
 import { ShortcutSettings } from "./ShortcutSettings";
@@ -21,14 +21,19 @@ export function LibraryCommands({
   selection,
   roots,
   onCreated,
+  cloudCommand,
+  providerSettings,
   onRefresh,
 }: {
   current: GitRef | null;
   selection: Entry[];
   roots: Repo[];
+  cloudCommand?(action: string): boolean;
+  providerSettings?: ReactNode;
   onCreated: (repo: Repo, branchWarning?: boolean) => void;
   onRefresh: () => Promise<void>;
 }) {
+  const previousRoute = useRef("");
   const previous = useRef(current);
   if (current) previous.current = current;
   const [action, setAction] = useState(""),
@@ -43,7 +48,7 @@ export function LibraryCommands({
     );
   }, []);
   const dispatch = async (action: string) => {
-    if (action === "previewSite") return;
+    if (action === "previewSite" || cloudCommand?.(action)) return;
     setError("");
     setName("");
     setJob(undefined);
@@ -71,7 +76,10 @@ export function LibraryCommands({
     if (action === "rename" && selection.length === 1)
       setName(selection[0].name);
     setAction(action);
-    if (action === "settings") location.hash = "#/settings/keyboard";
+    if (action === "settings") {
+      previousRoute.current = location.hash;
+      location.hash = "#/settings/keyboard";
+    }
     if (action === "paste" && current) setJob(() => clipboardJob(current));
   };
   useCommandRegistry(bindings, dispatch);
@@ -88,16 +96,18 @@ export function LibraryCommands({
     ),
     close = () => {
       if (action === "settings" && location.hash === "#/settings/keyboard")
-        location.hash = previous.current
-          ? "#/gh/" +
-            previous.current.owner +
-            "/" +
-            previous.current.repo +
-            "@" +
-            encodeURIComponent(previous.current.branch) +
-            "/" +
-            previous.current.path
-          : "#/";
+        location.hash =
+          previousRoute.current ||
+          (previous.current
+            ? "#/gh/" +
+              previous.current.owner +
+              "/" +
+              previous.current.repo +
+              "@" +
+              encodeURIComponent(previous.current.branch) +
+              "/" +
+              previous.current.path
+            : "#/");
       setAction("");
       setJob(undefined);
     };
@@ -140,13 +150,16 @@ export function LibraryCommands({
             directory={action === "uploadFolder"}
           />
         ) : action === "settings" ? (
-          <ShortcutSettings
-            bindings={bindings}
-            onSave={(value) => {
-              setBindings(value);
-              close();
-            }}
-          />
+          <>
+            {providerSettings}
+            <ShortcutSettings
+              bindings={bindings}
+              onSave={(value) => {
+                setBindings(value);
+                close();
+              }}
+            />
+          </>
         ) : job ? (
           <OperationReview job={job} onClose={close} />
         ) : action !== "paste" ? (

@@ -5,6 +5,7 @@ export function allowedUrl(value: string, hosts: readonly string[]) {
     url.protocol !== "https:" ||
     url.username ||
     url.password ||
+    url.port ||
     !hosts.includes(url.hostname)
   )
     throw new ProviderError("PERMISSION");
@@ -25,7 +26,7 @@ export async function providerFetch(
       redirect:
         url.startsWith("https://www.googleapis.com/upload/") &&
         init.method === "PUT"
-          ? "manual"
+          ? "follow"
           : "error",
     });
   } catch (error) {
@@ -34,12 +35,15 @@ export async function providerFetch(
       uncertain: !!init.method && init.method !== "GET",
     });
   }
+  if (res.url) allowedUrl(res.url, hosts);
   if (
     res.ok ||
     (res.status === 308 && url.startsWith("https://www.googleapis.com/upload/"))
   )
     return res;
-  const text = await res.text();
+
+  if (res.status === 401) await expire?.();
+  const text = await res.text().catch(() => "");
   const code =
     res.status === 401
       ? "AUTH_EXPIRED"
@@ -50,18 +54,21 @@ export async function providerFetch(
           ? "QUOTA"
           : res.status === 413
             ? "TOO_LARGE"
-            : res.status === 412 || res.status === 409
-              ? "CONFLICT"
-              : res.status === 404
-                ? "NOT_FOUND"
-                : res.status === 403
-                  ? /rateLimit|too_many_requests/i.test(text)
-                    ? "RATE_LIMITED"
-                    : "PERMISSION"
-                  : res.status >= 500
-                    ? "PROVIDER_DOWN"
-                    : "UNKNOWN";
-  if (code === "AUTH_EXPIRED") await expire?.();
+            : res.status === 409 &&
+                /"error_summary"\s*:\s*"path\/not_found\//.test(text)
+              ? "NOT_FOUND"
+              : res.status === 412 || res.status === 409
+                ? "CONFLICT"
+                : res.status === 404
+                  ? "NOT_FOUND"
+                  : res.status === 403
+                    ? /rateLimit|too_many_requests/i.test(text)
+                      ? "RATE_LIMITED"
+                      : "PERMISSION"
+                    : res.status >= 500
+                      ? "PROVIDER_DOWN"
+                      : "UNKNOWN";
+
   const retry = res.headers.get("Retry-After");
   const retryAfter = retry
     ? /^\d+$/.test(retry)
@@ -71,7 +78,10 @@ export async function providerFetch(
   throw new ProviderError(
     code,
     res.status >= 500 || (code === "RATE_LIMITED" && retryAfter !== undefined),
-    { retryAfter },
+    {
+      retryAfter,
+      uncertain: res.status >= 500 && !!init.method && init.method !== "GET",
+    },
   );
 }
 export async function readResponse(

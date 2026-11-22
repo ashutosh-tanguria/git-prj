@@ -1,4 +1,5 @@
 import "../i18n/styleguide";
+import { CloudSpecimens } from "./CloudSpecimens";
 import { ReadStyleguide } from "./ReadStyleguide";
 import { useState } from "react";
 import { PrimitiveMatrix } from "./PrimitiveMatrix";
@@ -137,6 +138,7 @@ export default function Styleguide() {
             </div>
           </section>
           <ReadStyleguide />
+          <CloudSpecimens />
         </main>
       </div>
     </>

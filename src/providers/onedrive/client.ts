@@ -48,11 +48,16 @@ function itemUrl(ref: string) {
   if (!/^od:[^/]+$/.test(ref)) throw new ProviderError("PERMISSION");
   return API + "/items/" + encodeURIComponent(ref.slice(3));
 }
-function preauthenticated(url: string, suffix: string, init: RequestInit) {
+function preauthenticated(
+  url: string,
+  suffix: string,
+  init: RequestInit,
+  expire: () => Promise<void>,
+) {
   const { hostname } = new URL(url);
   if (!hostname.endsWith(suffix) || hostname.length === suffix.length)
     throw new ProviderError("PERMISSION");
-  return providerFetch(url, [hostname], init);
+  return providerFetch(url, [hostname], init, expire);
 }
 
 export class OneDriveProvider extends SequentialProvider {
@@ -85,7 +90,15 @@ export class OneDriveProvider extends SequentialProvider {
     return rows;
   }
   async listRoots(): Promise<Location[]> {
-    return [{ id: this.id, provider: this.id, label: "OneDrive", root: ROOT }];
+    const root = await this.json<Item>(itemUrl(ROOT) + "?$select=id");
+    return [
+      {
+        id: this.id + ":" + root.id,
+        provider: this.id,
+        label: "OneDrive",
+        root: ROOT,
+      },
+    ];
   }
   async list(ref: string, opts?: { signal?: AbortSignal }) {
     return (
@@ -113,9 +126,14 @@ export class OneDriveProvider extends SequentialProvider {
     const signed = item["@microsoft.graph.downloadUrl"];
     if (!signed) throw new ProviderError("PROVIDER_DOWN");
     return readResponse(
-      await preauthenticated(signed, ONE_DRIVE_DOWNLOAD_SUFFIX, {
-        signal: opts?.signal,
-      }),
+      await preauthenticated(
+        signed,
+        ONE_DRIVE_DOWNLOAD_SUFFIX,
+        {
+          signal: opts?.signal,
+        },
+        () => this.disconnect(),
+      ),
       opts?.onProgress,
       opts?.signal,
     );
@@ -240,12 +258,19 @@ export class OneDriveProvider extends SequentialProvider {
   ) {
     for (let start = 0; start < blob.size; start += FRAGMENT_BYTES) {
       const end = Math.min(start + FRAGMENT_BYTES, blob.size);
-      const response = await preauthenticated(url, ONE_DRIVE_UPLOAD_SUFFIX, {
-        method: "PUT",
-        headers: { "Content-Range": `bytes ${start}-${end - 1}/${blob.size}` },
-        body: blob.slice(start, end),
-        signal: ctx.signal,
-      });
+      const response = await preauthenticated(
+        url,
+        ONE_DRIVE_UPLOAD_SUFFIX,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Range": `bytes ${start}-${end - 1}/${blob.size}`,
+          },
+          body: blob.slice(start, end),
+          signal: ctx.signal,
+        },
+        () => this.disconnect(),
+      );
       if (response.status === 200 || response.status === 201) {
         if (end !== blob.size) throw new ProviderError("PROVIDER_DOWN");
         return (await response.json()) as Item;

@@ -188,5 +188,13 @@
   "nothingStaged": "Nothing has been staged or uploaded.",
   "dontStage": "Don’t stage",
   "settings": "Settings",
-  "uploadFolder": "Upload folder"
+  "uploadFolder": "Upload folder",
+  "connectStatusOn": "Connected",
+  "connectStatusOff": "Disconnected",
+  "connectGithubLimit": "Files must stay under 100 MB.",
+  "connectLocal": "Local folder",
+  "connectImportExport": "Import and export only",
+  "connectPushPromise": "Nothing changes in your storage until you push.",
+  "connectChecksPromise": "Limits and visibility are checked before you push.",
+  "connectMemoryPromise": "Your tokens and files stay in this browser."
 }

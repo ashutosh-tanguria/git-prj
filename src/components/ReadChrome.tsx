@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 const WorkingCopy = lazy(() =>
   import("./WorkingCopy").then((m) => ({ default: m.WorkingCopy })),
 );
@@ -57,10 +57,12 @@ export function StatusBar({
   account,
   entries = [],
   selection = [],
+  extra,
 }: {
   account: string;
   entries?: Entry[];
   selection?: Entry[];
+  extra?: ReactNode;
 }) {
   const online = useSyncExternalStore(subscribe, () => navigator.onLine);
   return (
@@ -74,6 +76,7 @@ export function StatusBar({
         })}
       </span>
       <span>{t(online ? "online" : "offline")}</span> <span>{account}</span>
+      {extra}
     </footer>
   );
 }

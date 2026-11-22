@@ -1,7 +1,8 @@
+import { msw } from "msw/vite";
 import {
   ONE_DRIVE_DOWNLOAD_SUFFIX,
   ONE_DRIVE_UPLOAD_SUFFIX,
-} from "./src/providers/onedrive/hosts";
+} from "./src/providers/onedrive/hosts.ts";
 import { defineConfig } from "vite";
 export default defineConfig(({ mode }) => {
   const sandbox =
@@ -31,6 +32,7 @@ export default defineConfig(({ mode }) => {
     preview: { headers },
     define: { __STYLEGUIDE__: JSON.stringify(mode === "styleguide") },
     plugins: [
+      msw(),
       {
         name: "app-opener-policy",
         configurePreviewServer(server) {

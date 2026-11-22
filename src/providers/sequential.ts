@@ -109,6 +109,7 @@ export abstract class SequentialProvider implements StorageProvider {
         const quota = blob ? await this.quota() : null;
         if (quota && blob!.size > quota.total - quota.used)
           throw new ProviderError("QUOTA");
+        await ctx.onAttempt?.(c.id);
         const entry = await this.write(c, blob, ctx);
         await ctx.onComplete?.(c.id, entry);
         completed.push(c.id);

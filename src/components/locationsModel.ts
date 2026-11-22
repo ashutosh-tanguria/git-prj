@@ -1,16 +1,18 @@
+import type { Location, ProviderId } from "../providers/types";
 import type { Repo } from "../services/library";
 import { refString } from "../lib/refs";
 export interface Node {
   id: string;
   label: string;
   ref?: string;
+  provider?: ProviderId;
   parent?: string;
   level: number;
   expanded: boolean;
   loaded: boolean;
   children: Node[];
 }
-export function initial(repos: Repo[]): Node[] {
+export function initial(repos: Repo[], clouds: Location[] = []): Node[] {
   return [
     {
       id: "github",
@@ -37,6 +39,16 @@ export function initial(repos: Repo[]): Node[] {
         };
       }),
     },
+    ...clouds.map((root) => ({
+      id: root.id,
+      provider: root.provider,
+      label: root.label,
+      ref: root.root,
+      level: 1,
+      expanded: false,
+      loaded: false,
+      children: [],
+    })),
   ];
 }
 export function visible(nodes: Node[]): Node[] {

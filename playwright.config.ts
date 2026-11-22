@@ -24,6 +24,7 @@ export default defineConfig({
       command:
         "npx vite build --mode styleguide && npx vite preview --mode styleguide --host 127.0.0.1 --port 4173",
       port: 4173,
+      env: { VITE_MOCK_PROVIDERS: "1" },
       reuseExistingServer: !process.env.CI,
     },
     {

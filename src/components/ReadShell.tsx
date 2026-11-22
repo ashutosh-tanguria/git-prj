@@ -1,3 +1,4 @@
+import type { CloudLocations } from "./cloudTypes";
 import { Sash } from "./Sash";
 import { useEffect, useRef, type ReactNode, type CSSProperties } from "react";
 import { Locations } from "./Locations";
@@ -10,6 +11,7 @@ import type { Entry, Repo } from "../services/library";
 import styles from "./Library.module.css";
 export function ReadShell({
   roots,
+  clouds,
   selection,
   selectionBlob,
   visibility,
@@ -17,6 +19,7 @@ export function ReadShell({
   onParent,
 }: {
   roots: Repo[];
+  clouds?: CloudLocations;
   selection: Entry[];
   selectionBlob?: Blob;
   visibility: string;
@@ -114,7 +117,7 @@ export function ReadShell({
       >
         {panels.locations && panels.width >= 900 && (
           <aside id="locations" tabIndex={-1} className={styles.locationPane}>
-            <Locations repos={roots} />
+            <Locations repos={roots} clouds={clouds} />
           </aside>
         )}
         {panels.locations && panels.width >= 900 && (
@@ -170,7 +173,7 @@ export function ReadShell({
       {panels.locations && panels.width < 900 && (
         <PaneLayer kind="locations" onClose={() => close("locations")}>
           <div id="locations" tabIndex={-1}>
-            <Locations repos={roots} />
+            <Locations repos={roots} clouds={clouds} />
           </div>
         </PaneLayer>
       )}

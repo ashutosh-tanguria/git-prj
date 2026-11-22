@@ -1,5 +1,6 @@
 import {
   BrowserCacheLocation,
+  CacheLookupPolicy,
   PublicClientApplication,
   type AccountInfo,
 } from "@azure/msal-browser";
@@ -31,7 +32,11 @@ export function oneDriveAuth(clientId: string): Auth {
               prompt: "select_account",
             })
           : account &&
-            (await client.acquireTokenSilent({ scopes: SCOPES, account }));
+            (await client.acquireTokenSilent({
+              scopes: SCOPES,
+              account,
+              cacheLookupPolicy: CacheLookupPolicy.AccessTokenAndRefreshToken,
+            }));
         if (!result?.accessToken || started !== generation)
           throw new ProviderError("AUTH_EXPIRED");
         account = result.account;

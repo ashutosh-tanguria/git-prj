@@ -1,6 +1,6 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import { ProviderMark } from "../ui/ProviderMark";
-import { LaterAction } from "./CommandBar";
+
 import styles from "./Library.module.css";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
@@ -13,36 +13,60 @@ export function ConnectPanel({
   onToken,
   onConnect,
   loading,
+  providerRows,
+  settings,
+  connected,
+  onDisconnect,
 }: {
   token: string;
   onToken: (token: string) => void;
   onConnect: () => void;
   loading: boolean;
+  providerRows?: ReactNode;
+  settings?: boolean;
+  connected?: boolean;
+  onDisconnect?(): void;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <section className={styles.connect}>
-      <h2>{t("connectTitle")}</h2>
+      {!settings && <h2>{t("connectTitle")}</h2>}
       <div className={styles.providerRow}>
         <ProviderMark provider="github" label="GitHub" />
+        <span>
+          {t(
+            settings
+              ? connected
+                ? "connectStatusOn"
+                : "connectStatusOff"
+              : "connectGithubLimit",
+          )}
+        </span>
         <Button
           variant="primary"
-          onPress={() => setOpen(!open)}
+          onPress={connected ? onDisconnect : () => setOpen(!open)}
           aria-expanded={open}
         >
-          {t("connectAction")}
+          {t(connected ? "disconnect" : "connectAction")}
         </Button>
       </div>
-      {["gdrive", "dropbox", "onedrive"].map((provider) => (
-        <div className={styles.providerRow} key={provider}>
-          <ProviderMark
-            provider={provider as "gdrive" | "dropbox" | "onedrive"}
-            label={t(provider)}
-          />
-          <LaterAction action="connectAction" milestone="M4" />
-        </div>
-      ))}
-      {open && (
+      {providerRows}
+      {!settings && (
+        <>
+          <div className={styles.providerRow}>
+            <ProviderMark provider="local" label={t("connectLocal")} />
+            <span>{t("connectImportExport")}</span>
+          </div>
+          <p>
+            {t("connectPushPromise")}
+            <br />
+            {t("connectChecksPromise")}
+            <br />
+            {t("connectMemoryPromise")}
+          </p>
+        </>
+      )}
+      {open && !connected && (
         <div className={styles.tokenForm}>
           <Suspense fallback={null}>
             <TokenPresets />

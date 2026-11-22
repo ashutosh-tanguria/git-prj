@@ -64,3 +64,25 @@ const storage: WorkingStorage = {
   },
 };
 export const staging = createStaging(storage);
+
+export const cloudStorage = {
+  load: <T>() => read<T>("meta", "cloud"),
+  save: (value: unknown) => write("meta", "cloud", value),
+  put: storage.put,
+  get: storage.get,
+  remove: async (key: string) => {
+    if (navigator.storage?.getDirectory) {
+      const root = await navigator.storage.getDirectory();
+      const dir = await root.getDirectoryHandle("staged");
+      await dir.removeEntry(key);
+      return;
+    }
+    const database = await db();
+    await new Promise<void>((resolve, reject) => {
+      const tx = database.transaction("bytes", "readwrite");
+      tx.objectStore("bytes").delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error);
+    });
+  },
+};

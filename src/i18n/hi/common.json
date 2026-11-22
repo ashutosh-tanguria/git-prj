@@ -188,5 +188,13 @@
   "nothingStaged": "कुछ भी स्टेज या अपलोड नहीं किया गया।",
   "dontStage": "स्टेज न करें",
   "settings": "सेटिंग",
-  "uploadFolder": "फ़ोल्डर अपलोड करें"
+  "uploadFolder": "फ़ोल्डर अपलोड करें",
+  "connectStatusOn": "कनेक्ट है",
+  "connectStatusOff": "डिस्कनेक्ट है",
+  "connectGithubLimit": "फ़ाइलें 100 MB से छोटी होनी चाहिए।",
+  "connectLocal": "स्थानीय फ़ोल्डर",
+  "connectImportExport": "केवल आयात और निर्यात",
+  "connectPushPromise": "पुश करने तक आपके संग्रहण में कुछ नहीं बदलता।",
+  "connectChecksPromise": "पुश करने से पहले सीमाएँ और दृश्यता जाँची जाती हैं।",
+  "connectMemoryPromise": "आपके टोकन और फ़ाइलें इसी ब्राउज़र में रहती हैं।"
 }

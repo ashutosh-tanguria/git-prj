@@ -1,0 +1,23 @@
+.workspace {
+  padding: var(--space-4);
+}
+
+.files {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: start;
+}
+
+.files th,
+.files td {
+  padding: var(--space-2);
+  border-block-end: var(--border-width) solid var(--rule);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

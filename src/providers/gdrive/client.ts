@@ -85,10 +85,13 @@ export class DriveProvider extends SequentialProvider {
     await super.disconnect();
   }
   async listRoots() {
+    const account = await this.json<{ user: { permissionId: string } }>(
+      "/about?fields=user(permissionId)",
+    );
     const folder = await this.appFolder();
     return [
       {
-        id: "gdrive",
+        id: "gdrive:" + account.user.permissionId,
         provider: this.id,
         label: "Google Drive",
         root: "gd:" + (folder || "app-root"),

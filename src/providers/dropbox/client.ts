@@ -13,7 +13,7 @@ import {
 const API = "https://api.dropboxapi.com/2";
 const CONTENT = "https://content.dropboxapi.com/2";
 const ROOT = "db:app-root";
-const SINGLE_UPLOAD_BYTES = 150_000_000;
+const SINGLE_UPLOAD_BYTES = 150 * 1024 * 1024;
 const CHUNK_BYTES = 8 * 1024 * 1024;
 interface Item {
   ".tag": "file" | "folder" | "deleted";
@@ -99,7 +99,18 @@ export class DropboxProvider extends SequentialProvider {
   }
 
   async listRoots(): Promise<Location[]> {
-    return [{ id: this.id, provider: this.id, label: "Dropbox", root: ROOT }];
+    const account = await this.rpc<{ account_id: string }>(
+      "/users/get_current_account",
+      null,
+    );
+    return [
+      {
+        id: this.id + ":" + account.account_id,
+        provider: this.id,
+        label: "Dropbox",
+        root: ROOT,
+      },
+    ];
   }
   async list(ref: string, opts?: { signal?: AbortSignal }) {
     let page = await this.rpc<Page>(

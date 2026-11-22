@@ -101,3 +101,67 @@ it("uses QuickXorHash's little-endian length and falls back to downloaded SHA-25
     ),
   ).toBe(false);
 });
+
+it("uses aligned OneDrive fragments without forwarding the Graph bearer token", async () => {
+  const api = "https://graph.microsoft.com/v1.0/me/drive";
+  const upload = "https://example.up.1drv.com/session";
+  const ranges: (string | null)[] = [];
+  const source = new Blob([new Uint8Array(6 * 1048576)]);
+  const hash = await quickXorHash(source);
+  const server = setupServer(
+    http.get(api + "/special/approot/children", () =>
+      HttpResponse.json({ value: [] }),
+    ),
+    http.get(api, () =>
+      HttpResponse.json({ quota: { used: 0, total: 1_000_000_000 } }),
+    ),
+    http.post(api + "/special/approot:/large.bin:/createUploadSession", () =>
+      HttpResponse.json({ uploadUrl: upload }),
+    ),
+    http.put(upload, ({ request }) => {
+      if (request.headers.has("Authorization")) return HttpResponse.error();
+      ranges.push(request.headers.get("Content-Range"));
+      if (ranges.length === 1)
+        return HttpResponse.json(
+          { nextExpectedRanges: ["5242880-"] },
+          { status: 202 },
+        );
+      return HttpResponse.json(
+        {
+          id: "new",
+          name: "large.bin",
+          eTag: "e2",
+          file: { hashes: { quickXorHash: hash } },
+        },
+        { status: 201 },
+      );
+    }),
+  );
+  server.listen({ onUnhandledFrame: "error" });
+  try {
+    const adapter = new OneDriveProvider(sampleAuth);
+    await adapter.connect();
+    expect(
+      (
+        await adapter.push(
+          [
+            {
+              id: "large",
+              op: "add",
+              ref: "od:app-root",
+              name: "large.bin",
+              bytesKey: "blob",
+            },
+          ],
+          { readBytes: async () => source },
+        )
+      ).completed,
+    ).toEqual(["large"]);
+    expect(ranges).toEqual([
+      "bytes 0-5242879/6291456",
+      "bytes 5242880-6291455/6291456",
+    ]);
+  } finally {
+    server.close();
+  }
+});

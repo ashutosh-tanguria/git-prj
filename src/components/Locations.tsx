@@ -1,3 +1,4 @@
+import type { CloudLocations } from "./cloudTypes";
 import { Glyph } from "../ui/ActionIcon";
 import { ProviderMark } from "../ui/ProviderMark";
 import { initial, visible, type Node } from "./locationsModel";
@@ -8,17 +9,34 @@ import { t } from "../i18n";
 import styles from "./Locations.module.css";
 import { LaterAction } from "./CommandBar";
 import v2 from "./ExplorerV2.module.css";
-export function Locations({ repos }: { repos: Repo[] }) {
+export function Locations({
+  repos,
+  clouds,
+}: {
+  repos: Repo[];
+  clouds?: CloudLocations;
+}) {
   return (
     <LocationTree
-      key={repos.map((repo) => repo.full_name).join("|")}
+      key={
+        repos.map((repo) => repo.full_name).join("|") +
+        (clouds?.roots.map((root) => root.id).join("|") ?? "") +
+        (clouds?.refresh ?? "")
+      }
       repos={repos}
+      clouds={clouds}
     />
   );
 }
-function LocationTree({ repos }: { repos: Repo[] }) {
+function LocationTree({
+  repos,
+  clouds,
+}: {
+  repos: Repo[];
+  clouds?: CloudLocations;
+}) {
   const prefix = useId();
-  const [nodes, setNodes] = useState(() => initial(repos)),
+  const [nodes, setNodes] = useState(() => initial(repos, clouds?.roots)),
     [focus, setFocus] = useState("github"),
     [error, setError] = useState("");
   const host = useRef<HTMLDivElement>(null),
@@ -35,7 +53,10 @@ function LocationTree({ repos }: { repos: Repo[] }) {
   async function toggle(node: Node, expand = !node.expanded) {
     if (!node.loaded && node.ref && expand) {
       try {
-        const entries = await library.list(parseRef(node.ref));
+        const entries =
+          node.provider && clouds
+            ? await clouds.list(node.ref)
+            : await library.list(parseRef(node.ref));
         node.children = entries
           .filter((entry) => entry.kind === "dir")
           .map((entry) => ({
@@ -43,6 +64,7 @@ function LocationTree({ repos }: { repos: Repo[] }) {
             parent: node.id,
             label: entry.name,
             ref: entry.ref,
+            provider: node.provider,
             level: node.level + 1,
             expanded: false,
             loaded: false,
@@ -66,7 +88,9 @@ function LocationTree({ repos }: { repos: Repo[] }) {
           aria-label={node.label}
           aria-selected={
             node.ref
-              ? explorerRoute(parseRef(node.ref)) === location.hash
+              ? node.provider
+                ? clouds?.active === node.ref
+                : explorerRoute(parseRef(node.ref)) === location.hash
               : false
           }
           aria-level={node.level}
@@ -81,7 +105,9 @@ function LocationTree({ repos }: { repos: Repo[] }) {
           onFocus={() => setFocus(node.id)}
           onClick={() => {
             move(node.id);
-            if (node.ref) location.hash = explorerRoute(parseRef(node.ref));
+            if (node.ref && node.provider) clouds?.open(node.ref);
+            else if (node.ref)
+              location.hash = explorerRoute(parseRef(node.ref));
             else void toggle(node);
           }}
           onKeyDown={(e) => {
@@ -120,7 +146,9 @@ function LocationTree({ repos }: { repos: Repo[] }) {
                 }
               }
               if (e.key === "Enter" || e.key === " ") {
-                if (node.ref) location.hash = explorerRoute(parseRef(node.ref));
+                if (node.ref && node.provider) clouds?.open(node.ref);
+                else if (node.ref)
+                  location.hash = explorerRoute(parseRef(node.ref));
                 else void toggle(node);
               }
             } else if (e.key === "*") {
@@ -146,8 +174,11 @@ function LocationTree({ repos }: { repos: Repo[] }) {
           }}
         >
           <Glyph name={node.expanded ? "collapse" : "expand"} />
-          {node.id === "github" ? (
-            <ProviderMark provider="github" label={node.label} />
+          {node.id === "github" || (node.level === 1 && node.provider) ? (
+            <ProviderMark
+              provider={node.provider ?? "github"}
+              label={node.provider ? t(node.provider) : node.label}
+            />
           ) : (
             node.label
           )}
