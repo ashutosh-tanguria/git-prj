@@ -449,6 +449,8 @@ Every viewer: Download, Copy path, Open in provider (opens the provider's own we
 
 ### 6.5b Preview Plus: online viewing
 
+Owner scope decision (M6b, 2026-11-22): ship Tier P managed document rendering only. Tier E managed cloud sandboxes, including the CodeSandbox SDK, are postponed until after launch. The existing Tier D links remain hand-offs. This supersedes the Tier E rollout and earlier managed-tier timing in Amendment 3.
+
 Client-side tiers remain the default. Managed paid tiers are opt-in and do not replace them. Existing scriptless preview remains until separate-origin security tests pass.
 
 Owner scope decision (M3.5a, 2026-11-17): implement Website and media preview only, Tiers A and D plus video/audio. Tier 2 (LibreOffice WebAssembly), Tier B (WebContainers) and Tier C (Pyodide), including their engine spikes, are deferred. Office Quick view and managed-tier mocks belong to M3.5b and are not authorized by M3.5a. M4 is not started. This decision supersedes conditional engine work elsewhere in this document and the merged amendments.
@@ -638,7 +640,6 @@ Endpoints (all CORS-locked to the app origin):
 - The browser uploads the file bytes **directly to the vendor**.
 - `GET /render/office/status/:jobId` returns state and, when done, a short-lived signed URL to the resulting PDF. The browser downloads the PDF directly from the vendor, caches it in OPFS keyed by source version, and shows it in the PDF viewer.
 - `DELETE /render/office/:jobId` asks the vendor to delete the job and its files as soon as the PDF is downloaded.
-- `POST /render/sandbox/start` and `DELETE /render/sandbox/:id` for Tier E (6.5b.15).
 - `GET /render/capabilities` returns which tiers are enabled and the remaining daily budget as a coarse flag (available or not), never exact spend.
 
 The worker must never receive file contents or the user's provider tokens. If a vendor cannot support direct browser upload, that vendor is not allowed as a Tier P adapter.
@@ -1044,7 +1045,7 @@ M3.5a authorizes official documentation research on `docs.github.com`, `develope
 - `www.googleapis.com` (Drive), `accounts.google.com`, `apis.google.com` and `docs.google.com` (GIS and Picker, loaded lazily only after the user connects Drive)
 - `api.dropboxapi.com`, `content.dropboxapi.com`, `www.dropbox.com` (auth redirect)
 - `graph.microsoft.com`, `login.microsoftonline.com`, and the Microsoft-owned `*.files.1drv.com` download and `*.up.1drv.com` upload-session subdomains documented by Microsoft and exercised by MSW. Verify and record any additional host before adding it.
-- The OAuth worker origin, and the app's own origin.
+- The OAuth and render Worker origin, and the app's own origin. The render Worker contacts `challenges.cloudflare.com` for Siteverify and `sandbox.api.cloudconvert.com` or `api.cloudconvert.com` for jobs. Official CloudConvert documentation and the vendor policy are on `cloudconvert.com`.
 
 Preview Plus also permits the configured sandbox origin B in `frame-src`; add it to `connect-src` only when a direct connection is verified as necessary. After consent, add verified Google and Microsoft viewer origins to `frame-src`, and documented direct vendor upload/download origins to `connect-src`. Origin B uses its own allowlist, including verified npm registry and StackBlitz hosts needed by enabled features. Test both origins and inspect messages for tokens. Cloudflare Turnstile is permitted for enabled managed-tier start requests; verify and document its origins before enabling it.
 
@@ -1400,7 +1401,7 @@ Each milestone ends green: `npm run check` passes, `PROGRESS.md` is updated, and
 | M4b Transfers and remaining M4 | Cross-provider verified moves/copies, Split view, Local import/export, PDF split and provider cloud rendering | Not authorized by M4a; requires owner instruction |
 | M5 Library features | Cache with LRU and pinning, offline open, full-text search, command palette, Collections and tags, duplicate finder, ZIP export, Grid and Column views | Offline PDF reopens at the saved page; search returns page numbers |
 | M6a Platform | GitHub OAuth Worker and sign-in, Chrome extension ZIP, installable PWA and safe updates, Pages security headers, network and message tests, Settings and Privacy | Allowlist and sandbox message tests pass. Lighthouse PWA and Accessibility at least 90. |
-| M6b Paid preview tiers | Render broker, Tier P and E vendors and mocks, Turnstile and quotas | Owner approves managed-tier rollout and cost controls. |
+| M6b Managed document rendering | Tier P broker, CloudConvert, mock verification, Turnstile, quotas and Office integration. Tier E and the CodeSandbox SDK are postponed until after launch. | Tier P acceptance passes against the mocks. Owner verifies the sandbox deployment and approves live rollout and cost controls. |
 | M7 Release | Accessibility pass (axe plus manual notes), Hindi strings reviewed, Help and onboarding copy, performance budget check, docs, release checklist | Section 15 passes in full on Chromium, Firefox, WebKit |
 
 Feature flags per provider so that M4 can be merged provider by provider if one is blocked on external setup.

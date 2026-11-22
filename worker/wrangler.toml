@@ -12,3 +12,18 @@ namespace_id = "6173"
 [ratelimits.simple]
 limit = 20
 period = 60
+
+[vars]
+KILL_SWITCH = "on"
+CLOUDCONVERT_ENV = "sandbox"
+DAILY_BUDGET_UNITS = "0"
+PER_IP_DAILY_LIMIT = "3"
+MAX_FILE_BYTES = "50000000"
+
+[[durable_objects.bindings]]
+name = "RENDER_QUOTA"
+class_name = "RenderQuota"
+
+[[migrations]]
+tag = "render-quota-v1"
+new_sqlite_classes = ["RenderQuota"]

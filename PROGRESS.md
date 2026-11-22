@@ -1,5 +1,15 @@
 # Shelf progress
 
+### M6b slice 1 (2026-11-22)
+
+- Status: Added the Tier P render broker to the OAuth Worker, with strict origin and request validation, opaque expiring job handles, a CloudConvert adapter, and isolated mock tests. Tier E and CodeSandbox are postponed until after launch. M7 has not started.
+- Decisions: One named SQLite Durable Object reserves the global UTC-day budget and the per-IP allowance in one transaction across Worker locations. IP counters store salted hashes for 24 hours from the first reservation. There are no file names, bytes, provider credentials, or job records in the quota store. Each start reserves four units against a 60-second conversion and keeps the reservation even when the vendor fails.
+- Decisions: CloudConvert v2 uses POST /jobs with tasks upload = {operation: import/upload}, pdf = {operation: convert, input: upload, input_format: selected format, output_format: pdf, filename: preview.pdf, timeout: 60}, and download = {operation: export/url, input: pdf}. Formats are DOC, DOCX, XLSX, PPT, PPTX, ODT, ODS and ODP. GET /jobs/:id reads the export URL, and DELETE /jobs/:id removes the job, tasks and data. The privacy policy states files are automatically deleted within 24 hours. The jobs API describes automatic cleanup 24 hours after a job ends. The sandbox API consumes no credits and accepts only vendor-approved fixtures. [Jobs](https://cloudconvert.com/docs/api-reference/jobs) [Upload](https://cloudconvert.com/docs/import-export/import-files) [Convert](https://cloudconvert.com/docs/operations/convert-files) [Export](https://cloudconvert.com/docs/import-export/export-files) [Privacy](https://cloudconvert.com/privacy) [Sandbox](https://cloudconvert.com/docs/getting-started/introduction#sandbox-api)
+- Not done: Office integration, consent, deployment guide and browser checks follow in M6b. Tier E remains post-launch.
+- Manual steps: Provision sandbox credentials, the Turnstile site and secret, and a random IP_HASH_SALT. Deploy with KILL_SWITCH=on until the sandbox checklist and owner review are complete.
+- Known issues: CloudConvert documents a signed upload cap field but no setting to lower it when creating an import/upload task. The broker checks declared input size before creating a job, and Shelf checks the actual Blob. A modified client could bypass that declaration up to CloudConvert's signed cap. Keep the capped prepaid vendor account and the Worker time and quota controls in place before any live rollout.
+
+
 ### M6a complete (2026-11-22)
 
 - Status: The four slices deliver the OAuth Worker, GitHub App sign-in, isolated Pages deployments, offline PWA and guarded updates, the MV3 extension ZIP, and Settings Privacy with redacted diagnostics. English and Hindi Styleguide specimens and README acceptance items 11 and 37 are current.
