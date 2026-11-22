@@ -49,7 +49,7 @@ const server = setupServer(
       : HttpResponse.json({ ok: true }),
   ),
 );
-beforeAll(() => server.listen());
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   clearToken();
   vi.useRealTimers();

@@ -56,3 +56,8 @@ JSZip declares (MIT OR GPL-3.0-or-later). Shelf uses JSZip under MIT. The lockfi
 ## M5a full-text search
 
 MiniSearch 7.2.0 (MIT) lives in the local tarball vendor/minisearch-7.2.0.tgz. It was compiled from the six runtime TypeScript files at upstream Git tree 3d239d1c3ae7aef1bf5d8945dd7b5f0709f646f5 with TypeScript 6 targeting ES2022. The package adds ESM import extensions and ships the original licence. SHA-256: ecbe56b90d7046effb164e66e2e9695c4c05b5dab9a85518bb0047348a432f88. MiniSearch and pdf.js text extraction load in a worker.
+
+## M6a PWA and Lighthouse
+
+- vite-plugin-pwa 2.0.0 builds the Workbox service worker and application manifest. Workbox precaches the shell and fonts. Same-origin immutable viewer assets enter a bounded runtime cache only after use.
+- Lighthouse CI 0.13.0 runs a local audit with Lighthouse 11.4.0, which still supplies a numeric PWA score. This tool runs separately from the app build and reports both PWA and Accessibility.

@@ -1,5 +1,14 @@
 # Shelf progress
 
+### M6a slice 3 (2026-11-22)
+
+- Status: Pages header templates, isolated sandbox headers, installable Workbox shell, offline library, safe update prompt, network and sandbox message tests, and Lighthouse CI.
+- Decisions: Allow github.com for OAuth and repository navigation, retain Google Picker origins, and allow same-origin frames for the OneDrive redirect bridge. The sandbox is frame-only from Shelf and uses its own CSP. Shell and fonts are precached. Workbox caches same-origin immutable viewer assets on use. Update takes an exclusive app lock shared across tabs with pushes and transfers.
+- Not done: Extension, Privacy, deployment guide and final acceptance follow.
+- Manual steps: Verify the two deployed Pages origins, manifest installation, and update during a real push or transfer.
+- Known issues: Icons are temporary neutral artwork. The CI pins Lighthouse 11.4.0 to retain the numeric PWA category. Optional paid-tier hosts are outside M6a.
+
+
 ### M6a slice 2 (2026-11-22)
 
 - Status: Optional GitHub App sign-in, static callback, installation-scoped repository listing, in-memory access and refresh, encrypted opt-in refresh storage, expiry and 401 recovery, and grant revocation.

@@ -24,7 +24,12 @@ export default defineConfig({
       command:
         "npx vite build --mode styleguide && npx vite preview --mode styleguide --host 127.0.0.1 --port 4173",
       port: 4173,
-      env: { VITE_MOCK_PROVIDERS: "1" },
+      env: {
+        VITE_MOCK_PROVIDERS: "1",
+        VITE_GITHUB_APP_CLIENT_ID: "Iv1.shelf_test",
+        VITE_OAUTH_WORKER_URL: "https://shelf-oauth.example",
+        VITE_GITHUB_APP_SLUG: "shelf-test",
+      },
       reuseExistingServer: !process.env.CI,
     },
     {

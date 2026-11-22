@@ -13,6 +13,7 @@ import { nameMatches } from "../services/paletteQuery";
 import type { TextMatch } from "../services/textSearch";
 import { QuickLook } from "./QuickLook";
 import { ReadViewer } from "../viewers/LazyReadViewer";
+import { keepAppRunning } from "../services/updateGate";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import { DriveProvider } from "../providers/gdrive/client";
@@ -410,8 +411,13 @@ export default function CloudIntegration({
   async function stage(files?: FileList) {
     if (!session || !operation) return;
     const locationId = session.root.id;
-    const common = { locationId, parent: selected && ["rename", "delete", "cloudReplace"].includes(operation)
-      ? paths.current.get(selected.ref) ?? folder : folder };
+    const common = {
+      locationId,
+      parent:
+        selected && ["rename", "delete", "cloudReplace"].includes(operation)
+          ? (paths.current.get(selected.ref) ?? folder)
+          : folder,
+    };
     const changes: { change: CloudChange; bytes?: Blob }[] = [];
     const valid = (value: string) =>
       value.trim() &&
@@ -488,19 +494,21 @@ export default function CloudIntegration({
   function push() {
     if (!session || !navigator.onLine || !session.provider.isConnected())
       return;
-    void run(async () => {
-      const result = await cloudStaging.push(session.provider, session.root, {
-        onProgress: (id, sent, total) => setProgress({ id, sent, total }),
-      });
-      setPending(await cloudStaging.load());
-      refresh();
-      if (result.failed) {
-        const item = queued.find((row) => row.id === result.failed?.id);
-        setFailure(
-          (item ? item.label + " · " : "") + message(result.failed.error),
-        );
-      } else setOperation(undefined);
-    });
+    void run(() =>
+      keepAppRunning(async () => {
+        const result = await cloudStaging.push(session.provider, session.root, {
+          onProgress: (id, sent, total) => setProgress({ id, sent, total }),
+        });
+        setPending(await cloudStaging.load());
+        refresh();
+        if (result.failed) {
+          const item = queued.find((row) => row.id === result.failed?.id);
+          setFailure(
+            (item ? item.label + " · " : "") + message(result.failed.error),
+          );
+        } else setOperation(undefined);
+      }),
+    );
   }
   useEffect(() => {
     if (!deferred) return;
@@ -652,14 +660,19 @@ export default function CloudIntegration({
               locationId: session.root.id,
               ref: folder,
             },
-          list: async (ref, signal) => {
-            const items = await listCloud(session.root, session.provider, ref, { signal });
-            for (const item of items) {
-              paths.current.set(item.ref, ref);
-              folderLabels.current.set(item.ref, item.name);
-            }
-            return items;
-          },
+            list: async (ref, signal) => {
+              const items = await listCloud(
+                session.root,
+                session.provider,
+                ref,
+                { signal },
+              );
+              for (const item of items) {
+                paths.current.set(item.ref, ref);
+                folderLabels.current.set(item.ref, item.name);
+              }
+              return items;
+            },
             open: ({ entry, endpoint }) =>
               entry.kind === "dir"
                 ? open(entry.ref)

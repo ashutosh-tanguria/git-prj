@@ -4,5 +4,6 @@ dist-styleguide/
 sandbox/dist/
 playwright-report/
 test-results/
+.lighthouseci/
 .env*
 !.env.example

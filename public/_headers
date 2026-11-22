@@ -1,0 +1,12 @@
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://apis.google.com; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://www.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com https://graph.microsoft.com https://login.microsoftonline.com https://*.files.1drv.com https://*.up.1drv.com https://accounts.google.com https://apis.google.com __WORKER_ORIGIN__; worker-src 'self' blob:; frame-src 'self' blob: https://docs.google.com https://accounts.google.com https://login.microsoftonline.com __SANDBOX_ORIGIN__; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+/onedrive-callback.html
+  ! Cross-Origin-Opener-Policy
+
+/auth/github/*
+  Cache-Control: no-store

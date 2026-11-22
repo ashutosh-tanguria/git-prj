@@ -29,13 +29,6 @@ window.addEventListener("hashchange", () => {
 });
 void render();
 
-if (
-  import.meta.env.PROD &&
-  !location.hash.startsWith("#/styleguide") &&
-  "serviceWorker" in navigator
-)
-  void navigator.serviceWorker.register("./offline-app.js").catch(() => {});
-
 if (typeof BroadcastChannel !== "undefined") {
   const resets = new BroadcastChannel("shelf-reset");
   resets.onmessage = ({ data }) => {

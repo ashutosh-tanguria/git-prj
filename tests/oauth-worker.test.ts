@@ -22,7 +22,7 @@ const server = setupServer(
     return new HttpResponse(null, { status: 204 });
   }),
 );
-beforeAll(() => server.listen());
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterAll(() => server.close());
 
 const redirect_uri = origin + "/auth/github/";

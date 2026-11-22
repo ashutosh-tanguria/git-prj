@@ -10,6 +10,7 @@ import { staging } from "../services/workingStorage";
 import { exportWorking } from "../services/workingBackup";
 import { pushChanges, ConflictError } from "../services/githubPush";
 import { localWipeInProgress } from "../services/wipeLocalData";
+import { keepAppRunning } from "../services/updateGate";
 import { useOffline } from "./useOffline";
 import { isConnected } from "../providers/github/client";
 import { t } from "../i18n";
@@ -136,56 +137,59 @@ export function useWorkingCopy() {
     setBusy(true);
     setRef(false);
     setError("");
-    controller.current = new AbortController();
+    const abort = new AbortController();
+    controller.current = abort;
     try {
-      const groups = new Map<string, typeof rows>();
-      for (const row of rows) {
-        const key =
-          row.target.owner + "/" + row.target.repo + "@" + row.target.branch;
-        groups.set(key, [...(groups.get(key) || []), row]);
-      }
-      for (const group of groups.values()) {
-        const result = await pushChanges(group, staging.read, {
-          message,
-          repoOverride: overrideConfirmed ? repoOverride : undefined,
-          publicConfirmed: publicConfirm,
-          warningsConfirmed: warnings,
-          sensitiveConfirmed: sensitive,
-          signal: controller.current.signal,
-          onRef: () => setRef(true),
-        });
-        setCommits((old) =>
-          [
-            ...new Set([
-              ...old,
-              ...result.map(
-                (sha) =>
-                  "https://github.com/" +
-                  encodeURIComponent(group[0].target.owner) +
-                  "/" +
-                  encodeURIComponent(group[0].target.repo) +
-                  "/commit/" +
-                  encodeURIComponent(sha),
-              ),
-            ]),
-          ].slice(-10),
-        );
-        await staging.discard(group.map((c) => c.id));
-      }
-      if (rows[0]) {
-        const destination = {
-          ...rows[0].target,
-          path: rows[0].target.path.split("/").slice(0, -1).join("/"),
-        };
-        await savePreference("lastDestination", destination);
-        const used = await preference<string[]>("usedDestinations", []);
-        await savePreference("usedDestinations", [
-          ...new Set([...used, destinationKey(destination)]),
-        ]);
-      }
-      setEdited(false);
-      setError(t("workingSuccess"));
-      window.dispatchEvent(new Event("shelf-refresh"));
+      await keepAppRunning(async () => {
+        const groups = new Map<string, typeof rows>();
+        for (const row of rows) {
+          const key =
+            row.target.owner + "/" + row.target.repo + "@" + row.target.branch;
+          groups.set(key, [...(groups.get(key) || []), row]);
+        }
+        for (const group of groups.values()) {
+          const result = await pushChanges(group, staging.read, {
+            message,
+            repoOverride: overrideConfirmed ? repoOverride : undefined,
+            publicConfirmed: publicConfirm,
+            warningsConfirmed: warnings,
+            sensitiveConfirmed: sensitive,
+            signal: abort.signal,
+            onRef: () => setRef(true),
+          });
+          setCommits((old) =>
+            [
+              ...new Set([
+                ...old,
+                ...result.map(
+                  (sha) =>
+                    "https://github.com/" +
+                    encodeURIComponent(group[0].target.owner) +
+                    "/" +
+                    encodeURIComponent(group[0].target.repo) +
+                    "/commit/" +
+                    encodeURIComponent(sha),
+                ),
+              ]),
+            ].slice(-10),
+          );
+          await staging.discard(group.map((c) => c.id));
+        }
+        if (rows[0]) {
+          const destination = {
+            ...rows[0].target,
+            path: rows[0].target.path.split("/").slice(0, -1).join("/"),
+          };
+          await savePreference("lastDestination", destination);
+          const used = await preference<string[]>("usedDestinations", []);
+          await savePreference("usedDestinations", [
+            ...new Set([...used, destinationKey(destination)]),
+          ]);
+        }
+        setEdited(false);
+        setError(t("workingSuccess"));
+        window.dispatchEvent(new Event("shelf-refresh"));
+      });
     } catch (e) {
       setQuick(false);
       if (e instanceof ConflictError) setConflicts(e.paths);

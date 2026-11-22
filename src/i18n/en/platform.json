@@ -1,0 +1,6 @@
+{
+  "pwaUpdateReady": "A new version is ready. Reload to update.",
+  "pwaReload": "Reload",
+  "pwaWaitDelivery": "Finish the active push or transfer before reloading.",
+  "pwaUpdateFailed": "Shelf could not reload for the update. Try again."
+}

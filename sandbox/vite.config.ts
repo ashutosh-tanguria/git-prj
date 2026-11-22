@@ -1,41 +1,22 @@
 import { defineConfig } from "vite";
 import { resolve } from "node:path";
+import { exactOrigin, pagesHeaders } from "../pagesHeaders.ts";
+
 export default defineConfig(({ command }) => {
-  const app =
+  const app = exactOrigin(
     process.env.SHELF_APP_ORIGIN ||
-    (command === "serve" ? "http://127.0.0.1:5173" : "");
-  if (!app || new URL(app).origin !== app)
-    throw Error("Set SHELF_APP_ORIGIN to the exact app origin");
-  const headers = {
-    "Content-Security-Policy": `default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data: blob:; font-src 'none'; frame-src 'none'; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${app}`,
-    "Cross-Origin-Opener-Policy": "same-origin",
-    "Cross-Origin-Embedder-Policy": "require-corp",
-    "Referrer-Policy": "no-referrer",
-    "X-Content-Type-Options": "nosniff",
-    "Permissions-Policy":
-      "camera=(), microphone=(), geolocation=(), payment=()",
-  };
+      (command === "serve" ? "http://127.0.0.1:5173" : ""),
+    "SHELF_APP_ORIGIN",
+    true,
+  );
+  if (!app) throw Error("Set SHELF_APP_ORIGIN to the exact app origin");
   return {
     root: resolve("sandbox"),
     define: { __APP_ORIGIN__: JSON.stringify(app) },
-    server: { host: "127.0.0.1", port: 5174, headers },
-    preview: { headers, port: 4174, host: "127.0.0.1" },
+    server: { host: "127.0.0.1", port: 5174 },
+    preview: { port: 4174, host: "127.0.0.1", cors: false },
     plugins: [
-      {
-        name: "sandbox-headers",
-        generateBundle() {
-          this.emitFile({
-            type: "asset",
-            fileName: "_headers",
-            source:
-              "/*\n" +
-              Object.entries(headers)
-                .map(([key, value]) => `  ${key}: ${value}`)
-                .join("\n") +
-              "\n",
-          });
-        },
-      },
+      pagesHeaders("sandbox/public/_headers", { APP_ORIGIN: app }, true),
     ],
     build: {
       rollupOptions: {

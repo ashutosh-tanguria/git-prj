@@ -5,6 +5,7 @@ import "../i18n/transfers";
 import "../i18n/m3c";
 import type { TransferRequest } from "../services/transferRequests";
 import { localWipeInProgress } from "../services/wipeLocalData";
+import { keepAppRunning } from "../services/updateGate";
 import { transferPending } from "../services/transferJournal";
 import type { Approvals, Transfer } from "../services/transferTypes";
 import { transfers } from "../services/transfers";
@@ -74,19 +75,21 @@ export default function TransferIntegration({
     setFailure("");
     setProgress({});
     try {
-      await transfers.run(ids, {
-        resolve,
-        approvals: (endpoint) => approvals[endpoint.locationId],
-        changed: (row) => {
-          setRunning(row.id);
-          setRows((old) =>
-            old.map((item) => (item.id === row.id ? row : item)),
-          );
-          setProgress((old) => ({ ...old, [row.id]: 0 }));
-        },
-        progress: (row, bytes) =>
-          setProgress((old) => ({ ...old, [row.id]: bytes })),
-      });
+      await keepAppRunning(() =>
+        transfers.run(ids, {
+          resolve,
+          approvals: (endpoint) => approvals[endpoint.locationId],
+          changed: (row) => {
+            setRunning(row.id);
+            setRows((old) =>
+              old.map((item) => (item.id === row.id ? row : item)),
+            );
+            setProgress((old) => ({ ...old, [row.id]: 0 }));
+          },
+          progress: (row, bytes) =>
+            setProgress((old) => ({ ...old, [row.id]: bytes })),
+        }),
+      );
       refreshed();
     } catch (error) {
       setFailure(transferMessage(error));

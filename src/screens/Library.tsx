@@ -40,6 +40,7 @@ const LibraryPreview = lazy(() =>
     default: LibraryPreview,
   })),
 );
+const PwaUpdate = lazy(() => import("../components/PwaUpdate"));
 const IndexingStatus = lazy(() =>
   import("../components/IndexingStatus").then(({ IndexingStatus }) => ({
     default: IndexingStatus,
@@ -320,6 +321,11 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
           </Button>
         )}
       </header>
+      {import.meta.env.PROD && (
+        <Suspense fallback={null}>
+          <PwaUpdate />
+        </Suspense>
+      )}
       <AddressBar
         onRefresh={cloud?.active ? cloud.refresh : refresh}
         filter={folderQuery}
