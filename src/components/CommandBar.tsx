@@ -71,16 +71,16 @@ export function LaterAction({
     </span>
   );
 }
-export function CommandBar() {
+export function CommandBar({ split = false }: { split?: boolean }) {
   return (
     <nav className={styles.command} aria-label={t("commandBar")}>
       <div className={styles.desktop}>
-        <CommandActions />
+        <CommandActions split={split} />
       </div>
       <details className={styles.overflow}>
         <summary aria-label={t("commandBar")}>...</summary>
         <div>
-          <CommandActions />
+          <CommandActions split={split} />
         </div>
       </details>
     </nav>
@@ -89,14 +89,17 @@ export function CommandBar() {
 export function CommandAction({
   action,
   icon,
+  pressed,
 }: {
   action: string;
   icon?: string;
+  pressed?: boolean;
 }) {
   return (
     <Button
       data-action={action}
       aria-label={t(action)}
+      aria-pressed={pressed}
       onPress={() =>
         action === "previewSite"
           ? openSitePreview()
@@ -112,7 +115,7 @@ export function CommandAction({
     </Button>
   );
 }
-function CommandActions() {
+function CommandActions({ split }: { split: boolean }) {
   const siteAvailable = useSiteAvailable();
   return (
     <>
@@ -127,13 +130,15 @@ function CommandActions() {
           icon="M2 4h5l2 2h5v8H2ZM8 12V7m-2 2 2-2 2 2"
         />
         <CommandAction action="newRepository" />
+        <CommandAction action="localImport" icon="M2 4h5l2 2h5v8H2M8 8v4m-2-2h4" />
+        {!split && <CommandAction action="localExport" icon="M8 2v8m-3-3 3 3 3-3M2 11v3h12v-3" />}
       </div>
       <div>
         <CommandAction action="cut" icon="m3 2 10 12M13 2 3 14M2 9h4v5H2Z" />
         <CommandAction action="copy" icon="M6 6h8v8H6ZM2 10V2h8" />
         <CommandAction action="paste" icon="M5 3H2v11h12V3h-3M5 2h6v3H5Z" />
-        <CommandAction action="moveTo" icon="M2 4h5l2 2h5v8H2m2-4h7m-3-3 3 3-3 3" />
-        <CommandAction action="copyTo" icon="M2 4h5l2 2h5v8H2m3-4h6m-3-3v6" />
+        {!split && <CommandAction action="moveTo" icon="M2 4h5l2 2h5v8H2m2-4h7m-3-3 3 3-3 3" />}
+        {!split && <CommandAction action="copyTo" icon="M2 4h5l2 2h5v8H2m3-4h6m-3-3v6" />}
         <CommandAction action="rename" />
         <CommandAction action="delete" icon="M2 4h12M5 4V2h6v2M4 4v10h8V4" />
       </div>
@@ -145,6 +150,7 @@ function CommandActions() {
           {t("sortMenu")}
         </button>
         <CommandAction action="settings" />
+        <CommandAction action="splitView" pressed={split} icon="M2 2h12v12H2ZM8 2v12" />
         {siteAvailable && <CommandAction action="previewSite" />}
         <LaterAction
           action="viewMenu"

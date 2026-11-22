@@ -30,6 +30,8 @@ const SiteEntry = lazy(() =>
 );
 const CloudIntegration = lazy(() => import("../components/CloudIntegration"));
 const TransferIntegration = lazy(() => import("../components/TransferIntegration"));
+const SplitWorkspace = lazy(() => import("../components/SplitWorkspace"));
+const LocalFolderTools = lazy(() => import("../components/LocalFolderTools"));
 export default function Library() {
   if (!cloudEnabled) return <LibraryScreen />;
   return (
@@ -42,6 +44,7 @@ export default function Library() {
 }
 function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   const [notice, setNotice] = useState("");
+  const [split, setSplit] = useState(false);
   const state = useLibrary();
   const {
     refresh,
@@ -89,7 +92,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
   };
   return (
     <div className={styles.shell}>
-      <CommandBar />
+      <CommandBar split={split} />
       <header className={styles.brand}>
         <h1>Shelf</h1>
         {account && (
@@ -116,6 +119,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         clouds={cloud?.locations}
         selection={selection}
         visibility={visibility}
+        onSplit={() => setSplit((open) => !open)}
         selectionBlob={
           hash.startsWith("#/view/") && !preview ? blob : undefined
         }
@@ -139,7 +143,11 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
           />
         )}
         {notice && <p role="status">{notice}</p>}
-        {cloud?.active ? (
+        {split ? (
+          <Suspense fallback={<p role="status">{t("loadingRead")}</p>}>
+            <SplitWorkspace account={account} roots={roots} current={ref} cloud={cloud} />
+          </Suspense>
+        ) : cloud?.active ? (
           cloud.content
         ) : !account ? (
           <ConnectPanel {...connection} providerRows={cloud?.connectRows} />
@@ -176,6 +184,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         <GuardMount key={key} roots={roots} current={ref} entries={entries} account={account} cloud={cloud} />
       )}
       <Suspense fallback={null}>
+        <LocalFolderTools account={account} roots={roots} current={ref} cloud={cloud} selection={selection} />
         <SiteEntry
           current={account && !cloud?.active ? ref : null}
           selection={selection}

@@ -38,14 +38,15 @@ export async function transferTargetEntry(
   name: string,
   signal?: AbortSignal,
   allowMissingParent = false,
-) {
+): Promise<Entry | undefined> {
   const entries = await provider
     .list(ref, { signal })
     .catch((error: unknown) => {
       if (
         provider.id === "github" &&
         error instanceof ProviderError &&
-        (error.code === "EMPTY_REPO" || (allowMissingParent && error.code === "NOT_FOUND"))
+        (error.code === "EMPTY_REPO" ||
+          (allowMissingParent && error.code === "NOT_FOUND"))
       )
         return [];
       throw error;
@@ -85,6 +86,15 @@ function checkDraft(draft: TransferDraft) {
     throw Error("pushPath");
   if (replace && (replace.kind !== "file" || !replace.version))
     throw Error("transferConflict");
+  if (
+    draft.folders?.some(
+      (folder) =>
+        !folder ||
+        /[\x00-\x1f/\\]/.test(folder) ||
+        [".", "..", ".git"].includes(folder.toLowerCase()),
+    )
+  )
+    throw Error("pushPath");
   if ("endpoint" in source) {
     if (source.entry.kind !== "file" || !source.entry.version)
       throw Error("transferUnsupportedSource");
@@ -194,8 +204,54 @@ export function createTransferJournal(
           throw Error("transferAccountChanged");
         return provider;
       }
+      const destination = () => row.destinationRef ?? row.target.ref;
       const targetEntry = () =>
-        transferTargetEntry(target, row.target.ref, row.name, signal, row.allowMissingParent);
+        transferTargetEntry(
+          target,
+          destination(),
+          row.name,
+          signal,
+          row.allowMissingParent,
+        );
+      async function prepareFolders() {
+        if (!row.folders?.length || row.destinationRef) return;
+        let parent = row.target.ref;
+        for (const [depth, name] of row.folders.entries()) {
+          signal.throwIfAborted();
+          let child = await transferTargetEntry(target, parent, name, signal);
+          if (!child) {
+            let createId = row.directoryIds?.[depth];
+            if (!createId && target.reserveCreate) {
+              createId = await target.reserveCreate(signal);
+              await update({
+                directoryIds: { ...row.directoryIds, [depth]: createId },
+              });
+            }
+            const result = await target.push(
+              [
+                {
+                  id: row.id,
+                  op: "mkdir",
+                  ref: parent,
+                  parent,
+                  name,
+                  createId,
+                },
+              ],
+              {
+                ...ctx(row.target),
+                onComplete: async (_, entry) => {
+                  child = entry;
+                },
+              },
+            );
+            if (result.failed) throw result.failed.error;
+          }
+          if (child?.kind !== "dir") throw Error("transferConflict");
+          parent = child.ref;
+        }
+        await update({ destinationRef: parent });
+      }
 
       if (row.state === "staged" || row.state === "reading") {
         signal.throwIfAborted();
@@ -209,7 +265,10 @@ export function createTransferJournal(
         const quota = await target.quota();
         if (quota && row.size > quota.total - quota.used)
           throw new ProviderError("QUOTA");
-        if (!checkedVersion(await targetEntry(), row.replace))
+        if (
+          !row.folders?.length &&
+          !checkedVersion(await targetEntry(), row.replace)
+        )
           throw Error("transferConflict");
         await advance("reading");
         let bytes: Blob;
@@ -233,7 +292,7 @@ export function createTransferJournal(
             row.size <= 1024 &&
             isLfsPointer(await bytes.text())
           )
-            throw Error("folderLfsPointer");
+            throw Error("folderLfs");
         } else {
           bytes = await storage.get(sourceKey(row));
         }
@@ -288,6 +347,7 @@ export function createTransferJournal(
 
       if (row.state === "writing") {
         signal.throwIfAborted();
+        await prepareFolders();
         if (
           !row.replace &&
           !row.createId &&
@@ -318,8 +378,8 @@ export function createTransferJournal(
               {
                 id: row.id,
                 op: row.replace ? "modify" : "add",
-                ref: row.replace?.ref ?? row.target.ref,
-                parent: row.target.ref,
+                ref: row.replace?.ref ?? destination(),
+                parent: destination(),
                 name: row.name,
                 baseVersion: row.replace?.version ?? undefined,
                 bytesKey: sourceKey(row),
@@ -441,7 +501,8 @@ export function createTransferJournal(
                 row.target.provider === draft.target.provider &&
                 row.target.locationId === draft.target.locationId &&
                 row.target.ref === draft.target.ref &&
-                normalized(row.name) === normalized(draft.name),
+                normalized([...(row.folders ?? []), row.name].join("/")) ===
+                  normalized([...(draft.folders ?? []), draft.name].join("/")),
             )
           )
             throw Error("transferConflict");

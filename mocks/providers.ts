@@ -188,6 +188,7 @@ const handlers = [
     }
     if (url.pathname.startsWith("/upload/")) return error(413);
     const data = (await request.json()) as {
+      id?: string;
       name?: string;
       parents?: string[];
       trashed?: boolean;
@@ -196,6 +197,7 @@ const handlers = [
       item.trashed = true;
       return HttpResponse.json(google(item));
     }
+    if (data.id && lookup("gdrive", data.id)) return error(409);
     return HttpResponse.json(
       google(
         upsert(
@@ -206,6 +208,8 @@ const handlers = [
             data.parents?.[0] ??
             item?.parent ??
             ROOT,
+          undefined,
+          data.id,
         ),
       ),
     );

@@ -227,7 +227,8 @@ export function TransferPicker({
             <ul>
               {plan.map(({ draft }, index) => (
                 <li key={index}>
-                  {draft.source.entry.name} → {draft.name}
+                  {draft.source.entry.name} →{" "}
+                  {[...(draft.folders ?? []), draft.name].join("/")}
                   {draft.replace && " (" + t("folderReplace") + ")"}
                 </li>
               ))}

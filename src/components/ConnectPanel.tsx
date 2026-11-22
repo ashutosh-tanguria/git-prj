@@ -5,6 +5,7 @@ import styles from "./Library.module.css";
 import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
+import { CommandAction } from "./CommandBar";
 const TokenPresets = lazy(() =>
   import("./TokenPresets").then((m) => ({ default: m.TokenPresets })),
 );
@@ -56,6 +57,7 @@ export function ConnectPanel({
           <div className={styles.providerRow}>
             <ProviderMark provider="local" label={t("connectLocal")} />
             <span>{t("connectImportExport")}</span>
+            <CommandAction action="localImport" />
           </div>
           <p>
             {t("connectPushPromise")}

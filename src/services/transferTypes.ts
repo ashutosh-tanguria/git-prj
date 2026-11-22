@@ -30,6 +30,7 @@ export interface TransferDraft {
   move: boolean;
   replace?: Entry;
   allowMissingParent?: boolean;
+  folders?: string[];
 }
 export interface Transfer extends TransferDraft {
   id: string;
@@ -40,6 +41,8 @@ export interface Transfer extends TransferDraft {
   attempted?: boolean;
   deleteAttempted?: boolean;
   createId?: string;
+  directoryIds?: Record<number, string>;
+  destinationRef?: string;
   saved?: Entry;
   hashes?: Hashes;
   contentType?: string;

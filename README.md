@@ -424,7 +424,7 @@ Hover and focus: hover shows a subtle `--paper-0` tint; the focused row shows th
 - **List**: described above, default.
 - **Grid**: thumbnails at three sizes (120, 160, 200px), name below, size on hover or in a compact second line. PDFs show a first-page render.
 - **Columns**: Miller columns. Selecting a folder opens its contents in a new column to the right; the last column is the preview. Left and right arrows drill out and in. Each column header shows its item count. Columns are resizable. Good for deep trees, off by default.
-- **Split**: two independent explorers side by side, each with its own location, view and history. A header on each pane shows its provider mark and path. Dragging between panes stages a copy or move (section 6.11). Toggle with `Ctrl+\`.
+- **Split**: two independent explorers side by side, each with its own location, view and history. A header on each pane shows its provider mark and path. Drag between panes to stage a copy. Hold Shift while dropping to stage a move (section 6.11). On touch, select rows and use Move to or Copy to. Toggle with `Ctrl+\`.
 
 View switcher lives in the title bar area of the main pane (List, Grid, Columns) and in the command palette.
 

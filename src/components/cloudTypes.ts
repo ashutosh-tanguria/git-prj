@@ -6,6 +6,7 @@ export interface CloudLocations {
   roots: Location[];
   active?: string;
   list(ref: string): Promise<Entry[]>;
+  path?(ref: string): string | undefined;
   open(ref: string): void;
   refresh: number;
 }

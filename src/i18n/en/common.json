@@ -1,6 +1,9 @@
 {
   "moveTo": "Move to",
   "copyTo": "Copy to",
+  "splitView": "Split view",
+  "localImport": "Import local folder",
+  "localExport": "Export selected files",
   "back": "Back",
   "address": "Address",
   "go": "Go",

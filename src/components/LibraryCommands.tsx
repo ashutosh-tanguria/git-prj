@@ -56,6 +56,7 @@ export function LibraryCommands({
     );
   }, []);
   const dispatch = async (action: string) => {
+    if (["splitView", "localImport", "localExport"].includes(action)) return;
     const cloudDestination = cloud?.transferDestination;
     const gitDestination = current && account && githubEndpoint(account, current);
     const destination = cloudDestination || gitDestination;

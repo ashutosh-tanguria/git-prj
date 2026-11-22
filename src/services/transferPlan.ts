@@ -7,6 +7,7 @@ import {
 import { copyName } from "./folderOperations";
 import { FolderCollision, type CollisionChoice } from "./folderTypes";
 import { FOLDER_UPLOAD_CAP } from "./folderUpload";
+import { folderPath } from "./destinations";
 import { completeTree, repoRoot } from "./githubTree";
 import { transferPending } from "./transferJournal";
 import type { TransferRequest } from "./transferRequests";
@@ -45,8 +46,55 @@ export async function planTransfers(
           row.target.locationId === target.locationId &&
           row.target.ref === target.ref,
       )
-      .map((row) => fold(provider, row.name)),
+      .map((row) => fold(provider, row.folders?.[0] ?? row.name)),
   );
+  if (request.items.some((item) => item.relativePath)) {
+    const base = request.items[0].relativePath?.split("/")[0];
+    if (!base || request.move || request.items.length > FOLDER_UPLOAD_CAP)
+      throw Error("localImportInvalid");
+    const taken = (name: string) =>
+      names.has(fold(provider, name)) || reserved.has(fold(provider, name));
+    let root = base;
+    if (taken(root)) {
+      if (!choice) throw new FolderCollision([root]);
+      if (choice === "replace") throw Error("transferFolderCollision");
+      let index = 1;
+      do root = copyName(base, index++, true);
+      while (taken(root));
+    }
+    return request.items.map(({ source, bytes, relativePath }) => {
+      const path = folderPath(relativePath ?? "").split("/");
+      const name = path.pop()!;
+      if (
+        name !== source.entry.name ||
+        path.shift() !== base ||
+        !("local" in source) ||
+        !bytes
+      )
+        throw Error("localImportInvalid");
+      const folders = [root, ...path];
+      if (target.provider === "github") {
+        const git = parseRef(target.ref);
+        return {
+          bytes,
+          draft: {
+            source,
+            name,
+            move: false,
+            allowMissingParent: true,
+            target: {
+              ...target,
+              ref: refString({
+                ...git,
+                path: [git.path, ...folders].filter(Boolean).join("/"),
+              }),
+            },
+          },
+        };
+      }
+      return { bytes, draft: { source, target, name, move: false, folders } };
+    });
+  }
   const collisions: string[] = [];
   const result: { draft: TransferDraft; bytes?: Blob }[] = [];
   for (const { source, bytes } of request.items) {

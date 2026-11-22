@@ -1,4 +1,12 @@
 # Shelf progress
+### M4b slice 4: Split view and Local folder (2026-11-22)
+
+- Status: Split panes have independent locations, list/grid views and history. Drag stages a copy, Shift-drop stages a move, and touch selection offers both actions. Local folder import preserves nested paths. Export streams to a chosen directory or downloads a client-zip archive.
+- Decisions: Local folders are picker operations, so they have no sync or provider account. Import stages copies and asks for Keep both on an overlapping folder. Export picks an unused filename when an existing local file has the same name.
+- Not done: Final specimens, acceptance documentation and owner checklist follow.
+- Manual steps: Confirm the native folder picker and touch behavior with the owner browser and device. Chromium uses injected directory handles for the native API branches and uses MSW for every provider request.
+- Known issues: Empty local directories contain no files to stage. ZIP fallback materializes the final archive as a download Blob. Chromium passed split drag/history, nested import, native picker, and ZIP fallback coverage.
+
 ### M4b slice 3: PDF split (2026-11-22)
 
 - Status: The blocked-upload dialog and Size ledger can split a PDF in a lazy pdf-lib worker. Measured consecutive parts stage as guarded adds while the original remains untouched.

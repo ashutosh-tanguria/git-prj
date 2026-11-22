@@ -110,6 +110,7 @@ export default function CloudIntegration({
   );
   const [revision, setRevision] = useState(0);
   const paths = useRef(new Map<string, string>());
+  const folderLabels = useRef(new Map<string, string>());
   const serial = useRef(false);
 
   const session = sessions.find(({ provider }) =>
@@ -165,8 +166,10 @@ export default function CloudIntegration({
       .list(folder, { signal: controller.signal })
       .then((items) => {
         if (controller.signal.aborted) return;
-        for (const item of items)
-          if (item.kind === "dir") paths.current.set(item.ref, folder);
+        for (const item of items) if (item.kind === "dir") {
+          paths.current.set(item.ref, folder);
+          folderLabels.current.set(item.ref, item.name);
+        }
         setRows(items);
       })
       .catch((error: unknown) => {
@@ -463,6 +466,21 @@ export default function CloudIntegration({
       active: folder,
       roots: sessions.map(({ root }) => root),
       refresh: revision,
+      path: (ref) => {
+        const root = sessions.find(({ provider }) => ref.startsWith(cloudPrefix[provider.id as CloudId]))?.root.root;
+        if (!root) return;
+        const parts: string[] = [];
+        const seen = new Set<string>();
+        let step: string | undefined = ref;
+        while (step && step !== root && !seen.has(step)) {
+          seen.add(step);
+          const name = folderLabels.current.get(step);
+          if (!name) return;
+          parts.unshift(name);
+          step = paths.current.get(step);
+        }
+        return "/" + parts.join("/");
+      },
       open,
       list: async (ref) => {
         const current = sessions.find(({ provider }) =>
@@ -470,8 +488,10 @@ export default function CloudIntegration({
         );
         if (!current) return [];
         const items = await current.provider.list(ref);
-        for (const item of items)
-          if (item.kind === "dir") paths.current.set(item.ref, ref);
+        for (const item of items) if (item.kind === "dir") {
+          paths.current.set(item.ref, ref);
+          folderLabels.current.set(item.ref, item.name);
+        }
         return items;
       },
     },

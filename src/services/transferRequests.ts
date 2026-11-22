@@ -3,7 +3,7 @@ import type { Entry } from "./library";
 import type { TransferEndpoint, TransferSource } from "./transferTypes";
 
 export interface TransferRequest {
-  items: { source: TransferSource; bytes?: Blob }[];
+  items: { source: TransferSource; bytes?: Blob; relativePath?: string }[];
   move: boolean;
   target?: TransferEndpoint;
   cloudOnly?: boolean;
@@ -33,13 +33,14 @@ export function githubTransferSource(
     },
   };
 }
-export function localTransferSource(file: File) {
+export function localTransferSource(file: File, relativePath?: string) {
   return {
     source: {
       local: true as const,
       entry: { name: file.name, size: file.size },
     },
     bytes: file,
+    relativePath,
   };
 }
 let transferClipboard: Pick<TransferRequest, "items" | "move"> | undefined;

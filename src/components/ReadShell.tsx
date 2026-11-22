@@ -17,6 +17,7 @@ export function ReadShell({
   visibility,
   children,
   onParent,
+  onSplit,
 }: {
   roots: Repo[];
   clouds?: CloudLocations;
@@ -25,13 +26,18 @@ export function ReadShell({
   visibility: string;
   children: ReactNode;
   onParent: () => void;
+  onSplit?: () => void;
 }) {
   const panels = usePanels(),
     main = useRef<HTMLElement>(null);
   const restore = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+      if (onSplit && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.code === "Backslash" &&
+        !(e.target as HTMLElement).closest('input,textarea,[contenteditable="true"],[role="dialog"]')) {
+        e.preventDefault();
+        if (!e.repeat) onSplit();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
         e.preventDefault();
         restore.current = document.activeElement as HTMLElement;
         if (e.altKey) panels.setInspector((value) => !value);
@@ -53,9 +59,16 @@ export function ReadShell({
         onParent();
       }
     };
+    const command = (event: Event) => {
+      if ((event as CustomEvent<{ action: string }>).detail.action === "splitView") onSplit?.();
+    };
     window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [onParent]);
+    window.addEventListener("shelf-command", command);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("shelf-command", command);
+    };
+  }, [onParent, onSplit]);
   const close = (kind: "locations" | "inspector") => {
     if (kind === "locations") panels.setLocations(false);
     else panels.setInspector(false);
