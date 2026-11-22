@@ -21,6 +21,7 @@ async function connectTools(page: Page) {
       return route.fulfill({
         json: {
           tree: [
+            { path: "Batch", sha: "folder-tree", type: "tree", mode: "040000" },
             {
               path: "copy-one.txt",
               sha: "first",
@@ -47,6 +48,25 @@ async function connectTools(page: Page) {
       });
     if (path.includes("/contents/copy-"))
       return route.fulfill({ body: "same", contentType: "text/plain" });
+    if (path.endsWith("/git/trees/folder-tree"))
+      return route.fulfill({
+        json: {
+          tree: [
+            { path: "Empty", sha: "empty-tree", type: "tree", mode: "040000" },
+            {
+              path: "notes.txt",
+              sha: "notes",
+              type: "blob",
+              mode: "100644",
+              size: 4,
+            },
+          ],
+        },
+      });
+    if (path.endsWith("/git/trees/empty-tree"))
+      return route.fulfill({ json: { tree: [] } });
+    if (path.endsWith("/contents/Batch/notes.txt"))
+      return route.fulfill({ body: "test", contentType: "text/plain" });
     if (path.endsWith("/commits")) return route.fulfill({ json: [] });
     return route.fulfill({ status: 404, json: {} });
   });
@@ -86,7 +106,8 @@ test("downloads the selected bytes and rejects oversized ZIP selections before r
   await list.getByRole("button", { name: "oversized.bin" }).click();
   let oversizedReads = 0;
   page.on("request", (request) => {
-    if (new URL(request.url()).pathname.endsWith("/contents/oversized.bin")) oversizedReads++;
+    if (new URL(request.url()).pathname.endsWith("/contents/oversized.bin"))
+      oversizedReads++;
   });
   await command(page, "Export selection as ZIP");
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
@@ -113,4 +134,18 @@ test("finds equal contents and queues one guarded delete while keeping a copy", 
     .getByRole("button", { name: "Stage files", exact: true })
     .click();
   await expect(dialog.getByText(/1 delete staged/)).toBeVisible();
+});
+
+test("ZIP includes nested files and an empty folder", async ({ page }) => {
+  await connectTools(page);
+  await page
+    .getByRole("grid")
+    .getByRole("button", { name: "Batch", exact: true })
+    .click();
+  const download = page.waitForEvent("download");
+  await command(page, "Export selection as ZIP");
+  const archive = await readFile(await (await download).path());
+  expect(archive.includes("Batch/notes.txt")).toBe(true);
+  expect(archive.includes("Batch/Empty/")).toBe(true);
+  expect(archive.includes("test")).toBe(true);
 });

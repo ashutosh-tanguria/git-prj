@@ -34,14 +34,15 @@ for (const [width, theme] of [
       await expect(
         page.getByRole("columnheader").getByRole("button"),
       ).toHaveText(["Name", "Date modified", "Type", "Size", "Last change"]);
-      const action = page.getByRole("button", {
-        name: "View: Available after M5",
-        exact: true,
-      });
-      await page.keyboard.press("Tab");
-      await action.focus();
-      await expect(action).toHaveAttribute("aria-disabled", "true");
-      await expect(page.getByRole("tooltip")).toContainText("M5");
+      const action = page.getByRole("button", { name: "View", exact: true });
+      await action.press("Enter");
+      await expect(
+        page.getByRole("button", { name: "Columns", exact: true }),
+      ).toBeVisible();
+      await page
+        .getByRole("button", { name: "Columns", exact: true })
+        .press("Escape");
+      await expect(action).toBeFocused();
       await page.getByRole("grid").focus();
     }
     expect(

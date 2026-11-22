@@ -68,6 +68,41 @@ test("keyboard interaction, tooltip and disabled controls", async ({
   );
   await expect(selected).toBeChecked();
 });
+test("M5b specimens are accessible in Hindi at 360px", async ({ page }) => {
+  await page.goto("/#/styleguide");
+  await page.getByLabel("Language").selectOption("hi");
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.emulateMedia({ forcedColors: "active" });
+  const specimens = page.locator("#organization-specimens");
+  await expect(
+    specimens.getByRole("heading", { name: "संग्रह", exact: true }),
+  ).toBeVisible();
+  await expect(specimens.getByRole("progressbar")).toHaveAttribute(
+    "value",
+    "34",
+  );
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .include("#organization-specimens")
+        .analyze()
+    ).violations.filter(
+      ({ impact }) => impact === "serious" || impact === "critical",
+    ),
+  ).toEqual([]);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.setViewportSize({ width: 720, height: 500 });
+  await page.evaluate(() => (document.documentElement.style.zoom = "2"));
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
 test("Hindi, 360px, forced colors and 200 percent reflow", async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-11-16T12:00:00Z"));
   await page.goto("/#/styleguide");

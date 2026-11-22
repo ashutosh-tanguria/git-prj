@@ -793,7 +793,7 @@ Full-text results show provider mark, path, page number and a snippet with the m
 
 ### 6.13 Collections and tags
 
-Collections are named virtual folders that can hold items from any provider (references, not copies). Tags are text labels with a small dot (six muted hues, each paired with a distinct shape). Both live in the Locations pane and are stored locally. Optional and opt-in: write `.shelf/collections.json` to a chosen location so they roam between devices. Drag items onto a collection to add them.
+Collections are named virtual folders that hold references to items from any provider. Tags are text labels with eight palette colours, each paired with a distinct shape. Collections and tags live in Locations and are stored in IndexedDB. Add items through the context menu or drag them onto a collection. To share them between devices, explicitly stage `.shelf/collections.json` at a chosen location and Push it. Import from that location to merge its collections and tags.
 
 ### 6.14 Settings
 
@@ -1461,6 +1461,9 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 51. Resume uses the recorded account, source version and target. It rechecks an uncertain write or delete before replaying it, and an interrupted move keeps the source until the target verifies. Cancel before deletion leaves the source in place.
 52. A batch with a failed transfer keeps that source and staged work while other rows can complete. A failed verification shows "Not verified, source kept" and a Retry action.
 53. Local folder import retains paths relative to the selected folder. Export streams selected files to a chosen folder, or downloads a ZIP when the folder API is missing. Local folders do not appear as sync targets.
+
+54. Open files from GitHub and a cloud provider. Recent shows both in opening order. Star a file from the context menu, command bar or Inspector and verify that Favorites updates. Create a collection and add references from both providers using the menu and drag and drop. The mixed Explorer list shows each provider, and the references and tags survive reload after reconnecting. Tags are searchable with `#`. Exporting collection metadata requires explicitly staging and pushing `.shelf/collections.json`. Import merges the file and leaves provider items intact.
+55. Export a selected file or open a collection and export it as ZIP from the palette. The archive contains readable cached or provider bytes and preserves nested folders included in the selection. Progress is visible while writing. Cancelling stops the export without downloading a partial archive. An archive over 100 MiB is refused with a message before file bytes are read.
 
 ---
 

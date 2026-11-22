@@ -9,6 +9,7 @@ import { SampleViewers } from "./SampleViewers";
 import { ActionIcon } from "../ui/ActionIcon";
 import { Sash } from "../components/Sash";
 import { CommandBar } from "../components/CommandBar";
+import { ViewMenu, type FileView } from "../components/ViewMenu";
 import { PaneLayer } from "../components/PaneLayer";
 import { Inspector } from "../components/Inspector";
 import { ConnectPanel } from "../components/ConnectPanel";
@@ -25,11 +26,12 @@ export function ReadStyleguide() {
   const [sampleWidth, setSampleWidth] = useState(220);
   const [panel, setPanel] = useState<"locations" | "inspector" | null>(null);
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<FileView>("viewList");
   return (
     <section>
       <h2>{t("sample")}</h2>
       <PreviewSpecimens />
-      <CommandBar />
+      <CommandBar viewMenu={<ViewMenu active={view} onChange={setView} />} />
       <div style={{ display: "flex", height: 80 }}>
         <Sash
           label={t("locationsWidth")}

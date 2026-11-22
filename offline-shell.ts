@@ -28,6 +28,11 @@ export function offlineShell(): Plugin {
         "/src/components/SiteEntry.tsx",
         "/src/components/GuardController.tsx",
         "/src/components/IndexingStatus.tsx",
+        "/src/components/LibraryExplorerViews.tsx",
+        "/src/components/LibraryTools.tsx",
+        "/src/components/MixedExplorer.tsx",
+        "/src/components/OrganizerEditor.tsx",
+        "/src/components/ViewMenu.tsx",
         "/src/services/githubCache.ts",
       ];
       for (const asset of Object.values(bundle)) {

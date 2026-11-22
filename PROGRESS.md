@@ -1,4 +1,13 @@
 # Shelf progress
+### M5b complete (2026-11-22)
+
+- Status: M5b delivers quick access, collections and tags, Grid and Columns, duplicate review and ZIP export. The English and Hindi Styleguide has specimens for all six surfaces. Acceptance items 54 and 55 describe collections and ZIP export.
+- Decisions: Keep collection references scoped to their provider account. Stage roaming metadata through the existing transfer and Push flow. Cache thumbnails by version and size. ZIP export includes empty folders and refuses archives above 100 MiB before reading their body bytes.
+- Not done: Real-account portability, cross-provider browser behavior, physical-device scroll performance and screen-reader verification remain owner acceptance.
+- Manual steps: Follow [the M5b checklist](docs/manual-test-m5b.md) with disposable data and authorized test accounts.
+- Known issues: Duplicate scans cover the current listing and files in local caches. Missing sizes and read failures are reported as skipped. Columns retain the root address and preview up to 4 KiB of supported text. Thumbnails for unsupported or oversized files use glyphs.
+- Validation: The final `npm run check` passed with 294 tests and a 153282-byte gzip shell. Focused Chromium cases verified organizer drag and ZIP export, PDF rendering and 10,000-item virtualization, Columns navigation, guarded duplicate deletes, ZIP memory refusal and nested paths, offline PDF reload, and accessibility. One update run refreshed only light-default, dark-default and hindi-360.
+
 ### M5b slice 3 (2026-11-22)
 
 - Status: The palette runs SHA-256 duplicate scans and exports a selection or collection as ZIP. Duplicate results lead to guarded, versioned pending deletes. ZIP streams provider or cached bytes, shows progress and can be cancelled.

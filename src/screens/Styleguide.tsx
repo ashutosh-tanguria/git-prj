@@ -2,6 +2,7 @@ import "../i18n/styleguide";
 import { CloudSpecimens } from "./CloudSpecimens";
 import { TransferSpecimens } from "./TransferSpecimens";
 import { SearchSpecimens } from "./SearchSpecimens";
+import { OrganizationSpecimens } from "./OrganizationSpecimens";
 import { ReadStyleguide } from "./ReadStyleguide";
 import { useState } from "react";
 import { PrimitiveMatrix } from "./PrimitiveMatrix";
@@ -143,6 +144,7 @@ export default function Styleguide() {
           <CloudSpecimens />
           <TransferSpecimens />
           <SearchSpecimens />
+          <OrganizationSpecimens />
         </main>
       </div>
     </>

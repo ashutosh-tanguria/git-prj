@@ -73,6 +73,22 @@ test("Grid renders a PDF thumbnail and virtualizes ten thousand items", async ({
   const grid = page.getByRole("listbox", { name: "Files" });
   const pdf = grid.getByRole("option", { name: /cover.pdf/ });
   await expect(pdf.locator("img")).toBeVisible({ timeout: 12_000 });
+  await expect
+    .poll(() =>
+      pdf.locator("img").evaluate((element: HTMLImageElement) => {
+        const canvas = new OffscreenCanvas(
+          element.naturalWidth,
+          element.naturalHeight,
+        );
+        const context = canvas.getContext("2d");
+        if (!context) return 0;
+        context.drawImage(element, 0, 0);
+        return context
+          .getImageData(0, 0, canvas.width, canvas.height)
+          .data.filter((value, index) => index % 4 === 0 && value < 180).length;
+      }),
+    )
+    .toBeGreaterThan(0);
   await expect(pdf).toHaveAttribute("aria-setsize", "10000");
   expect(await grid.getByRole("option").count()).toBeLessThan(150);
   await page.getByLabel("Thumbnail size").selectOption("200");

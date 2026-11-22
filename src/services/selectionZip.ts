@@ -110,7 +110,11 @@ export async function planSelectionZip(
   const used = new Set<string>();
   for (const item of items) await append(item, "", used, []);
   if (!files.length) throw Error("zipSelect");
-  const length = Number(predictLength(files));
+  const length = Number(
+    predictLength(
+      files.map(({ name, size, item }) => (item ? { name, size } : { name })),
+    ),
+  );
   if (length > memoryLimit) throw Error("zipTooLarge");
   return { files, length };
 }

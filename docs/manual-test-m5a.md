@@ -16,7 +16,7 @@ Use a disposable account and a private test repository. The automated browser ca
 1. Open a PDF with a distinct phrase on page 12. Use Ctrl+K, type ? followed by that phrase and choose the result with Arrow Down and Enter. Check the provider mark, path, page number, snippet and highlighted viewer match.
 2. Open a Markdown file, a text file, a scanned PDF and a cached file larger than 150 MB. Verify that text files appear in full-text results and that notices distinguish scanned PDFs from files skipped for size. During a batch, cancel indexing and resume it. Verify that browsing remains responsive.
 3. Focus the file list and use Ctrl+F. Type a partial filename and check that only the current folder is filtered. Escape clears the filter and returns focus to the list.
-4. Exercise > commands, / filenames, ? full text, @ locations and # tags. Check that the ZIP action is disabled and that tags report No tags yet. Verify Arrow Up, Arrow Down, Enter, Escape and focus restoration with your keyboard and screen reader. Switch view opens the existing Split view and returns to Explorer.
+4. Exercise > commands, / filenames, ? full text, @ locations and # tags. With an empty selection, check that ZIP export explains what to select. With no tags defined, check for No tags yet. Verify Arrow Up, Arrow Down, Enter, Escape and focus restoration with your keyboard and screen reader. Switch view opens the View menu.
 5. Open the Styleguide in light and dark, switch to Hindi and verify that the palette, indexing, Offline and Storage controls remain readable at 360 px and at 200% zoom.
 
 ## Local validation

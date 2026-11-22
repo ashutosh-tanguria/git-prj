@@ -218,7 +218,7 @@ function CommandActions({
           icon="M2 2h12v12H2ZM8 2v12"
         />
         {siteAvailable && <CommandAction action="previewSite" />}
-        {viewMenu ?? <CommandAction action="switchView" />}
+        {viewMenu}
       </div>
       <div className={styles.push}>
         <CommandAction

@@ -104,19 +104,12 @@ test("polished shell interactions, tooltips and four review captures", async ({
   await axe();
   await page.screenshot({ path: "docs/polish/explorer-empty-dark.png" });
   await page.evaluate(() => (document.documentElement.dataset.theme = "light"));
-  const later = page.getByRole("button", {
-    name: "View: Available after M5",
-    exact: true,
-  });
-  await later.hover();
-  await expect(page.getByRole("tooltip")).toHaveText("Available after M5");
-  await page.screenshot({ path: "docs/polish/command-disabled-hover.png" });
-  await page.mouse.move(0, 0);
-  await expect(page.getByRole("tooltip")).toHaveCount(0);
-  await later.focus();
-  await expect(page.getByRole("tooltip")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("tooltip")).toHaveCount(0);
+  const view = page.getByRole("button", { name: "View", exact: true });
+  await view.press("Enter");
+  const gridChoice = page.getByRole("button", { name: "Grid", exact: true });
+  await expect(gridChoice).toBeVisible();
+  await gridChoice.press("Escape");
+  await expect(view).toBeFocused();
   await page.setViewportSize({ width: 360, height: 800 });
   await expect(
     page.getByRole("button", { name: "Locations", exact: true }),

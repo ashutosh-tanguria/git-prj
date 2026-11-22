@@ -22,7 +22,7 @@ async function connect(page: Page) {
           })),
         },
       });
-    if (path.endsWith("/one.txt"))
+    if (path.endsWith("/one.txt") || path.endsWith("/two.txt"))
       return route.fulfill({ body: "text", contentType: "text/plain" });
     if (path.endsWith("/commits")) return route.fulfill({ json: [] });
     return route.fulfill({ status: 404, json: {} });
@@ -67,4 +67,16 @@ test("organizes opened, starred and tagged references in virtual Explorer locati
     page.getByRole("heading", { name: "Review", exact: true }),
   ).toBeVisible();
   await expect(file).toBeVisible();
+  await page.getByRole("treeitem", { name: "ada/notes", exact: true }).click();
+  const second = page.getByRole("button", { name: "two.txt", exact: true });
+  await second.dragTo(collection);
+  await collection.click();
+  await expect(second).toBeVisible();
+  await page.keyboard.press("Control+k");
+  await page
+    .getByRole("combobox", { name: "Commands and search" })
+    .fill("> export collection");
+  const download = page.waitForEvent("download");
+  await page.getByRole("option", { name: "Export collection as ZIP" }).click();
+  await expect((await download).suggestedFilename()).toBe("Course notes.zip");
 });

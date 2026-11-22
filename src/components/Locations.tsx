@@ -23,7 +23,6 @@ export interface VirtualLocations {
   open(id: string): void;
   create(): void;
   add(id: string, items: LibraryItem[]): void;
-  exportCollection?(id: string): void;
   exportLabels(): void;
   importLabels?: () => void;
 }
@@ -312,15 +311,7 @@ function LocationTree({
   return (
     <nav aria-label={t("locations")}>
       <h2>{t("locations")}</h2>
-      {!virtual && (
-        <section className={v2.navGroup}>
-          <h3>{t("quickAccess")}</h3>
-          <LaterAction action="recent" milestone="M5" />
-          <LaterAction action="favorites" milestone="M5" />
-          <LaterAction action="pending" />
-        </section>
-      )}
-      {virtual && <LaterAction action="pending" />}
+      <LaterAction action="pending" />
       <section className={v2.navGroup}>
         <h3>{t("thisLibrary")}</h3>
       </section>
@@ -333,7 +324,7 @@ function LocationTree({
         {render(groups)}
       </div>
       {error && <p role="alert">{error}</p>}
-      {virtual ? (
+      {virtual && (
         <>
           <Button onPress={virtual.create}>{t("collectionCreate")}</Button>
           <details className={v2.navGroup}>
@@ -350,11 +341,6 @@ function LocationTree({
             </Button>
           </details>
         </>
-      ) : (
-        <section className={v2.navGroup}>
-          <h3>{t("collections")}</h3>
-          <LaterAction action="collections" milestone="M5" />
-        </section>
       )}
     </nav>
   );
