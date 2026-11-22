@@ -1,4 +1,12 @@
 # Shelf progress
+### M4b gate checkpoint (2026-11-22)
+
+- Status: The single `npm run check` command passes all six gates with 250 tests and a 151886-byte gzip shell.
+- Decisions: The previous check stopped on a lint error that was already fixed in the provider integration commit. This checkpoint records the verified result without changing the gates.
+- Not done: M4b feature slices follow this checkpoint.
+- Manual steps: None for this checkpoint.
+- Known issues: No gate failure reproduced.
+
 ### M4a slice 5: Provider integration (2026-11-22)
 
 - Status: Cloud providers are available in Connect, Settings and the mixed Locations tree when configured. The active provider shows connection status and available quota with a warning below 5%. Uploads, replacements, folders, renames, same-provider moves and recoverable deletes stage locally. Push writes sequentially, reports per-file progress and durably removes only confirmed items from Pending. English and Hindi copy, Styleguide specimens and docs/manual-test-m4a.md are included.
