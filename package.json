@@ -21,7 +21,8 @@
     "check": "npm run typecheck && npm run lint && npm run lint:css && npm test && npm run build && npm run size",
     "sandbox:dev": "vite --config sandbox/vite.config.ts",
     "sandbox:build": "vite build --config sandbox/vite.config.ts",
-    "sandbox:preview": "vite preview --config sandbox/vite.config.ts"
+    "sandbox:preview": "vite preview --config sandbox/vite.config.ts",
+    "extension:zip": "node scripts/build-extension.mjs"
   },
   "dependencies": {
     "@azure/msal-browser": "5.26.0",

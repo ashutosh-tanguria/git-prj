@@ -8,7 +8,10 @@ import {
   request,
   revokeGitHubSession,
 } from "../src/providers/github/client";
-import { GitHubOAuthSession } from "../src/providers/github/oauthSession";
+import {
+  GitHubOAuthSession,
+  type RefreshCredential,
+} from "../src/providers/github/oauthSession";
 
 const worker = "https://worker.example";
 const api = "https://api.github.com";
@@ -99,4 +102,34 @@ it("retries a 401 using one refresh for parallel requests", async () => {
     [{ ok: true }, { ok: true }],
   );
   expect(rotate).toHaveBeenCalledTimes(1);
+});
+
+it("does not restore a remembered credential removed by another tab", async () => {
+  const session = await GitHubOAuthSession.exchange(
+    worker,
+    "code",
+    "https://app.example/auth/github/",
+    "verifier",
+  );
+  let saved: RefreshCredential | undefined;
+  try {
+    await session.remember({
+      async read() {
+        return saved;
+      },
+      async write(value) {
+        saved = value;
+      },
+      async lock(run) {
+        return run();
+      },
+    });
+    saved = undefined;
+    await expect(session.token("ghu_fixture_1")).rejects.toThrow(
+      "AUTH_EXPIRED",
+    );
+    expect(rotate).not.toHaveBeenCalled();
+  } finally {
+    session.close();
+  }
 });

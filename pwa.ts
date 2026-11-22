@@ -7,6 +7,7 @@ const startup = [
   "index.html",
   "src/screens/Library.tsx",
   "src/components/PwaUpdate.tsx",
+  "src/components/PrivacySettings.tsx",
   "src/components/GitHubSignIn.tsx",
   "src/components/CloudIntegration.tsx",
   "src/components/LibraryCommands.tsx",

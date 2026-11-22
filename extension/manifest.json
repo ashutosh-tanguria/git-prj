@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Open in Shelf",
+  "version": "0.1.0",
+  "description": "Open GitHub repositories and files in Shelf.",
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

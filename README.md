@@ -1064,7 +1064,7 @@ Ship a `_headers` file (Cloudflare Pages and Netlify syntax) with:
   ! Cross-Origin-Opener-Policy
 ```
 
-The service worker precaches only the app shell and fonts. It never caches provider API responses or file bytes (those go to IndexedDB and OPFS under the app's own control).
+The service worker precaches only the app shell and fonts. The bounded runtime cache holds only same-origin immutable build assets. Provider API responses and file bytes go to IndexedDB and OPFS under the app's own control.
 
 ### 9.4 Handling untrusted content
 
@@ -1101,7 +1101,7 @@ Lockfile committed; exact versions pinned for runtime dependencies; `npm audit` 
 
 ### 9.8 Privacy statement
 
-No telemetry, no analytics, no crash reporting service. Optional managed rendering sends consented content directly to the chosen vendor; the broker receives no file bytes or provider tokens. Name each enabled vendor, retention and policy in Privacy; see 6.5b.14. A "Copy diagnostics" button in Help produces a redacted text block (versions, browser, feature support, recent error codes, no file names, no tokens) the user can paste into an issue.
+No telemetry, no analytics, no crash reporting service. Optional managed rendering sends consented content directly to the chosen vendor; the broker receives no file bytes or provider tokens. Name each enabled vendor, retention and policy in Privacy; see 6.5b.14. A "Copy diagnostics" button in Settings → Privacy produces a redacted text block (versions, browser, feature support, recent error codes, no file names, no tokens) the user can paste into an issue.
 
 ---
 
@@ -1350,6 +1350,7 @@ shelf/
 | --- | --- |
 | `VITE_GITHUB_APP_CLIENT_ID` | GitHub App client id (optional, enables Sign in with GitHub) |
 | `VITE_OAUTH_WORKER_URL` | Exact HTTPS origin of the OAuth worker |
+| `VITE_SANDBOX_ORIGIN` | Exact independent sandbox origin when previews are enabled |
 | `VITE_GITHUB_APP_SLUG` | Optional GitHub App slug for the direct installation link |
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth web client id |
 | `VITE_GOOGLE_API_KEY`, `VITE_GOOGLE_APP_ID` | Google Picker (optional feature) |
@@ -1360,12 +1361,12 @@ Every provider is feature-flagged by the presence of its variable; a missing var
 
 ### 13.4 SETUP.md must contain (the **[HUMAN]** steps, with exact values)
 
-1. GitHub: write the plain-text guide for creating a fine-grained token (this text is also shown inside the Connect dialog), and optionally create a GitHub App with callback URL `<origin>/auth/github/` (`http://localhost:5173/auth/github/` for development), permissions Contents (read and write) and Metadata (read), start sign-in from Shelf so the callback has state and PKCE, user-to-server token expiry on.
+1. GitHub: write the plain-text guide for creating a fine-grained token (this text is also shown inside the Connect dialog), and optionally create a GitHub App with callback URL `<origin>/auth/github/` (`http://localhost:5173/auth/github/` for development), permissions Contents (read and write) and Metadata (read), webhook off and expiring user access tokens on. Install on selected repositories. Start sign-in from Shelf so the callback has state and PKCE.
 2. Google Cloud: create a project, enable the Drive API (and Picker API if used), configure the OAuth consent screen, set publishing status to "In production" so it is not limited to test users, add authorised JavaScript origins, create a web client id, create an API key restricted by HTTP referrer.
 3. Dropbox: create an app with "Scoped access" and "App folder", enable the permissions for files read and write, add redirect URIs, note that apps start in development mode with a user limit and need Dropbox approval for production.
 4. Microsoft Entra: register a single-page application, supported account types "personal and work", redirect URI `<origin>/`, delegated permission `Files.ReadWrite.AppFolder`.
-5. Cloudflare: create the Pages project and the Worker, set the Worker secrets, set the allowed origin.
-6. A privacy policy page (`docs/privacy.md`, served at `/privacy`) is required by Google and Microsoft consent screens. Generate it from section 9.6 and 9.8, including managed vendors and consent.
+5. Cloudflare: create the app and sandbox Pages projects and the OAuth Worker. Set the Worker secrets and exact app origin following [Deploy Shelf](docs/deploy.md).
+6. A privacy policy page (`docs/privacy.md`, served at `/privacy/`) is required by Google and Microsoft consent screens. Generate it from section 9.6 and 9.8, including managed vendors and consent.
 7. For Preview Plus, create a second static deployment on a verified different registrable site, set origin B isolation headers and origin A allowlists, and verify both origins.
 8. For optional managed tiers, create CloudConvert and CodeSandbox accounts and API/SDK keys using free tiers first; create a Cloudflare Turnstile site key, set Worker secrets and budget/kill-switch variables, and configure vendor billing alerts. Never commit secrets.
 
@@ -1398,7 +1399,8 @@ Each milestone ends green: `npm run check` passes, `PROGRESS.md` is updated, and
 | M4a Providers | Shared MSW contracts, Drive/Dropbox/OneDrive adapters, flagged connections, mixed Locations, non-atomic staging and Push | Provider contracts and partial-failure retention pass against MSW; real OAuth setup remains [HUMAN] |
 | M4b Transfers and remaining M4 | Cross-provider verified moves/copies, Split view, Local import/export, PDF split and provider cloud rendering | Not authorized by M4a; requires owner instruction |
 | M5 Library features | Cache with LRU and pinning, offline open, full-text search, command palette, Collections and tags, duplicate finder, ZIP export, Grid and Column views | Offline PDF reopens at the saved page; search returns page numbers |
-| M6 Platform | OAuth/render broker worker, Tier P and E vendors and mocks, Turnstile, quotas, Sign in with GitHub, Chrome extension, PWA install and update flow, security headers, allowlist test, Settings and Privacy screens | Allowlist test green; Lighthouse PWA at least 90 |
+| M6a Platform | GitHub OAuth Worker and sign-in, Chrome extension ZIP, installable PWA and safe updates, Pages security headers, network and message tests, Settings and Privacy | Allowlist and sandbox message tests pass. Lighthouse PWA and Accessibility at least 90. |
+| M6b Paid preview tiers | Render broker, Tier P and E vendors and mocks, Turnstile and quotas | Owner approves managed-tier rollout and cost controls. |
 | M7 Release | Accessibility pass (axe plus manual notes), Hindi strings reviewed, Help and onboarding copy, performance budget check, docs, release checklist | Section 15 passes in full on Chromium, Firefox, WebKit |
 
 Feature flags per provider so that M4 can be merged provider by provider if one is blocked on external setup.
@@ -1417,7 +1419,7 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 8. Open a 20 MB PDF, go to page 50, go offline, reload: it opens at page 50 from cache.
 9. Move a file from GitHub to Drive. Verify with Drive MD5 or a SHA-256 download comparison before issuing the source delete. A simulated mismatch leaves the GitHub source intact, flags the target and offers Retry without duplicates.
 10. Force-quit the tab with 5 staged changes and reopen: all 5 are still pending. Export the working copy, wipe local data, restore it: all 5 return.
-11. The network allowlist test passes; no token appears in logs, localStorage, sessionStorage, cookies, or URLs.
+11. The full OAuth, cached-library and sandbox Playwright flow allows only section 9.3 origins. Tokens stay out of logs, browser web storage, cookies, URLs, diagnostics and sandbox messages. Optional remembered refresh credentials appear only as ciphertext in IndexedDB.
 12. Full-text search finds a phrase on page 12 of a cached PDF and opens the viewer at that page.
 13. axe-core reports no serious or critical issues on any screen; keyboard-only completion of connect, browse, stage, review and push is possible.
 14. The UI passes the anti-template checklist (5.2): Stylelint finds no hex colours, gradients or backdrop filters outside tokens; the squint, grayscale and 200% zoom reviews are recorded in `docs/design-qa.md` with screenshots.
@@ -1445,7 +1447,7 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 34. Supported video and audio up to 100 MiB play from blob URLs after download with progress, keyboard controls and version-keyed OPFS caching with IndexedDB fallback. Reopen/reconnect reuses cached bytes. Above 100 MiB a specific message appears without downloading. Physical-device memory and codec coverage remain manual release gates.
 35. Origin B network and every Window/MessagePort send/receive payload are inspected in e2e, including decoded file buffers. Seeded provider tokens and Shelf storage/cookie contents never cross the sandbox boundary. Origin A's provider Authorization headers stay on the GitHub API.
 36. With the mock vendor enabled, a DOCX, PPTX and XLSX can be rendered in the cloud, the PDF opens in the PDF viewer, and a second open is served from OPFS.
-37. The worker never receives file bytes or provider tokens (e2e test inspects all worker requests).
+37. The OAuth Worker accepts only authorization code exchange, GitHub App refresh and grant revocation requests. The end-to-end test inspects Worker payloads. File bytes and other provider credentials never reach the Worker. The managed render broker remains part of M6b.
 38. With the kill switch on or the daily budget exhausted, Tier P and E disappear or show a clear unavailable message, and lower tiers still work.
 39. A file over the size cap is rejected before any vendor call.
 40. A file with a sensitive name always asks for fresh confirmation before any cloud send.

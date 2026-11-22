@@ -1,5 +1,15 @@
 # Shelf progress
 
+### M6a complete (2026-11-22)
+
+- Status: The four slices deliver the OAuth Worker, GitHub App sign-in, isolated Pages deployments, offline PWA and guarded updates, the MV3 extension ZIP, and Settings Privacy with redacted diagnostics. English and Hindi Styleguide specimens and README acceptance items 11 and 37 are current.
+- Decisions: GitHub App sign-in uses the static callback with PKCE and installed repository scope. The extension derives the repository and ref from GitHub page metadata and encodes slash branches and file paths. Diagnostics copy only whitelisted provider codes and coarse browser information. The development extension ZIP points to http://localhost:5173.
+- Not done: Hosted deployment, live GitHub account acceptance, final icon artwork, M6b and M7.
+- Manual steps: Use [Deploy Shelf](docs/deploy.md) and [the M6a checklist](docs/manual-test-m6a.md) to register the GitHub App, configure Cloudflare and verify installation, revocation and updates on the deployed origins.
+- Known issues: Windows Application Control blocked the optional unpacked-extension launch using Playwright's full Chromium executable. Chromium passed the extension content script and deep-link tests. The npm audit high-severity gate passed with seven moderate findings, including build-only Workbox dependencies.
+- Validation: The final `npm run check` passed with 307 tests and a 153161-byte gzip shell. Twelve Chromium checks passed, including the network allowlist, message isolation, offline PDF reload, wipe, diagnostics and extension links. One update run refreshed light-default, dark-default and hindi-360. Lighthouse CI scored PWA 100 and Accessibility 98. Sandbox build and bundle sizes, locked licences, localhost callback and ZIP contents passed.
+
+
 ### M6a slice 3 (2026-11-22)
 
 - Status: Pages header templates, isolated sandbox headers, installable Workbox shell, offline library, safe update prompt, network and sandbox message tests, and Lighthouse CI.
@@ -208,7 +218,8 @@ The approved analysis governs ambiguities except where merged amendments or owne
 | M3.5b Office Quick view | Implemented locally; production/device gates pending | Acceptance 27, renderer fixtures, controls and hostile/token/storage isolation pass locally. Tier 2, B and C are deferred. |
 | M4 Other providers and moves | Not started | M3 exit and provider setup required. |
 | M5 Library features | Not started | Cache, offline integration, search, collections and alternate views remain here. |
-| M6 Platform | Not started | OAuth, hosting, extension, PWA, Settings and Privacy remain here. |
+| M6a Platform | Implemented locally | OAuth, hosting setup, extension, PWA, Settings and Privacy. |
+| M6b Paid preview tiers | Not started | Managed preview vendors, Turnstile and quotas. |
 | M7 Release | Not started | Full release, device, screen-reader and language reviews remain here. |
 
 ## Decisions
@@ -325,13 +336,15 @@ UI Grid view remains scheduled for M5. Saved column widths may require horizonta
 
 [HUMAN] Follow docs/manual-test-m3a.md using an initialized disposable repository and a short-lived Contents read/write token. Confirm atomic commit, conflicts, protected branches, history and ZIP recovery. Never share the token in chat.
 
-### SETUP: Preview Plus and optional managed rendering
+### SETUP: Platform, Preview Plus and optional managed rendering
+
+[HUMAN] M6a: create a GitHub App with production callback `<origin>/auth/github/` and a separate development app with `http://localhost:5173/auth/github/`. Use Contents read/write, Metadata read, expiring user tokens, webhook off and selected repository installations. Configure the three Worker secrets and deploy the two static Pages projects using [Deploy Shelf](docs/deploy.md). Follow the [M6a acceptance checklist](docs/manual-test-m6a.md).
 
 [HUMAN] M3.5a: create a second Cloudflare Pages project using `npm ci && npm run sandbox:build`, output `sandbox/dist`, and exact `SHELF_APP_ORIGIN`. Build Shelf with `VITE_SANDBOX_ORIGIN` set to the deployed sandbox origin. Use a different registrable site, verify Pages public-suffix/cookie isolation if using pages.dev, and verify deployed CSP/frame-ancestors/COOP/COEP. See sandbox/README.md. For local dev run app at 127.0.0.1:5173 and sandbox at 127.0.0.1:5174. No secrets belong in the sandbox.
 
 [HUMAN] Create a second static deployment on a verified different registrable site; configure origin B COOP, COEP, CSP and frame-ancestors, and the app origin allowlist. Verify the host site boundary.
 
-[HUMAN] For optional managed tiers, create a CloudConvert account and API key and a CodeSandbox account and SDK key, using free tiers first. Create a Cloudflare Turnstile site key. Set Worker secrets, budget variables and kill switch, configure billing alerts at both vendors, and document the monthly ceiling in docs/costs.md. Do not commit secrets. These steps are for M6; M3.5 uses mocks.
+[HUMAN] For optional managed tiers, create a CloudConvert account and API key and a CodeSandbox account and SDK key, using free tiers first. Create a Cloudflare Turnstile site key. Set Worker secrets, budget variables and kill switch, configure billing alerts at both vendors, and document the monthly ceiling in docs/costs.md. Do not commit secrets. These steps are for M6b. M3.5 uses mocks.
 
 [HUMAN] Review docs/m2 captures and verify U/file drops with disposable local files. No bytes are staged or sent. Follow the existing real-account M1 checklist separately.
 

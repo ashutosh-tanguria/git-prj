@@ -1,0 +1,29 @@
+.privacy {
+  display: grid;
+  gap: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.privacy table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.privacy caption {
+  text-align: start;
+  font-weight: 650;
+}
+
+.privacy th,
+.privacy td {
+  padding: var(--space-1);
+  border-block-end: 1px solid var(--rule);
+  text-align: start;
+  vertical-align: top;
+}
+
+.privacy ul {
+  column-width: 14rem;
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}

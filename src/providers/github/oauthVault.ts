@@ -76,7 +76,7 @@ function access(
     lock,
     async read() {
       const saved = await load();
-      if (!saved) return;
+      if (!saved || !salt.every((byte, i) => byte === saved.salt[i])) return;
       const bytes = await crypto.subtle.decrypt(
         { name: "AES-GCM", iv: saved.iv },
         key,

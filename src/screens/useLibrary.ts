@@ -162,12 +162,31 @@ export function useLibrary(offline: boolean) {
               signal: controller.signal,
               force: refreshVersion !== appliedRefresh.current,
               onUpdate: setEntries,
-            }).then((rows) => {
-              if (!controller.signal.aborted) {
-                setEntries(rows);
-                appliedRefresh.current = refreshVersion;
-              }
-            }),
+            })
+              .then((rows) => {
+                if (!controller.signal.aborted) {
+                  setEntries(rows);
+                  appliedRefresh.current = refreshVersion;
+                }
+              })
+              .catch(async (error: Error) => {
+                if (error.message !== "NOT_FOUND" || !parsed.path) throw error;
+                const parent = {
+                  ...parsed,
+                  path: parsed.path.split("/").slice(0, -1).join("/"),
+                };
+                const siblings = await listGitHub(activeAccount, parent, {
+                  signal: controller.signal,
+                });
+                if (
+                  !siblings.some(
+                    (entry) => entry.kind === "file" && entry.ref === key,
+                  )
+                )
+                  throw error;
+                if (!controller.signal.aborted)
+                  location.replace(viewerRoute(parsed));
+              }),
     );
     void action
       .catch((error: Error) => {

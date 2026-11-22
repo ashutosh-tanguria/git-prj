@@ -4,6 +4,7 @@ import type { TextMatch } from "../services/textSearch";
 import { StorageSettings } from "./StorageSettings";
 import { HomeUpload } from "./HomeUpload";
 import "../i18n/m3b";
+import "../i18n/platform";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Modal, Dialog, Heading } from "react-aria-components";
 import { CreateRepository } from "./CreateRepository";
@@ -34,6 +35,7 @@ import type { Label } from "../services/organizer";
 import type { LibraryItem } from "../services/organizer";
 import type { LibraryTool } from "./LibraryTools";
 import { lazy, Suspense } from "react";
+const PrivacySettings = lazy(() => import("./PrivacySettings"));
 import "../i18n/libraryTools";
 const LibraryTools = lazy(() => import("./LibraryTools"));
 export function LibraryCommands({
@@ -486,6 +488,12 @@ export function LibraryCommands({
                 beforeWipe={cloud?.signOutAll}
               />
               {providerSettings}
+              <details>
+                <summary>{t("privacyTitle")}</summary>
+                <Suspense fallback={null}>
+                  <PrivacySettings />
+                </Suspense>
+              </details>
               <ShortcutSettings
                 bindings={bindings}
                 onSave={(value) => {

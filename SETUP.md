@@ -10,14 +10,14 @@
 - M3: designate disposable write targets, empty/protected branches, and authorize test commits; validate backup restore and conflict outcomes.
 - M4: create Google project/web OAuth client with Drive API and optional Picker API, drive.file only; set authorized origins, project number, referrer/API-restricted key, consent branding and privacy URL. Add test users then publish to production as appropriate. Create Dropbox Scoped access/App folder app with metadata/content read/write and account_info.read where needed; register exact callback and request production approval. Register Entra SPA for personal/work accounts with Files.ReadWrite.AppFolder and exact callback; obtain tenant consent. Supply disposable accounts and review observed Microsoft transfer hosts. Advanced LFS needs a configured test repo and feasibility review before use.
 - M5: check offline/persistence/backup on Android and iOS; optionally choose a staged roaming-collections location.
-- M6: create GitHub App with callback `<origin>/auth/github/` (`http://localhost:5173/auth/github/` for development), Contents read/write, Metadata read and expiring user tokens. Deploy Pages and OAuth Worker, set Worker secrets and exact CORS origin/rate limits. Review public privacy page, install/update behavior and unpacked MV3 extension; arrange store account if publishing.
+- M6a: follow [Deploy Shelf](docs/deploy.md) to create the GitHub App with callback `<origin>/auth/github/` (development `http://localhost:5173/auth/github/`), Contents read/write, Metadata read, expiring user tokens on, webhook off and installation on selected repositories. Deploy the exact-origin OAuth Worker and two Pages projects. Use [M6a acceptance](docs/manual-test-m6a.md) and test the locally built extension ZIP.
 - M7: choose final name/domain, update registered origins/callbacks/privacy URL, complete Google/Dropbox/tenant approvals, designate Hindi and NVDA/VoiceOver reviewers, finish device/performance/real-account checks and release approval.
 
 The full values, proposed callback templates and evidence requirements are in [analysis section 7](docs/ANALYSIS.md#7-full-human-steps-by-milestone). Actual origins and account IDs are not yet known. Never put tokens or secrets in VITE variables or repository files.
 
 ## Local foundation
 
-Use Node 24.19.0 and npm 11.17.0. Run npm ci (lifecycle scripts stay disabled), then npm run dev and open http://localhost:5173/#/styleguide. The product root now opens the GitHub token connection screen. GitHub explorer/viewer deep links are supported; a reload requires reconnection because credentials remain in memory.
+Use Node 24.19.0 and npm 11.17.0. Run npm ci (lifecycle scripts stay disabled), then npm run dev and open http://localhost:5173/#/styleguide. The product root now opens the GitHub token connection screen. GitHub explorer/viewer deep links are supported; a reload requires reconnection or unlocking a remembered GitHub sign-in.
 
 Run npm run check. For visual/a11y tests run npx playwright install chromium, then npm run test:e2e. Browser downloads are explicit development setup, separate from the application's runtime host allowlist. Snapshot baselines use Windows, matching CI. To review an intentional change, run npm run test:e2e -- --update-snapshots and inspect every changed image before committing.
 

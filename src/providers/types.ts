@@ -1,3 +1,5 @@
+import { recordDiagnosticCode } from "../services/diagnosticCodes";
+
 export type ProviderId = "github" | "gdrive" | "dropbox" | "onedrive" | "local";
 export type CloudId = "gdrive" | "dropbox" | "onedrive";
 export interface Capabilities {
@@ -99,6 +101,7 @@ export class ProviderError extends Error {
     public details: { retryAfter?: number; uncertain?: boolean } = {},
   ) {
     super(code);
+    recordDiagnosticCode(code);
     this.userMessage = "provider" + code;
   }
 }

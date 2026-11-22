@@ -159,9 +159,15 @@ export class GitHubOAuthSession {
   }
 
   async remember(store: RefreshStorage) {
+    await this.inFlight;
     if (!this.refresh || this.closed) throw new ProviderError("AUTH_EXPIRED");
-    await store.write(this.refresh);
-    if (!this.closed) this.store = store;
+    this.store = store;
+    try {
+      await store.write(this.refresh);
+    } catch (error) {
+      if (this.store === store) this.store = undefined;
+      throw error;
+    }
   }
 
   onClose(release: () => void) {
@@ -176,7 +182,7 @@ export class GitHubOAuthSession {
       return this.access;
     const store = this.store;
     const rotate = async () => {
-      const saved = (await store?.read()) ?? this.refresh;
+      const saved = store ? await store.read() : this.refresh;
       if (!saved || saved.until <= Date.now() || this.closed)
         throw new ProviderError("AUTH_EXPIRED");
       const tokens = await receive(this.worker, "refresh", {
