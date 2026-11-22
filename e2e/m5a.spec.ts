@@ -71,19 +71,55 @@ test("acceptance 12 finds a cached phrase and highlights page 12", async ({
   page,
 }) => {
   await connectFixture(page, await pdfFixture(13));
-  await page
-    .locator("summary")
-    .filter({ hasText: "Search cached text" })
-    .click();
-  await page
-    .getByRole("searchbox", { name: "Search cached text" })
-    .fill("tidal archive signal");
-  const result = page.getByRole("button", {
+  await page.keyboard.press("Control+k");
+  const field = page.getByRole("combobox", { name: "Commands and search" });
+  await field.fill("? tidal archive signal");
+  const result = page.getByRole("option", {
     name: /archive.pdf.*Page 12.*tidal archive signal/,
   });
   await expect(result.locator("mark")).toHaveText("tidal archive signal");
-  await result.click();
+  await field.press("ArrowDown");
+  await field.press("Enter");
   await expect(page.locator('[data-pdf-page="12"] mark')).toHaveText(
     "tidal archive signal",
   );
+});
+
+test("filters the current folder and navigates palette modes with the keyboard", async ({
+  page,
+}) => {
+  await connectFixture(page, await pdfFixture(2));
+  await page.goBack();
+  const file = page
+    .getByRole("grid")
+    .getByRole("button", { name: "archive.pdf" });
+  await file.focus();
+  await page.keyboard.press("Control+f");
+  const search = page.getByRole("searchbox", { name: "Search this folder" });
+  await expect(search).toBeFocused();
+  await search.fill("missing name");
+  await expect(file).toHaveCount(0);
+  await search.press("Escape");
+  await expect(file).toBeVisible();
+
+  await page.keyboard.press("Control+k");
+  const field = page.getByRole("combobox", { name: "Commands and search" });
+  await expect(field).toBeFocused();
+  await field.fill("#");
+  await expect(page.getByText("No tags yet", { exact: true })).toBeVisible();
+  await field.fill("> export");
+  await expect(
+    page.getByRole("option", { name: /Export selection as ZIP/ }),
+  ).toHaveAttribute("aria-disabled", "true");
+  await field.press("Enter");
+  await expect(field).toBeVisible();
+  await field.fill("@ ada");
+  await expect(page.getByRole("option", { name: /ada\/notes/ })).toBeVisible();
+  await field.fill("/ archive");
+  await expect(page.getByRole("option", { name: /archive.pdf/ })).toBeVisible();
+  await field.press("ArrowDown");
+  await field.press("Enter");
+  await expect(
+    page.getByRole("heading", { name: "archive.pdf" }),
+  ).toBeVisible();
 });

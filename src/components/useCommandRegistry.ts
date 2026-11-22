@@ -3,7 +3,7 @@ import {
   defaultShortcuts,
   editableTarget,
   shortcutMatches,
-  type ShortcutAction,
+  paletteShortcuts,
 } from "../services/shortcuts";
 export function useCommandRegistry(
   bindings: typeof defaultShortcuts,
@@ -19,20 +19,37 @@ export function useCommandRegistry(
     };
     const key = (event: KeyboardEvent) => {
       if (
-        editableTarget(event.target) ||
-        (event.target as HTMLElement).closest('[role="dialog"]')
+        event.defaultPrevented ||
+        !(event.target instanceof HTMLElement) ||
+        event.target.closest('[role="dialog"]')
       )
         return;
-      for (const action of Object.keys(bindings) as ShortcutAction[]) {
-        if (!shortcutMatches(event, bindings[action])) continue;
+      for (const [action, binding] of Object.entries({
+        ...paletteShortcuts,
+        ...bindings,
+      })) {
+        if (!shortcutMatches(event, binding)) continue;
+        if (
+          editableTarget(event.target) &&
+          !["commandPalette", "goLocation"].includes(action)
+        )
+          return;
+        if (
+          action === "folderSearch" &&
+          !event.target.closest('[role="grid"], [data-file-command-scope]')
+        )
+          return;
         if (
           ["cut", "copy", "paste", "uploadFiles", "rename", "delete"].includes(
             action,
           ) &&
-          !(event.target as HTMLElement).closest('[role="grid"], [data-file-command-scope]')
+          !(event.target as HTMLElement).closest(
+            '[role="grid"], [data-file-command-scope]',
+          )
         )
           return;
         event.preventDefault();
+        if (event.repeat) return;
         void handler.current(action);
         break;
       }

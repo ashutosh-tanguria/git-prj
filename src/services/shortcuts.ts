@@ -9,6 +9,50 @@ export const defaultShortcuts = {
   rename: "F2",
   delete: "Delete",
 };
+export const paletteShortcuts = {
+  commandPalette: "Control+k",
+  folderSearch: "Control+f",
+  reviewPending: "Alt+Shift+p",
+  discardPending: "Alt+Shift+d",
+  moveTo: "Alt+Shift+m",
+  copyTo: "Alt+Shift+c",
+  splitPdf: "Alt+Shift+s",
+  switchView: "Alt+Shift+v",
+  sizeLedger: "Alt+Shift+l",
+  connectProvider: "Alt+Shift+o",
+  goLocation: "Control+l",
+  toggleTheme: "Alt+Shift+t",
+  toggleDensity: "Alt+Shift+y",
+  exportSelection: "Alt+Shift+x",
+  settings: "Alt+Shift+g",
+  storageWipe: "Alt+Shift+w",
+};
+
+export const paletteCommands = [
+  "push",
+  "reviewPending",
+  "discardPending",
+  "moveTo",
+  "copyTo",
+  "splitPdf",
+  "switchView",
+  "sizeLedger",
+  "connectProvider",
+  "goLocation",
+  "toggleTheme",
+  "toggleDensity",
+  "exportSelection",
+  "settings",
+  "storageWipe",
+] as const;
+
+export function commandBinding(
+  command: (typeof paletteCommands)[number],
+  bindings: typeof defaultShortcuts,
+) {
+  return command === "push" ? bindings.push : paletteShortcuts[command];
+}
+
 export type ShortcutAction = keyof typeof defaultShortcuts;
 function normalized(binding: string) {
   const parts = binding.toLowerCase().trim().split("+"),
@@ -29,6 +73,9 @@ export function validShortcuts(bindings: typeof defaultShortcuts) {
   const values = Object.values(bindings).map(normalized);
   return (
     new Set(values).size === values.length &&
+    !Object.values(paletteShortcuts)
+      .map(normalized)
+      .some((binding) => values.includes(binding)) &&
     values.every(
       (value) =>
         !!value &&

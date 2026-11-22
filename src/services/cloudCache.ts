@@ -44,7 +44,8 @@ export async function readCloud(
   if (!navigator.onLine) return cached();
   try {
     const known = await findCachedFile(ref);
-    const current = known ? await provider.stat(item.ref) : item;
+    const current =
+      known || !item.version ? await provider.stat(item.ref) : item;
     const identity = {
       ...ref,
       name: current.name,

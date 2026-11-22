@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { WorkingReview } from "./WorkingReview";
 import { QuickPush } from "./QuickPush";
 import { Button } from "../ui/Button";
@@ -30,6 +31,14 @@ export function WorkingCopy() {
     push,
     setPublic,
   } = state;
+  useEffect(() => {
+    const listener = () => {
+      setQuick(false);
+      setOpen(true);
+    };
+    window.addEventListener("shelf-review-pending", listener);
+    return () => window.removeEventListener("shelf-review-pending", listener);
+  }, [setOpen, setQuick]);
   return (
     <section id="pending" tabIndex={-1} className={styles.pendingStrip}>
       <span>

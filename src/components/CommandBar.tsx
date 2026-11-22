@@ -1,4 +1,5 @@
 import "../i18n/storage";
+import "../i18n/search";
 import { useState, useRef, useId } from "react";
 import { iconPaths } from "../ui/ActionIcon";
 import { t } from "../i18n";
@@ -196,6 +197,7 @@ function CommandActions({
           {t("sortMenu")}
         </button>
         <CommandAction action="settings" />
+        <CommandAction action="commandPalette" icon="M3 4h10M3 8h10M3 12h6" />
         {keepOffline && <CommandAction action="keepOffline" />}
         <CommandAction
           action="splitView"
@@ -203,11 +205,7 @@ function CommandActions({
           icon="M2 2h12v12H2ZM8 2v12"
         />
         {siteAvailable && <CommandAction action="previewSite" />}
-        <LaterAction
-          action="viewMenu"
-          milestone="M5"
-          icon="M2 2h12v12H2ZM2 6h12M6 6v8"
-        />
+        <CommandAction action="switchView" />
       </div>
       <div className={styles.push}>
         <CommandAction

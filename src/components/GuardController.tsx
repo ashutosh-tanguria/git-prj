@@ -12,12 +12,20 @@ import { SizeLedger } from "./GuardViews";
 import type { Repo, Entry } from "../services/library";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
-import { githubTransferSource, localTransferSource, requestTransfer } from "../services/transferRequests";
+import {
+  githubTransferSource,
+  localTransferSource,
+  requestTransfer,
+} from "../services/transferRequests";
 import type { CloudLibrary } from "./cloudTypes";
 import type { PdfSplitSource } from "./PdfSplitReview";
 import guardStyles from "./Guards.module.css";
 import styles from "./Library.module.css";
-const SplitReview = lazy(() => import("./PdfSplitReview").then((module) => ({ default: module.PdfSplitReview })));
+const SplitReview = lazy(() =>
+  import("./PdfSplitReview").then((module) => ({
+    default: module.PdfSplitReview,
+  })),
+);
 export function GuardController({
   repo,
   entries,
@@ -49,8 +57,20 @@ export function GuardController({
         encodeURIComponent(target.owner) +
         "/" +
         encodeURIComponent(target.repo);
-      const metadata = (await (await request(root)).json()) as Repo;
-      const listing = await library.list(target).catch((error) => {
+      const offline = !navigator.onLine;
+      const metadata = offline
+        ? target.owner + "/" + target.repo === repo.full_name
+          ? repo
+          : undefined
+        : ((await (await request(root)).json()) as Repo);
+      if (!metadata) throw Error("offlineMissing");
+      const listing = await (
+        offline && account
+          ? import("../services/githubCache").then((cache) =>
+              cache.listGitHub(account, target),
+            )
+          : library.list(target)
+      ).catch((error) => {
         if (["NOT_FOUND", "EMPTY_REPO"].includes((error as Error).message))
           return [];
         throw error;
@@ -87,14 +107,36 @@ export function GuardController({
     const ledger = () => setLedger(true);
     window.addEventListener("dragover", drop);
     window.addEventListener("drop", drop);
+    const splitPdf = (event: Event) => {
+      const file = (event as CustomEvent<Entry>).detail;
+      const ref = parseRef(file.ref);
+      setTarget({ ...ref, path: ref.path.split("/").slice(0, -1).join("/") });
+      setTargetRepo(repo);
+      setTargetEntries(entries);
+      setSplit({
+        source: {
+          name: file.name,
+          size: file.size,
+          read: (signal) =>
+            account
+              ? import("../services/githubCache").then((cache) =>
+                  cache.readGitHub(account, ref, signal),
+                )
+              : library.read(ref, signal),
+        },
+        staged: () => {},
+      });
+    };
+    window.addEventListener("shelf-split-pdf", splitPdf);
     window.addEventListener("shelf-ledger", ledger);
     return () => {
       window.removeEventListener("shelf-upload", upload);
       window.removeEventListener("dragover", drop);
       window.removeEventListener("drop", drop);
       window.removeEventListener("shelf-ledger", ledger);
+      window.removeEventListener("shelf-split-pdf", splitPdf);
     };
-  }, [current, entries, repo]);
+  }, [account, current, entries, repo]);
   useEffect(() => {
     if (files || ledger) requestAnimationFrame(() => dialog.current?.focus());
   }, [files, ledger]);
@@ -113,7 +155,7 @@ export function GuardController({
           e.target.value = "";
         }}
       />
-      {(files || ledger) && (
+      {(files || ledger || split) && (
         <Modal
           isOpen
           className={
@@ -129,7 +171,13 @@ export function GuardController({
         >
           <Dialog ref={dialog}>
             <Heading slot="title">
-              {t(ledger ? "sizeLedger" : "guardReview")}
+              {t(
+                ledger
+                  ? "sizeLedger"
+                  : split && !files
+                    ? "splitPdf"
+                    : "guardReview",
+              )}
             </Heading>
             <Button
               variant="quiet"
@@ -149,20 +197,43 @@ export function GuardController({
                   entries={ledger ? entries : targetEntries}
                   repo={ledger ? repo : targetRepo}
                   onClose={() => setSplit(undefined)}
-                  onStaged={() => { split.staged(); setSplit(undefined); }}
+                  onStaged={() => {
+                    split.staged();
+                    setSplit(undefined);
+                  }}
                 />
               </Suspense>
             ) : ledger ? (
-              <SizeLedger repo={repo} entries={entries}
-                onSplit={(file) => setSplit({
-                  source: { name: file.name, size: file.size,
-                    read: async (signal) => (await openRead(parseRef(file.ref), signal, file.sha)).blob() },
-                  staged: () => setLedger(false),
-                })}
-                onMove={account ? (selected) => {
-                  requestTransfer({ items: selected.map((entry) => ({ source: githubTransferSource(account, entry) })),
-                    move: true, onStaged: () => setLedger(false) });
-                } : undefined} />
+              <SizeLedger
+                repo={repo}
+                entries={entries}
+                onSplit={(file) =>
+                  setSplit({
+                    source: {
+                      name: file.name,
+                      size: file.size,
+                      read: async (signal) =>
+                        (
+                          await openRead(parseRef(file.ref), signal, file.sha)
+                        ).blob(),
+                    },
+                    staged: () => setLedger(false),
+                  })
+                }
+                onMove={
+                  account
+                    ? (selected) => {
+                        requestTransfer({
+                          items: selected.map((entry) => ({
+                            source: githubTransferSource(account, entry),
+                          })),
+                          move: true,
+                          onStaged: () => setLedger(false),
+                        });
+                      }
+                    : undefined
+                }
+              />
             ) : (
               <GuardReview
                 key={files?.map((f) => f.name + f.size).join("|")}
@@ -171,33 +242,75 @@ export function GuardController({
                   const file = files?.[index];
                   if (!file) return;
                   setSplit({
-                    source: { name: file.name, size: file.size, read: async () => file },
+                    source: {
+                      name: file.name,
+                      size: file.size,
+                      read: async () => file,
+                    },
                     staged: () => {
-                      const remaining = files?.filter((_, item) => item !== index);
+                      const remaining = files?.filter(
+                        (_, item) => item !== index,
+                      );
                       setFiles(remaining?.length ? remaining : undefined);
                     },
                   });
                 }}
-                remedies={cloud ? (index) => {
-                  const file = files?.[index];
-                  if (!file) return;
-                  const targets = cloud.locations.roots.flatMap((root) => {
-                    if (root.provider === "github" || root.provider === "local") return [];
-                    const endpoint = { provider: root.provider, locationId: root.id, ref: root.root };
-                    return cloud.transferProvider(endpoint) ? [endpoint] : [];
-                  });
-                  return targets.length ? <div className={guardStyles.remedies}>
-                    {targets.map((endpoint) => (
-                      <Button key={endpoint.locationId} onPress={() => requestTransfer({
-                        items: [localTransferSource(file)], move: false, target: endpoint, cloudOnly: true,
-                        onStaged: () => {
-                          const remaining = files?.filter((_, item) => item !== index);
-                          setFiles(remaining?.length ? remaining : undefined);
-                        },
-                      })}>{t("sendToProvider", { repo: t(endpoint.provider) })}</Button>
-                    ))}
-                  </div> : undefined;
-                } : undefined}
+                remedies={
+                  cloud
+                    ? (index) => {
+                        const file = files?.[index];
+                        if (!file) return;
+                        const targets = cloud.locations.roots.flatMap(
+                          (root) => {
+                            if (
+                              root.provider === "github" ||
+                              root.provider === "local"
+                            )
+                              return [];
+                            const endpoint = {
+                              provider: root.provider,
+                              locationId: root.id,
+                              ref: root.root,
+                            };
+                            return cloud.transferProvider(endpoint)
+                              ? [endpoint]
+                              : [];
+                          },
+                        );
+                        return targets.length ? (
+                          <div className={guardStyles.remedies}>
+                            {targets.map((endpoint) => (
+                              <Button
+                                key={endpoint.locationId}
+                                onPress={() =>
+                                  requestTransfer({
+                                    items: [localTransferSource(file)],
+                                    move: false,
+                                    target: endpoint,
+                                    cloudOnly: true,
+                                    onStaged: () => {
+                                      const remaining = files?.filter(
+                                        (_, item) => item !== index,
+                                      );
+                                      setFiles(
+                                        remaining?.length
+                                          ? remaining
+                                          : undefined,
+                                      );
+                                    },
+                                  })
+                                }
+                              >
+                                {t("sendToProvider", {
+                                  repo: t(endpoint.provider),
+                                })}
+                              </Button>
+                            ))}
+                          </div>
+                        ) : undefined;
+                      }
+                    : undefined
+                }
                 onStage={async () => {
                   await stageUploads(target, files || [], targetEntries);
                   setFiles(undefined);

@@ -1,3 +1,4 @@
+import type { NamedEntry } from "../services/filenameSearch";
 import type { TextMatch } from "../services/textSearch";
 import type { ReactNode } from "react";
 import type { Entry, Location, StorageProvider } from "../providers/types";
@@ -27,6 +28,8 @@ export interface CloudLibrary {
   transferSelection: TransferSource[];
   transferProvider(endpoint: TransferEndpoint): StorageProvider | undefined;
   openTextResult(item: TextMatch): void;
+  openFilenameResult(item: NamedEntry): void;
+  filterFolder(query: string): void;
   command(action: string): boolean;
   refresh(): void;
   parent(): void;

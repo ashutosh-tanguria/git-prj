@@ -54,6 +54,14 @@ export function createCloudStaging(
         await storage.save(next);
         return next;
       }),
+    discardAll: () =>
+      lock(async () => {
+        const rows = await load();
+        await storage.save([]);
+        for (const row of rows)
+          if (row.bytesKey)
+            await storage.remove?.(row.bytesKey).catch(() => {});
+      }),
     discard: (id: string) =>
       lock(async () => {
         const rows = await load();

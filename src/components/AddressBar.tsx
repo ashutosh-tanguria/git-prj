@@ -8,14 +8,19 @@ export function AddressBar({
   value,
   onGo,
   onRefresh,
+  filter,
+  onFilter,
 }: {
   value: string;
   onGo: (value: string) => void;
   onRefresh?: () => void;
+  filter?: string;
+  onFilter?: (query: string) => void;
 }) {
   const [draft, setDraft] = useState(value),
     [editing, setEditing] = useState(false);
   const field = useRef<HTMLInputElement>(null),
+    folderSearch = useRef<HTMLInputElement>(null),
     editButton = useRef<HTMLButtonElement>(null);
   const edit = () => {
     setDraft(value);
@@ -40,13 +45,19 @@ export function AddressBar({
         e.preventDefault();
         onRefresh();
       }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
-        e.preventDefault();
-        edit();
-      }
+    };
+    const focusSearch = () => {
+      folderSearch.current?.focus();
+      folderSearch.current?.select();
     };
     window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
+    window.addEventListener("shelf-address-edit", edit);
+    window.addEventListener("shelf-folder-search", focusSearch);
+    return () => {
+      window.removeEventListener("keydown", key);
+      window.removeEventListener("shelf-address-edit", edit);
+      window.removeEventListener("shelf-folder-search", focusSearch);
+    };
   }, [value, onRefresh]);
   const parent = () => {
     try {
@@ -66,6 +77,7 @@ export function AddressBar({
       className={styles.toolbar}
       onSubmit={(e) => {
         e.preventDefault();
+        if (!editing) return;
         onGo(draft);
         finish();
       }}
@@ -110,6 +122,29 @@ export function AddressBar({
           onGo={onGo}
           onEdit={edit}
           editRef={editButton}
+        />
+      )}
+      {onFilter && (
+        <input
+          className={styles.folderSearch}
+          ref={folderSearch}
+          type="search"
+          aria-label={t("folderSearch")}
+          placeholder={t("folderSearch")}
+          value={filter ?? ""}
+          onChange={(event) => onFilter(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.preventDefault();
+            if (event.key === "Escape") {
+              event.stopPropagation();
+              onFilter("");
+              document
+                .querySelector<HTMLElement>(
+                  '#fileList [role="grid"], #fileList [data-file-command-scope]',
+                )
+                ?.focus();
+            }
+          }}
         />
       )}
     </form>

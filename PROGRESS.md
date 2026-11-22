@@ -1,4 +1,12 @@
 # Shelf progress
+### M5a slice 3: Search and command palette
+
+- Status: Ctrl+F filters the current folder. Ctrl+K opens the keyboard-accessible palette with all five prefixes. Chromium passed keyboard search, disabled ZIP and tag states, and page 12 selection. The full check passed with 286 tests.
+- Decisions: Switch view uses the existing Explorer and Split view. Command shortcuts use the existing registry; the palette reflects a customized Push binding. Discard all pending requires confirmation and uses the existing journal cancellation behavior.
+- Not done: Styleguide specimens, final storage acceptance and the manual checklist follow.
+- Manual steps: Check browser and assistive-technology behavior for the reserved keys on target devices.
+- Known issues: Tags and selection ZIP export are deferred to M5b.
+
 ### M5a slice 2: Full-text index
 
 - Status: A cancellable worker indexes cached PDF pages and text files. The Chromium page 12 phrase case opened the viewer at the match. The full check passed with 283 tests.

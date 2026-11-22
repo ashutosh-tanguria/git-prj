@@ -3,6 +3,8 @@ import { Dialog, Heading, Modal } from "react-aria-components";
 import { useOffline } from "./useOffline";
 import { cacheData } from "../services/cacheData";
 import { cloudScope, listCloud, readCloud } from "../services/cloudCache";
+import type { NamedEntry } from "../services/filenameSearch";
+import { nameMatches } from "../services/paletteQuery";
 import type { TextMatch } from "../services/textSearch";
 import { QuickLook } from "./QuickLook";
 import { ReadViewer } from "../viewers/ReadViewer";
@@ -105,10 +107,12 @@ export default function CloudIntegration({
     item: Entry;
     bytes: Blob;
     result?: TextMatch;
+    provider: CloudId;
   }>();
   const [deferred, setDeferred] = useState<{ ids: string; root: string }>();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [folder, setFolder] = useState(currentRef);
+  const [filter, setFilter] = useState({ folder: "", query: "" });
   const [rows, setRows] = useState<Entry[]>([]);
   const [selected, setSelected] = useState<Entry>();
   const [pending, setPending] = useState<CloudChange[]>([]);
@@ -196,8 +200,10 @@ export default function CloudIntegration({
       .catch((error: unknown) => {
         if (!cancelled) setFailure(message(error));
       });
+    window.addEventListener("shelf-pending-changed", refresh);
     return () => {
       cancelled = true;
+      window.removeEventListener("shelf-pending-changed", refresh);
     };
   }, [folder, revision]);
   useEffect(() => {
@@ -301,6 +307,10 @@ export default function CloudIntegration({
   }
   function command(action: string) {
     if (!session || !active || action === "settings") return false;
+    if (action === "reviewPending") {
+      document.getElementById("cloud-pending")?.focus();
+      return true;
+    }
     if (busy) return true;
     if (action === "keepOffline") {
       if (selected) pin(selected);
@@ -499,6 +509,39 @@ export default function CloudIntegration({
     window.addEventListener("shelf-cloud-pin", listener);
     return () => window.removeEventListener("shelf-cloud-pin", listener);
   });
+  function showCached(
+    item: Pick<NamedEntry, "scope" | "ref" | "name" | "path">,
+    result?: TextMatch,
+  ) {
+    const owner = sessions.find(
+      ({ root, provider }) =>
+        (offline || provider.isConnected()) && cloudScope(root) === item.scope,
+    );
+    if (!owner) return;
+    void run(async () => {
+      const entry: Entry = {
+        kind: "file",
+        name: item.name,
+        ref: item.ref,
+        version: null,
+        size: null,
+        modified: null,
+        hash: null,
+      };
+      const bytes = await readCloud(
+        owner.root,
+        owner.provider,
+        entry,
+        item.path,
+      );
+      setPreview({
+        item: entry,
+        bytes,
+        result,
+        provider: owner.root.provider as CloudId,
+      });
+    });
+  }
   function download(item: Entry, version?: string) {
     if (session)
       void run(async () =>
@@ -563,30 +606,10 @@ export default function CloudIntegration({
     refresh,
     parent,
     command,
-    openTextResult: (item) => {
-      const owner = sessions.find(
-        ({ root }) => cloudScope(root) === item.scope,
-      );
-      if (!owner) return;
-      void run(async () => {
-        const entry: Entry = {
-          kind: "file",
-          name: item.name,
-          ref: item.ref,
-          version: null,
-          size: null,
-          modified: null,
-          hash: null,
-        };
-        const bytes = await readCloud(
-          owner.root,
-          owner.provider,
-          entry,
-          item.path,
-        );
-        setPreview({ item: entry, bytes, result: item });
-      });
-    },
+    openTextResult: (item) => showCached(item, item),
+    openFilenameResult: (item) =>
+      item.kind === "dir" ? open(item.ref) : showCached(item),
+    filterFolder: (query) => setFilter({ folder, query }),
     transferDestination:
       active && session?.provider.isConnected()
         ? {
@@ -617,7 +640,9 @@ export default function CloudIntegration({
       )?.provider,
     locations: {
       active: folder,
-      roots: sessions.map(({ root }) => root),
+      roots: sessions
+        .filter(({ provider }) => offline || provider.isConnected())
+        .map(({ root }) => root),
       refresh: revision,
       path: (ref) => {
         const root = sessions.find(({ provider }) =>
@@ -705,7 +730,11 @@ export default function CloudIntegration({
         )}
         {offline || session.provider.isConnected() ? (
           <>
-            <table className={cloudStyles.files} data-file-command-scope>
+            <table
+              className={cloudStyles.files}
+              data-file-command-scope
+              tabIndex={-1}
+            >
               <thead>
                 <tr>
                   <th scope="col">{t("name")}</th>
@@ -713,60 +742,69 @@ export default function CloudIntegration({
                 </tr>
               </thead>
               <tbody>
-                {rows.map((item) => (
-                  <tr
-                    key={item.ref}
-                    onContextMenu={(event) => {
-                      if (
-                        item.kind !== "file" ||
-                        matchMedia("(pointer: coarse)").matches
-                      )
-                        return;
-                      event.preventDefault();
-                      window.dispatchEvent(
-                        new CustomEvent("shelf-site-context", {
-                          detail: {
-                            sources: [
-                              {
-                                entry: item,
-                                endpoint: {
-                                  provider: session.root.provider,
-                                  locationId: session.root.id,
-                                  ref: item.ref,
+                {rows
+                  .filter(
+                    (item) =>
+                      filter.folder !== folder ||
+                      nameMatches(item.name, filter.query),
+                  )
+                  .map((item) => (
+                    <tr
+                      key={item.ref}
+                      onContextMenu={(event) => {
+                        if (
+                          item.kind !== "file" ||
+                          matchMedia("(pointer: coarse)").matches
+                        )
+                          return;
+                        event.preventDefault();
+                        window.dispatchEvent(
+                          new CustomEvent("shelf-site-context", {
+                            detail: {
+                              sources: [
+                                {
+                                  entry: item,
+                                  endpoint: {
+                                    provider: session.root.provider,
+                                    locationId: session.root.id,
+                                    ref: item.ref,
+                                  },
                                 },
-                              },
-                            ],
-                            x: event.clientX,
-                            y: event.clientY,
-                          },
-                        }),
-                      );
-                    }}
-                  >
-                    <td>
-                      {item.kind === "dir" ? (
-                        <Button variant="quiet" onPress={() => open(item.ref)}>
-                          {item.name}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="quiet"
-                          aria-pressed={selected?.ref === item.ref}
-                          onPress={() => setSelected(item)}
-                        >
-                          {item.name}
-                        </Button>
-                      )}
-                    </td>
-                    <td>
-                      {item.size === null
-                        ? t("unknown")
-                        : new Intl.NumberFormat(
-                            document.documentElement.lang,
-                          ).format(item.size) + " B"}
-                    </td>
-                  </tr>
-                ))}
+                              ],
+                              x: event.clientX,
+                              y: event.clientY,
+                            },
+                          }),
+                        );
+                      }}
+                    >
+                      <td>
+                        {item.kind === "dir" ? (
+                          <Button
+                            variant="quiet"
+                            onPress={() => open(item.ref)}
+                          >
+                            {item.name}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="quiet"
+                            aria-pressed={selected?.ref === item.ref}
+                            onPress={() => setSelected(item)}
+                          >
+                            {item.name}
+                          </Button>
+                        )}
+                      </td>
+                      <td>
+                        {item.size === null
+                          ? t("unknown")
+                          : new Intl.NumberFormat(
+                              document.documentElement.lang,
+                            ).format(item.size) + " B"}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
             {!rows.length && <p>{t("emptyFolder")}</p>}
@@ -806,7 +844,11 @@ export default function CloudIntegration({
                         selected,
                         filePath(selected),
                       );
-                      setPreview({ item: selected, bytes });
+                      setPreview({
+                        item: selected,
+                        bytes,
+                        provider: session.root.provider as CloudId,
+                      });
                     })
                   }
                 >
@@ -836,7 +878,7 @@ export default function CloudIntegration({
           </Button>
         )}
         {failure && !operation && <p role="alert">{failure}</p>}
-        <section aria-label={t("pending")}>
+        <section id="cloud-pending" tabIndex={-1} aria-label={t("pending")}>
           <h3>
             {t("pending")} {queued.length}
           </h3>
@@ -877,11 +919,7 @@ export default function CloudIntegration({
           blob={preview.bytes}
           name={preview.item.name}
           fileKey={preview.item.ref}
-          provider={
-            (preview.result?.scope.split(":")[0] ??
-              session?.root.provider ??
-              "local") as CloudId
-          }
+          provider={preview.provider}
           textMatch={preview.result}
         />
       </QuickLook>

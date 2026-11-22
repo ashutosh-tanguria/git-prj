@@ -1,5 +1,6 @@
 import { cloudEnabled } from "../providers/flags";
 import type { CloudLibrary } from "../components/cloudTypes";
+import { nameMatches } from "../services/paletteQuery";
 import type { TextMatch } from "../services/textSearch";
 import { lazy, Suspense, useState } from "react";
 import { GuardMount } from "../components/GuardMount";
@@ -22,6 +23,11 @@ import { CommandBar } from "../components/CommandBar";
 const LibraryPreview = lazy(() =>
   import("../components/LibraryPreview").then(({ LibraryPreview }) => ({
     default: LibraryPreview,
+  })),
+);
+const IndexingStatus = lazy(() =>
+  import("../components/IndexingStatus").then(({ IndexingStatus }) => ({
+    default: IndexingStatus,
   })),
 );
 const LibraryCommands = lazy(() =>
@@ -51,6 +57,7 @@ export default function Library() {
   );
 }
 function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
+  const [folderFilter, setFolderFilter] = useState({ key: "", query: "" });
   const [textMatch, setTextMatch] = useState<TextMatch>();
   const [notice, setNotice] = useState("");
   const [split, setSplit] = useState(false);
@@ -95,6 +102,20 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
     setEntries([]);
     setBlob(undefined);
   }
+  const folderKey = cloud?.active ? (cloud.locations.active ?? "") : key;
+  const folderQuery = folderFilter.key === folderKey ? folderFilter.query : "";
+  const canSearchFolder =
+    !split &&
+    (!!cloud?.active ||
+      (!!state.activeAccount && !!ref && !hash.startsWith("#/view/")));
+  const indexScopes = [
+    ...(state.activeAccount
+      ? ["github:" + state.activeAccount.toLowerCase()]
+      : []),
+    ...(cloud?.locations.roots ?? []).map(
+      (root) => root.provider + ":" + root.id,
+    ),
+  ];
   const connection = {
     token,
     onToken: setToken,
@@ -121,7 +142,16 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
       </header>
       <AddressBar
         onRefresh={cloud?.active ? cloud.refresh : refresh}
-        key={key}
+        filter={folderQuery}
+        onFilter={
+          canSearchFolder
+            ? (query) => {
+                setFolderFilter({ key: folderKey, query });
+                if (cloud?.active) cloud.filterFolder(query);
+              }
+            : undefined
+        }
+        key={"address:" + key}
         value={cloud?.active ? (cloud.locations.active ?? "") : key}
         onGo={(value) => {
           try {
@@ -154,6 +184,11 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
           }
         }}
       >
+        {indexScopes.length > 0 && (
+          <Suspense fallback={null}>
+            <IndexingStatus scopes={indexScopes} />
+          </Suspense>
+        )}
         {!preview && (
           <MediaStatus
             value={state.mediaProgress}
@@ -190,7 +225,13 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
               )
             ) : (
               <FileTable
-                entries={entries}
+                entries={
+                  folderQuery
+                    ? entries.filter((entry) =>
+                        nameMatches(entry.name, folderQuery),
+                      )
+                    : entries
+                }
                 onSelectionChange={setSelection}
                 locationKey={key}
                 onOpen={open}
@@ -206,7 +247,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
       </ReadShell>
       {state.activeAccount && ref && (
         <GuardMount
-          key={key}
+          key={"guard:" + key}
           roots={state.displayedRoots}
           current={ref}
           entries={entries}
@@ -229,6 +270,16 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         />
         <LibraryCommands
           current={ref}
+          onFilenameResult={(item) => {
+            if (item.scope.startsWith("github:")) {
+              setTextMatch(undefined);
+              const parsed = parseRef(item.ref);
+              location.hash =
+                item.kind === "dir"
+                  ? explorerRoute(parsed)
+                  : viewerRoute(parsed);
+            } else cloud?.openFilenameResult(item);
+          }}
           onTextResult={(item) => {
             if (item.scope.startsWith("github:")) {
               setTextMatch(item);
@@ -236,22 +287,20 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
             } else cloud?.openTextResult(item);
           }}
           selection={selection}
-          roots={roots}
+          roots={state.displayedRoots}
           cloudCommand={cloud?.command}
           cloud={cloud}
           account={state.activeAccount}
           providerSettings={
-            cloud && (
-              <>
-                {cloud.settings}
-                <ConnectPanel
-                  {...connection}
-                  settings
-                  connected={!!account}
-                  onDisconnect={disconnect}
-                />
-              </>
-            )
+            <>
+              {cloud?.settings}
+              <ConnectPanel
+                {...connection}
+                settings
+                connected={!!account}
+                onDisconnect={disconnect}
+              />
+            </>
           }
           onRefresh={async () => {
             setRoots(await library.roots());

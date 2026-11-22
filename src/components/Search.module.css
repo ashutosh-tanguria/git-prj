@@ -1,0 +1,66 @@
+.palette {
+  position: fixed;
+  inset: 8vh auto auto 50%;
+  transform: translateX(-50%);
+  width: min(var(--palette-width), calc(100vw - var(--space-4)));
+  max-height: 84vh;
+  overflow: auto;
+  z-index: var(--layer-dialog);
+  padding: var(--space-3);
+  background: var(--paper-0);
+  color: var(--ink-1);
+  border: var(--border-width) solid var(--rule-strong);
+  box-shadow: var(--elevation);
+}
+
+.box label {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.box input {
+  width: 100%;
+}
+
+.hint,
+.status {
+  color: var(--ink-2);
+  margin-block: var(--space-1);
+}
+
+.results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 52vh;
+  overflow: auto;
+}
+
+.results li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: var(--space-1) var(--space-2);
+  border-block-end: var(--border-width) solid var(--rule);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.results li[aria-selected="true"] {
+  background: var(--accent-tint);
+  outline: var(--border-width) solid var(--accent);
+  outline-offset: -1px;
+}
+
+.results li[aria-disabled="true"] {
+  cursor: default;
+  color: var(--ink-2);
+}
+
+.results mark {
+  background: var(--warn-tint);
+  color: var(--ink-1);
+  text-decoration: underline;
+}

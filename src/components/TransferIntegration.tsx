@@ -49,10 +49,12 @@ export default function TransferIntegration({
     };
     window.addEventListener("shelf-transfer", pick);
     window.addEventListener("focus", refresh);
+    window.addEventListener("shelf-pending-changed", refresh);
     refresh();
     return () => {
       window.removeEventListener("shelf-transfer", pick);
       window.removeEventListener("focus", refresh);
+      window.removeEventListener("shelf-pending-changed", refresh);
     };
   }, [refresh]);
   useEffect(() => {

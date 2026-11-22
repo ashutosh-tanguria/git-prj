@@ -815,3 +815,26 @@
   flex-wrap: wrap;
   overflow-wrap: anywhere;
 }
+
+.folderSearch {
+  inline-size: clamp(8rem, 18vw, 13rem);
+  min-inline-size: var(--zero);
+  min-block-size: max(var(--target-min), var(--control-height));
+  padding-inline: var(--space-2);
+  border: var(--border-width) solid var(--rule-strong);
+  border-radius: var(--radius-control);
+  background: var(--paper-2);
+  color: var(--ink-1);
+}
+
+@media (width < 640px) {
+  .shell:has(> .toolbar > .folderSearch) {
+    --mobile-address-height: calc(var(--target-touch) * 2 + var(--space-5));
+  }
+  .toolbar:has(> .folderSearch) {
+    flex-wrap: wrap;
+  }
+  .folderSearch {
+    inline-size: var(--full);
+  }
+}
