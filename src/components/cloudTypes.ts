@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import type { Entry, Location } from "../providers/types";
+import type { Entry, Location, StorageProvider } from "../providers/types";
+import type { TransferEndpoint, TransferSource } from "../services/transferTypes";
 
 export interface CloudLocations {
   roots: Location[];
@@ -17,6 +18,9 @@ export interface CloudLibrary {
   content: ReactNode;
   status: ReactNode;
   dialogs: ReactNode;
+  transferDestination?: TransferEndpoint;
+  transferSelection: TransferSource[];
+  transferProvider(endpoint: TransferEndpoint): StorageProvider | undefined;
   command(action: string): boolean;
   refresh(): void;
   parent(): void;

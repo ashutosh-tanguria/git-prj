@@ -1,7 +1,7 @@
 import { GuardFile } from "./GuardFile";
 import type { GuardApproval } from "../services/folderTypes";
 import "../i18n/working";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   evaluateFile,
   evaluateRepo,
@@ -19,11 +19,13 @@ export function GuardReview({
   repo,
   onStage,
   stagedBytes = 0,
+  remedies,
 }: {
   files: readonly { name: string; size: number }[];
   repo: Repo;
   onStage?: (approval: GuardApproval) => Promise<void>;
   stagedBytes?: number;
+  remedies?(index: number): ReactNode;
 }) {
   const [ack, setAck] = useState<string[]>([]),
     [publicConfirmed, setPublic] = useState(false),
@@ -104,6 +106,7 @@ export function GuardReview({
           i={i}
           visibility={visibility}
           check={check}
+          remedies={remedies?.(i)}
         />
       ))}
       <p>{t(batch.code)}</p>

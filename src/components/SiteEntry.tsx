@@ -6,18 +6,23 @@ import { detectSite, type SiteTarget } from "../services/sitePreview";
 import { refString, type GitRef } from "../lib/refs";
 import { SitePreview } from "./SitePreview";
 import { t } from "../i18n";
+import { githubTransferSource, requestTransfer } from "../services/transferRequests";
+import type { TransferSource } from "../services/transferTypes";
 import styles from "./SitePreview.module.css";
 export function SiteEntry({
   current,
   selection,
+  account = "",
 }: {
   current: GitRef | null;
   selection: Entry[];
+  account?: string;
 }) {
   const [target, setTarget] = useState<SiteTarget | null>(null),
     [opened, setOpened] = useState<SiteTarget>();
   const [menu, setMenu] = useState<{
-    target: SiteTarget;
+    target?: SiteTarget;
+    sources: TransferSource[];
     x: number;
     y: number;
   }>();
@@ -55,25 +60,28 @@ export function SiteEntry({
     };
   }, [target]);
   useEffect(() => {
-    if (!current) return;
     const controller = new AbortController();
     const context = (event: Event) => {
-      const { entry, x, y } = (
-        event as CustomEvent<{ entry: Entry; x: number; y: number }>
+      const { entry, sources, x, y } = (
+        event as CustomEvent<{ entry?: Entry; sources?: TransferSource[]; x: number; y: number }>
       ).detail;
-      void detectSite(current, [entry], controller.signal)
-        .then((value) => {
-          if (value && !controller.signal.aborted)
-            setMenu({ target: value, x, y });
-        })
-        .catch(() => setMenu(undefined));
+      const items = sources ?? (entry && account ? [githubTransferSource(account, entry)] : []);
+      const next = { sources: items, x, y };
+      if (items.length) setMenu(next);
+      if (current && entry && (entry.kind === "dir" || /\.html?$/i.test(entry.name)))
+        void detectSite(current, [entry], controller.signal)
+          .then((value) => {
+            if (value && !controller.signal.aborted)
+              setMenu((old) => old === next || !items.length ? { ...next, target: value } : old);
+          })
+          .catch(() => undefined);
     };
     window.addEventListener("shelf-site-context", context);
     return () => {
       controller.abort();
       window.removeEventListener("shelf-site-context", context);
     };
-  }, [key]);
+  }, [key, account]);
   useEffect(() => {
     if (!menu) return;
     const previous = document.activeElement as HTMLElement;
@@ -100,15 +108,23 @@ export function SiteEntry({
         createPortal(
           <div
             role="menu"
-            aria-label={t("previewSite")}
+            tabIndex={-1}
+            aria-label={t("transferActions")}
             data-site-menu
             className={styles.context}
             style={{
               left: Math.max(0, Math.min(menu.x, innerWidth - 220)),
-              top: Math.max(0, Math.min(menu.y, innerHeight - 64)),
+              top: Math.max(0, Math.min(menu.y, innerHeight - 132)),
+            }}
+            onKeyDown={(event) => {
+              if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
+              const buttons = [...event.currentTarget.querySelectorAll("button")];
+              const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+              buttons[(current + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length]?.focus();
+              event.preventDefault();
             }}
           >
-            <button
+            {menu.target && <button
               role="menuitem"
               onClick={() => {
                 setOpened(menu.target);
@@ -116,7 +132,13 @@ export function SiteEntry({
               }}
             >
               {t("previewSite")}
-            </button>
+            </button>}
+            {menu.sources.length > 0 && [true, false].map((move) => (
+              <button key={String(move)} role="menuitem" onClick={() => {
+                requestTransfer({ items: menu.sources.map((source) => ({ source })), move });
+                setMenu(undefined);
+              }}>{t(move ? "moveTo" : "copyTo")}</button>
+            ))}
           </div>,
           document.body,
         )}

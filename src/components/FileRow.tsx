@@ -94,7 +94,7 @@ export function FileRow({
           onTouchEnd();
       }}
       onContextMenu={(e) => {
-        if (row.kind === "dir" || /\.html?$/i.test(row.name)) {
+        if (row.kind !== "special" && !matchMedia("(pointer: coarse)").matches) {
           e.preventDefault();
           const rect = e.currentTarget.getBoundingClientRect();
           window.dispatchEvent(

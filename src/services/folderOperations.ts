@@ -31,7 +31,7 @@ interface Input {
   uploads?: UploadItem[];
 }
 const regular = (node: GitNode) => ["100644", "100755"].includes(node.mode);
-function copyName(path: string, index: number, folder: boolean) {
+export function copyName(path: string, index: number, folder: boolean) {
   const slash = path.lastIndexOf("/"),
     dot = folder ? -1 : path.lastIndexOf(".");
   const split = dot > slash + 1 ? dot : path.length;

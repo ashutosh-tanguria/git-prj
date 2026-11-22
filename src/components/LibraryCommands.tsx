@@ -13,6 +13,10 @@ import { useCommandRegistry } from "./useCommandRegistry";
 import { preference } from "../services/preferences";
 import type { Repo, Entry } from "../services/library";
 import type { GitRef } from "../lib/refs";
+import { parseRef } from "../lib/refs";
+import { sameLocation } from "../services/folderTypes";
+import { githubEndpoint, githubTransferSource, requestTransfer, transferClipboardGet, transferClipboardSet } from "../services/transferRequests";
+import type { CloudLibrary } from "./cloudTypes";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import styles from "./Library.module.css";
@@ -22,6 +26,8 @@ export function LibraryCommands({
   roots,
   onCreated,
   cloudCommand,
+  cloud,
+  account,
   providerSettings,
   onRefresh,
 }: {
@@ -29,6 +35,8 @@ export function LibraryCommands({
   selection: Entry[];
   roots: Repo[];
   cloudCommand?(action: string): boolean;
+  cloud?: CloudLibrary;
+  account?: string;
   providerSettings?: ReactNode;
   onCreated: (repo: Repo, branchWarning?: boolean) => void;
   onRefresh: () => Promise<void>;
@@ -48,6 +56,35 @@ export function LibraryCommands({
     );
   }, []);
   const dispatch = async (action: string) => {
+    const cloudDestination = cloud?.transferDestination;
+    const gitDestination = current && account && githubEndpoint(account, current);
+    const destination = cloudDestination || gitDestination;
+    const sources = cloud?.active
+      ? cloud.transferSelection
+      : account ? selection.map((entry) => githubTransferSource(account, entry)) : [];
+    if (action === "moveTo" || action === "copyTo") {
+      if (!sources.length) setNotice(t("transferSelectFiles"));
+      else requestTransfer({ items: sources.map((source) => ({ source })), move: action === "moveTo" });
+      return;
+    }
+    if (action === "cut" || action === "copy") {
+      transferClipboardSet(sources.length
+        ? { items: sources.map((source) => ({ source })), move: action === "cut" }
+        : undefined);
+      if (cloud?.active) {
+        setNotice(sources.length && action === "cut" ? t("folderCutNote") : "");
+        return;
+      }
+    }
+    const marked = action === "paste" ? transferClipboardGet() : undefined;
+    if (marked && destination && (destination.provider !== "github" ||
+      !marked.items.every(({ source }) => "endpoint" in source &&
+        source.endpoint.provider === "github" && current &&
+        source.endpoint.locationId === destination.locationId &&
+        sameLocation(parseRef(source.entry.ref), current)))) {
+      requestTransfer({ ...marked, target: destination });
+      return;
+    }
     if (action === "previewSite" || cloudCommand?.(action)) return;
     setError("");
     setName("");

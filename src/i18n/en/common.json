@@ -1,4 +1,6 @@
 {
+  "moveTo": "Move to",
+  "copyTo": "Copy to",
   "back": "Back",
   "address": "Address",
   "go": "Go",

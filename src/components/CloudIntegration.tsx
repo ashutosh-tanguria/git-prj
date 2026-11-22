@@ -21,6 +21,7 @@ import { cloudStaging, type CloudChange } from "../services/cloudStaging";
 import { evaluateName } from "../services/guards";
 import { CloudProviderRows, CloudQuota } from "./CloudProviderRows";
 import type { CloudLibrary } from "./cloudTypes";
+import { requestTransfer } from "../services/transferRequests";
 import "../i18n/cloud";
 import styles from "./Library.module.css";
 import cloudStyles from "./Cloud.module.css";
@@ -449,6 +450,15 @@ export default function CloudIntegration({
     refresh,
     parent,
     command,
+    transferDestination: active && session?.provider.isConnected()
+      ? { provider: session.root.provider as CloudId, locationId: session.root.id, ref: folder }
+      : undefined,
+    transferSelection: selected && session
+      ? [{ entry: selected, endpoint: { provider: session.root.provider as CloudId, locationId: session.root.id, ref: selected.ref } }]
+      : [],
+    transferProvider: (endpoint) => sessions.find(({ root, provider }) =>
+      root.id === endpoint.locationId && root.provider === endpoint.provider && provider.isConnected(),
+    )?.provider,
     locations: {
       active: folder,
       roots: sessions.map(({ root }) => root),
@@ -519,7 +529,7 @@ export default function CloudIntegration({
         )}
         {session.provider.isConnected() ? (
           <>
-            <table className={cloudStyles.files}>
+            <table className={cloudStyles.files} data-file-command-scope>
               <thead>
                 <tr>
                   <th scope="col">{t("name")}</th>
@@ -528,7 +538,16 @@ export default function CloudIntegration({
               </thead>
               <tbody>
                 {rows.map((item) => (
-                  <tr key={item.ref}>
+                  <tr key={item.ref} onContextMenu={(event) => {
+                    if (item.kind !== "file" || matchMedia("(pointer: coarse)").matches) return;
+                    event.preventDefault();
+                    window.dispatchEvent(new CustomEvent("shelf-site-context", { detail: {
+                      sources: [{ entry: item, endpoint: {
+                        provider: session.root.provider, locationId: session.root.id, ref: item.ref,
+                      } }],
+                      x: event.clientX, y: event.clientY,
+                    } }));
+                  }}>
                     <td>
                       {item.kind === "dir" ? (
                         <Button variant="quiet" onPress={() => open(item.ref)}>
@@ -558,6 +577,16 @@ export default function CloudIntegration({
             {!rows.length && <p>{t("emptyFolder")}</p>}
             {selected && (
               <div className={cloudStyles.actions}>
+                {[true, false].map((move) => (
+                  <Button key={String(move)} onPress={() => requestTransfer({
+                    items: [{ source: { entry: selected, endpoint: {
+                      provider: session.root.provider as CloudId, locationId: session.root.id, ref: selected.ref,
+                    } } }],
+                    move,
+                  })}>
+                    {t(move ? "moveTo" : "copyTo")}
+                  </Button>
+                ))}
                 <Button isDisabled={busy} onPress={() => download(selected)}>
                   {t("download")}
                 </Button>

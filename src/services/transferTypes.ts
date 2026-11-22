@@ -29,6 +29,7 @@ export interface TransferDraft {
   name: string;
   move: boolean;
   replace?: Entry;
+  allowMissingParent?: boolean;
 }
 export interface Transfer extends TransferDraft {
   id: string;

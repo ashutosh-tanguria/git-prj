@@ -18,9 +18,12 @@ export interface Entry {
   ref: string;
 }
 let token = "";
+let login = "";
 export function isConnected() { return !!token; }
+export function isConnectedAs(account: string) { return !!token && login.toLowerCase() === account.toLowerCase(); }
 export function clearToken() {
   token = "";
+  login = "";
 }
 export async function request(
   path: string,
@@ -71,9 +74,11 @@ export async function request(
 }
 export async function connect(candidate: string) {
   token = candidate;
+  login = "";
   try {
     const user = (await (await request("/user")).json()) as { login: string };
-    return user.login;
+    login = user.login;
+    return login;
   } catch (e) {
     clearToken();
     throw e;

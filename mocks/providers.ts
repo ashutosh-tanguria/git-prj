@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, passthrough } from "msw";
 import { network } from "virtual:msw";
 import type { CloudId } from "../src/providers/types";
 import { quickXorHash } from "../src/providers/onedrive/hash";
@@ -55,9 +55,10 @@ function upsert(
   name: string,
   parent: string,
   bytes?: Blob,
+  createId?: string,
 ) {
   const item: Item = current ?? {
-    id: (id === "dropbox" ? "id:" : "") + crypto.randomUUID(),
+    id: createId ?? (id === "dropbox" ? "id:" : "") + crypto.randomUUID(),
     name,
     parent,
     version: "v1",
@@ -127,6 +128,7 @@ async function multipart(request: Request) {
     data.slice(starts[0] + 4, starts[1]),
   );
   const metadata = JSON.parse(headerText.split("\r\n")[0]) as {
+    id?: string;
     name: string;
     parents?: string[];
   };
@@ -136,6 +138,7 @@ async function multipart(request: Request) {
   return { metadata, body };
 }
 const handlers = [
+  http.get(location.origin + "/*", () => passthrough()),
   http.all("https://www.googleapis.com/*", async ({ request }) => {
     if (!authorized(request, "gdrive")) return error(401);
     const url = new URL(request.url);
@@ -147,6 +150,7 @@ const handlers = [
         storageQuota: { usage: String(quota.used), limit: String(quota.total) },
       });
     if (request.method === "GET") {
+      if (url.pathname.endsWith("/generateIds")) return HttpResponse.json({ ids: [crypto.randomUUID()] });
       if (url.pathname.endsWith("/files")) {
         const query = url.searchParams.get("q") ?? "";
         if (query.includes("appProperties"))
@@ -168,6 +172,7 @@ const handlers = [
       const { metadata, body } = await multipart(request);
       const name = metadata.name ?? item?.name ?? "";
       if (onceLimited("gdrive", name)) return error(429);
+      if (metadata.id && lookup("gdrive", metadata.id)) return error(409);
       return HttpResponse.json(
         google(
           upsert(
@@ -176,6 +181,7 @@ const handlers = [
             name,
             metadata.parents?.[0] ?? item?.parent ?? ROOT,
             body,
+            metadata.id,
           ),
         ),
       );

@@ -29,6 +29,7 @@ const SiteEntry = lazy(() =>
   })),
 );
 const CloudIntegration = lazy(() => import("../components/CloudIntegration"));
+const TransferIntegration = lazy(() => import("../components/TransferIntegration"));
 export default function Library() {
   if (!cloudEnabled) return <LibraryScreen />;
   return (
@@ -172,18 +173,21 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         {error && <p role="alert">{error}</p>}
       </ReadShell>
       {account && ref && (
-        <GuardMount key={key} roots={roots} current={ref} entries={entries} />
+        <GuardMount key={key} roots={roots} current={ref} entries={entries} account={account} cloud={cloud} />
       )}
       <Suspense fallback={null}>
         <SiteEntry
           current={account && !cloud?.active ? ref : null}
           selection={selection}
+          account={account}
         />
         <LibraryCommands
           current={ref}
           selection={selection}
           roots={roots}
           cloudCommand={cloud?.command}
+          cloud={cloud}
+          account={account}
           providerSettings={
             cloud && (
               <>
@@ -223,6 +227,8 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
             );
           }}
         />
+        <TransferIntegration account={account} roots={roots} current={ref} cloud={cloud}
+          refreshed={cloud?.active ? cloud.refresh : refresh} />
       </Suspense>
       {cloud?.active ? (
         <StatusBar account="" extra={cloud.status} />

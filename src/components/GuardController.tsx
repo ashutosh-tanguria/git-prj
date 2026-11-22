@@ -12,16 +12,22 @@ import { SizeLedger } from "./GuardViews";
 import type { Repo, Entry } from "../services/library";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
+import { githubTransferSource, localTransferSource, requestTransfer } from "../services/transferRequests";
+import type { CloudLibrary } from "./cloudTypes";
 import guardStyles from "./Guards.module.css";
 import styles from "./Library.module.css";
 export function GuardController({
   repo,
   entries,
   current,
+  account,
+  cloud,
 }: {
   repo: Repo;
   entries: Entry[];
   current: GitRef;
+  account?: string;
+  cloud?: CloudLibrary;
 }) {
   const [files, setFiles] = useState<File[]>(),
     [target, setTarget] = useState(current),
@@ -131,11 +137,35 @@ export function GuardController({
               {t(files ? "dontStage" : "close")}
             </Button>
             {ledger ? (
-              <SizeLedger repo={repo} entries={entries} />
+              <SizeLedger repo={repo} entries={entries}
+                onMove={account ? (selected) => {
+                  requestTransfer({ items: selected.map((entry) => ({ source: githubTransferSource(account, entry) })),
+                    move: true, onStaged: () => setLedger(false) });
+                } : undefined} />
             ) : (
               <GuardReview
                 key={files?.map((f) => f.name + f.size).join("|")}
                 files={files || []}
+                remedies={cloud ? (index) => {
+                  const file = files?.[index];
+                  if (!file) return;
+                  const targets = cloud.locations.roots.flatMap((root) => {
+                    if (root.provider === "github" || root.provider === "local") return [];
+                    const endpoint = { provider: root.provider, locationId: root.id, ref: root.root };
+                    return cloud.transferProvider(endpoint) ? [endpoint] : [];
+                  });
+                  return targets.length ? <div className={guardStyles.remedies}>
+                    {targets.map((endpoint) => (
+                      <Button key={endpoint.locationId} onPress={() => requestTransfer({
+                        items: [localTransferSource(file)], move: false, target: endpoint, cloudOnly: true,
+                        onStaged: () => {
+                          const remaining = files?.filter((_, item) => item !== index);
+                          setFiles(remaining?.length ? remaining : undefined);
+                        },
+                      })}>{t("sendToProvider", { repo: t(endpoint.provider) })}</Button>
+                    ))}
+                  </div> : undefined;
+                } : undefined}
                 onStage={async () => {
                   await stageUploads(target, files || [], targetEntries);
                   setFiles(undefined);

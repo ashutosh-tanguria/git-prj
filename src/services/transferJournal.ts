@@ -37,6 +37,7 @@ export async function transferTargetEntry(
   ref: string,
   name: string,
   signal?: AbortSignal,
+  allowMissingParent = false,
 ) {
   const entries = await provider
     .list(ref, { signal })
@@ -44,7 +45,7 @@ export async function transferTargetEntry(
       if (
         provider.id === "github" &&
         error instanceof ProviderError &&
-        error.code === "EMPTY_REPO"
+        (error.code === "EMPTY_REPO" || (allowMissingParent && error.code === "NOT_FOUND"))
       )
         return [];
       throw error;
@@ -194,7 +195,7 @@ export function createTransferJournal(
         return provider;
       }
       const targetEntry = () =>
-        transferTargetEntry(target, row.target.ref, row.name, signal);
+        transferTargetEntry(target, row.target.ref, row.name, signal, row.allowMissingParent);
 
       if (row.state === "staged" || row.state === "reading") {
         signal.throwIfAborted();

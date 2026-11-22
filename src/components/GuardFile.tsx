@@ -7,11 +7,13 @@ export function GuardFile({
   i,
   visibility,
   check,
+  remedies,
 }: {
   file: { name: string; size: number };
   i: number;
   visibility: "private" | "public";
   check: (key: string, label: string) => ReactNode;
+  remedies?: ReactNode;
 }) {
   const v = evaluateFile(file.size, /\.pdf$/i.test(file.name)),
     name = evaluateName(file.name, visibility);
@@ -37,13 +39,13 @@ export function GuardFile({
               MB. {t("availableAfter")} M4
             </p>
           )}
-          <p>{t("providersUnavailable")}</p>
+          {remedies || <p>{t("providersUnavailable")}</p>}
         </>
       ) : v.level === "warn" ? (
         <>
           {check("file" + i, t("stageAnyway"))}
           <p>{t("guardFileWarn")}</p>
-          <p>{t("providersUnavailable")}</p>
+          {remedies || <p>{t("providersUnavailable")}</p>}
         </>
       ) : v.level === "info" ? (
         <span className={styles.chip}>{t("large")}</span>

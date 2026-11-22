@@ -1,4 +1,6 @@
 import type { Repo, Entry } from "../services/library";
+import { useState } from "react";
+import { Button } from "../ui/Button";
 import { evaluateRepo } from "../services/guards";
 import { MiB } from "../lib/limits";
 import { t } from "../i18n";
@@ -42,10 +44,13 @@ export function RepoMeter({ repo, added = 0 }: { repo: Repo; added?: number }) {
 export function SizeLedger({
   repo,
   entries,
+  onMove,
 }: {
   repo: Repo;
   entries: Entry[];
+  onMove?(entries: Entry[]): void;
 }) {
+  const [selected, setSelected] = useState<string[]>([]);
   const files = entries
     .filter((e) => e.kind === "file")
     .sort((a, b) => b.size - a.size)
@@ -62,7 +67,11 @@ export function SizeLedger({
       {files.map((file) => (
         <div key={file.ref} className={styles.ledgerRow}>
           <label>
-            <input type="checkbox" disabled />
+            <input type="checkbox" disabled={!onMove} checked={selected.includes(file.ref)}
+              onChange={(event) => {
+                const checked = event.target.checked;
+                setSelected((old) => checked ? [...old, file.ref] : old.filter((ref) => ref !== file.ref));
+              }} />
             {file.name}
           </label>
           <div className={styles.bar}>
@@ -85,7 +94,10 @@ export function SizeLedger({
           </span>
         </div>
       ))}
-      <p>{t("ledgerReadOnly")}</p>
+      {onMove ? <Button isDisabled={!selected.length}
+        onPress={() => onMove(files.filter((file) => selected.includes(file.ref)))}>
+        {t("moveSelected")}
+      </Button> : <p>{t("ledgerReadOnly")}</p>}
     </section>
   );
 }

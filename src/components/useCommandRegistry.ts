@@ -29,7 +29,7 @@ export function useCommandRegistry(
           ["cut", "copy", "paste", "uploadFiles", "rename", "delete"].includes(
             action,
           ) &&
-          !(event.target as HTMLElement).closest('[role="grid"]')
+          !(event.target as HTMLElement).closest('[role="grid"], [data-file-command-scope]')
         )
           return;
         event.preventDefault();

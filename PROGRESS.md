@@ -1,4 +1,12 @@
 # Shelf progress
+### M4b slice 2: Transfer actions (2026-11-22)
+
+- Status: Context menu and command bar Move to and Copy to, cross-provider and cross-repository Cut/Paste, connected-provider guard remedies, and Size ledger Move selected stage journal entries. Pending review shows one row per file, progress, retry, cancellation and recoverable-delete details.
+- Decisions: Recheck GitHub public, size and sensitive-name approvals when the user starts or resumes a mutation. Require Keep both for an overlapping directory so a folder transfer cannot discard unrelated destination files. Keep existing same-branch GitHub Paste on its blob-reuse path.
+- Not done: PDF split, Split view, Local folder and final acceptance follow.
+- Manual steps: The owner can reconnect after reload and use Pending to resume. Real provider acceptance follows the final checklist.
+- Known issues: GitHub subtree transfers expand into file rows. Cloud directory moves and copies require selecting their files individually. Chromium MSW covers a cross-provider staged move through reload and recoverable deletion. The full check passes with 266 tests and a 152310-byte gzip shell.
+
 ### M4b slice 1: Transfer journal (2026-11-22)
 
 - Status: Added IndexedDB journal, streamed OPFS working bytes, incremental native and SHA-256 worker digests, conditional recoverable deletes, and mock tests for checkpoints, partial failure, cancellation and two atomic GitHub ref updates.
