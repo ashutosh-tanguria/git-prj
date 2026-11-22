@@ -1022,14 +1022,14 @@ Boundaries at 24.9, 25, 49.9, 50, 94.9, 95, 100 MiB; repo boundaries at 499, 500
 | Provider | Flow | Scope or permission | Notes |
 | --- | --- | --- | --- |
 | GitHub (token) | Fine-grained personal access token pasted by the user | Contents read and write, Metadata read, on selected repos only | Zero backend. Default and always available. Validate with `GET /user`. |
-| GitHub (sign in) | GitHub App user-to-server OAuth via the worker | Contents read and write, Metadata read | A browser cannot exchange the code (no CORS on the token endpoint), so the worker does it. Refresh tokens are handled by the worker too. Enabled only when `VITE_OAUTH_WORKER_URL` is set. |
+| GitHub (sign in) | GitHub App user-to-server OAuth via the worker | Contents read and write, Metadata read | A browser cannot exchange the code (no CORS on the token endpoint), so the worker does it. Refresh tokens are handled by the worker too. Enabled when both `VITE_GITHUB_APP_CLIENT_ID` and `VITE_OAUTH_WORKER_URL` are set. |
 | Google Drive | Google Identity Services token client (implicit, in browser) | `drive.file` only | Access token about one hour, kept in memory, re-requested silently on expiry. Picker (optional) attaches existing files. |
 | Dropbox | OAuth code flow with PKCE, no secret | App folder access type | Request offline access so a refresh token exists; store it only if the user chose "remember". |
 | OneDrive | MSAL.js auth code flow with PKCE | `Files.ReadWrite.AppFolder` | Personal and work accounts. Tokens in MSAL's in-memory cache unless "remember". |
 
 **OAuth worker (`worker/`)**, a Cloudflare Worker, about 150 lines:
-- `POST /github/token` exchanges `{code, state, redirect_uri}` for tokens; `POST /github/refresh` exchanges a refresh token.
-- Holds `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` as Worker secrets. Stateless, no database, no KV, no logging of request bodies.
+- `POST /github/token` exchanges `{code, redirect_uri}` and an optional PKCE verifier for tokens. `POST /github/refresh` exchanges a refresh token. `POST /github/revoke` revokes the grant.
+- Holds `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` and `ALLOWED_ORIGIN` as Worker secrets. Stateless, no database, no KV, no logging of request bodies.
 - CORS allows only the configured app origin. Rejects everything else with 403. Built-in rate limiting per IP.
 - It never receives files, repo names or any content, only OAuth codes and tokens in transit.
 - README in `worker/` explains deployment with `wrangler`.
@@ -1359,7 +1359,7 @@ Every provider is feature-flagged by the presence of its variable; a missing var
 
 ### 13.4 SETUP.md must contain (the **[HUMAN]** steps, with exact values)
 
-1. GitHub: write the plain-text guide for creating a fine-grained token (this text is also shown inside the Connect dialog), and optionally create a GitHub App with callback URL `<origin>/#/auth/github`, permissions Contents (read and write) and Metadata (read), "Request user authorization during installation" on, user-to-server token expiry on.
+1. GitHub: write the plain-text guide for creating a fine-grained token (this text is also shown inside the Connect dialog), and optionally create a GitHub App with callback URL `<origin>/auth/github/` (`http://localhost:5173/auth/github/` for development), permissions Contents (read and write) and Metadata (read), "Request user authorization during installation" on, user-to-server token expiry on.
 2. Google Cloud: create a project, enable the Drive API (and Picker API if used), configure the OAuth consent screen, set publishing status to "In production" so it is not limited to test users, add authorised JavaScript origins, create a web client id, create an API key restricted by HTTP referrer.
 3. Dropbox: create an app with "Scoped access" and "App folder", enable the permissions for files read and write, add redirect URIs, note that apps start in development mode with a user limit and need Dropbox approval for production.
 4. Microsoft Entra: register a single-page application, supported account types "personal and work", redirect URI `<origin>/`, delegated permission `Files.ReadWrite.AppFolder`.

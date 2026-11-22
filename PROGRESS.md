@@ -1,4 +1,13 @@
 # Shelf progress
+
+### M6a slice 1 (2026-11-22)
+
+- Status: Stateless GitHub token exchange, refresh and grant revocation use strict CORS, bounded JSON and fixed GitHub endpoints.
+- Decisions: GitHub documents Basic-authenticated DELETE /applications/{client_id}/grant for GitHub App OAuth grants. Cloudflare's native Rate Limiting binding keys on CF-Connecting-IP with a 20/60 threshold per location. [GitHub](https://docs.github.com/en/rest/apps/oauth-applications#delete-an-app-authorization) [Cloudflare](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)
+- Not done: Browser sign-in, PWA, extension and final deployment instructions follow.
+- Manual steps: Register the exact static callback and configure Worker secrets as documented in worker/README.md.
+- Known issues: Rate limits are approximate and local to each Cloudflare location. Real deployment requires the owner account.
+
 ### M5b complete (2026-11-22)
 
 - Status: M5b delivers quick access, collections and tags, Grid and Columns, duplicate review and ZIP export. The English and Hindi Styleguide has specimens for all six surfaces. Acceptance items 54 and 55 describe collections and ZIP export.

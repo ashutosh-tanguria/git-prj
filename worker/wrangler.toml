@@ -1,0 +1,14 @@
+name = "shelf-oauth"
+main = "index.ts"
+compatibility_date = "2026-11-22"
+
+[observability]
+enabled = false
+
+[[ratelimits]]
+name = "OAUTH_LIMIT"
+namespace_id = "6173"
+
+[ratelimits.simple]
+limit = 20
+period = 60

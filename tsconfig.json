@@ -14,5 +14,5 @@
     "noEmit": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "sandbox", "tests", "e2e", "*.ts"]
+  "include": ["src", "sandbox", "worker", "tests", "e2e", "*.ts"]
 }
