@@ -182,7 +182,8 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
       ? githubEndpoint(account, ref)
       : undefined;
   async function exportCollections() {
-    const { requestCollectionsExport } = await import("../services/organizerPortability");
+    const { requestCollectionsExport } =
+      await import("../services/organizerPortability");
     requestCollectionsExport(organizer.value);
   }
   async function importCollections() {
@@ -233,9 +234,10 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
     cloud?.explorer?.select([]);
     setMixedSelection(undefined);
   };
-  const commandRef = view === "viewColumns" && ref && selection[0] && !virtualId
-    ? { ...ref, path: selection[0].path.split("/").slice(0, -1).join("/") }
-    : ref;
+  const commandRef =
+    view === "viewColumns" && ref && selection[0] && !virtualId
+      ? { ...ref, path: selection[0].path.split("/").slice(0, -1).join("/") }
+      : ref;
   const onMixedSelect = (items: LibraryItem[]) =>
     setMixedSelection({ id: virtualId, items });
   const alternate = view !== "viewList" && (
@@ -475,6 +477,13 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
           account={state.activeAccount}
         />
         <LibraryCommands
+          toolItems={split ? [] : picked}
+          listed={entries}
+          collection={
+            virtualLabel && !virtualId.startsWith("tag:")
+              ? { name: virtualLabel.name, items: mixedItems }
+              : undefined
+          }
           onView={changeView}
           tags={organizer.value.tags}
           onTag={(id) => openVirtual("tag:" + id)}

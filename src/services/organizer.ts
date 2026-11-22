@@ -1,5 +1,4 @@
 import { cacheData } from "./cacheData";
-import { parseRef } from "../lib/refs";
 import type { TransferEndpoint } from "./transferTypes";
 import type { Entry } from "../providers/types";
 
@@ -77,43 +76,3 @@ export const refersToAccount = (
         .toLowerCase()
         .startsWith(account.toLowerCase() + ":")
     : roots.includes(item.endpoint.locationId);
-
-export function object(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === "object";
-}
-export function isLibraryItem(value: unknown): value is LibraryItem {
-  if (!object(value) || !object(value.endpoint) || !object(value.entry))
-    return false;
-  const { endpoint, entry } = value;
-  if (
-    typeof endpoint.ref !== "string" ||
-    endpoint.ref.length > 4096 ||
-    typeof endpoint.locationId !== "string" ||
-    endpoint.locationId.length > 1024 ||
-    !["github", "gdrive", "dropbox", "onedrive"].some(
-      (id) => id === endpoint.provider,
-    ) ||
-    endpoint.ref !== entry.ref ||
-    typeof entry.name !== "string" ||
-    !["file", "dir"].some((kind) => kind === entry.kind) ||
-    !(
-      entry.size === null ||
-      (typeof entry.size === "number" &&
-        Number.isSafeInteger(entry.size) &&
-        entry.size >= 0)
-    ) ||
-    ![entry.modified, entry.hash, entry.version].every(
-      (field) => field === null || typeof field === "string",
-    )
-  )
-    return false;
-  if (endpoint.provider === "github") {
-    try {
-      const { owner, repo } = parseRef(endpoint.ref);
-      if (!endpoint.locationId.endsWith(":" + owner + "/" + repo)) return false;
-    } catch {
-      return false;
-    }
-  }
-  return true;
-}

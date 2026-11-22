@@ -17,9 +17,11 @@ export type OperationJob = (choice?: CollisionChoice) => Promise<OperationPlan>;
 export function OperationReview({
   job,
   onClose,
+  onStaged,
 }: {
   job: OperationJob;
   onClose: () => void;
+  onStaged?: () => void;
 }) {
   const focus = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -84,7 +86,7 @@ export function OperationReview({
         stagedBytes={result.stagedBytes}
         onStage={async (approval) => {
           await stageOperation(result.plan, approval);
-          onClose();
+          (onStaged ?? onClose)();
         }}
       />
     </div>

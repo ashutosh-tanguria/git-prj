@@ -1,0 +1,22 @@
+.groups {
+  display: grid;
+  gap: var(--space-2);
+}
+.groups fieldset {
+  min-inline-size: 0;
+  border: var(--border-width) solid var(--rule-control);
+}
+.groups label {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--control-height);
+  gap: var(--space-2);
+  overflow-wrap: anywhere;
+}
+.progress {
+  display: grid;
+  gap: var(--space-2);
+}
+.progress progress {
+  inline-size: 100%;
+}

@@ -10,7 +10,6 @@ const en = {
   paletteNoTags: "No tags yet",
   paletteOpenLedger: "Open Size ledger",
   paletteOpenSettings: "Open settings",
-  paletteZipLater: "Available in M5b",
   paletteGitHubOnly: "Open a GitHub location first.",
   paletteChoosePdf: "Select one GitHub PDF.",
   paletteDiscardConfirm:
@@ -48,7 +47,6 @@ const hi = {
   paletteNoTags: "अभी कोई टैग नहीं है",
   paletteOpenLedger: "आकार का लेखा खोलें",
   paletteOpenSettings: "सेटिंग खोलें",
-  paletteZipLater: "M5b में उपलब्ध होगा",
   paletteGitHubOnly: "पहले GitHub का कोई स्थान खोलें।",
   paletteChoosePdf: "GitHub की एक PDF चुनें।",
   paletteDiscardConfirm: "सभी स्टेज किए बदलाव हटाएँ और लंबित ट्रांसफ़र रद्द करें?",

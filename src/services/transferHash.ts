@@ -5,6 +5,19 @@ import type { Capabilities } from "../providers/types";
 
 export type HashKind = NonNullable<Capabilities["hashKind"]> | "sha256";
 export type Hashes = Partial<Record<HashKind, string>>;
+export async function hashSha256Stream(stream: ReadableStream<Uint8Array>) {
+  const state = sha256.create();
+  const reader = stream.getReader();
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) return hex(state.digest());
+      state.update(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
 export async function hashTransferBlob(
   blob: Blob,
   kinds: HashKind[],

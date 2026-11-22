@@ -211,14 +211,12 @@ function LocationTree({
               )
                 return;
               event.preventDefault();
-              try {
-                virtual?.add(
-                  node.id,
-                  JSON.parse(event.dataTransfer.getData(dragReference)),
-                );
-              } catch {
-                setError(t("organizerInvalid"));
-              }
+              const refs = event.dataTransfer.getData(dragReference);
+              void import("../services/organizerValidation")
+                .then(({ parseDraggedReferences }) =>
+                  virtual?.add(node.id, parseDraggedReferences(refs)),
+                )
+                .catch(() => setError(t("organizerInvalid")));
             }}
             onFocus={() => setFocus(node.id)}
             onClick={() => {

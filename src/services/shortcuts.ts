@@ -45,6 +45,8 @@ export const paletteCommands = [
   "toggleTheme",
   "toggleDensity",
   "exportSelection",
+  "exportCollection",
+  "duplicateFinder",
   "settings",
   "storageWipe",
 ] as const;

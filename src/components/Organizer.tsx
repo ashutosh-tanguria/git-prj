@@ -11,7 +11,6 @@ import {
   toggleFavorites,
   uniqueItems,
   updateOrganizer,
-  isLibraryItem,
   type LibraryItem,
   type Organizer,
 } from "../services/organizer";
@@ -58,9 +57,7 @@ export function useOrganizer(account: string, roots: string[]) {
     items: LibraryItem[],
     toggle = false,
   ) {
-    const clean = Array.isArray(items)
-      ? accessible(items.filter(isLibraryItem))
-      : [];
+    const clean = accessible(items);
     if (!clean.length) return;
     const ids = new Set(clean.map(itemKey));
     change((old) => ({

@@ -5,6 +5,22 @@ export function transferHash(
   kinds: HashKind[],
   signal?: AbortSignal,
 ) {
+  return runHashWorker({ blob, kinds }, [], signal);
+}
+export async function transferSha256Stream(
+  stream: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+) {
+  const hashes = await runHashWorker({ stream }, [stream], signal);
+  if (!hashes.sha256) throw Error("transferHashFailed");
+  return hashes.sha256;
+}
+function runHashWorker(
+  data:
+    { blob: Blob; kinds: HashKind[] } | { stream: ReadableStream<Uint8Array> },
+  transfer: Transferable[],
+  signal?: AbortSignal,
+) {
   signal?.throwIfAborted();
   return new Promise<Hashes>((resolve, reject) => {
     const worker = new Worker(
@@ -23,7 +39,7 @@ export function transferHash(
     worker.onmessage = ({ data }: MessageEvent<Hashes | null>) => finish(data);
     worker.onerror = fail;
     try {
-      worker.postMessage({ blob, kinds });
+      worker.postMessage(data, transfer);
     } catch (error) {
       finish(null, error);
     }

@@ -1,13 +1,26 @@
 import { githubProvider } from "../providers/github/adapter";
 import { isConnectedAs } from "../providers/github/client";
 import type { StorageProvider } from "../providers/types";
-import { isLibraryItem, object, uniqueItems, labelColors, type Label, type LabelColor, type LibraryItem, type Organizer } from "./organizer";
+import {
+  uniqueItems,
+  labelColors,
+  type Label,
+  type LabelColor,
+  type Organizer,
+} from "./organizer";
+import { cleanLibraryItem, isLibraryItem, object } from "./organizerValidation";
 import type { TransferEndpoint } from "./transferTypes";
 import { localTransferSource, requestTransfer } from "./transferRequests";
 
 export function requestCollectionsExport(value: Organizer) {
-  const file = new File([portableOrganizer(value)], "collections.json", { type: "application/json" });
-  requestTransfer({ move: false, collectionsExport: true, items: [localTransferSource(file, ".shelf/collections.json")] });
+  const file = new File([portableOrganizer(value)], "collections.json", {
+    type: "application/json",
+  });
+  requestTransfer({
+    move: false,
+    collectionsExport: true,
+    items: [localTransferSource(file, ".shelf/collections.json")],
+  });
 }
 
 export async function readPortableOrganizer(
@@ -73,24 +86,7 @@ export function parseOrganizer(
         id: label.id,
         name: label.name,
         color: label.color as LabelColor,
-        items: uniqueItems(
-          label.items.map(({ endpoint, entry }: LibraryItem) => ({
-            endpoint: {
-              provider: endpoint.provider,
-              locationId: endpoint.locationId,
-              ref: endpoint.ref,
-            },
-            entry: {
-              ref: entry.ref,
-              name: entry.name,
-              kind: entry.kind,
-              size: entry.size,
-              modified: entry.modified,
-              hash: entry.hash,
-              version: entry.version,
-            },
-          })),
-        ),
+        items: uniqueItems(label.items.map(cleanLibraryItem)),
       };
     });
   };

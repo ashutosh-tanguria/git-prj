@@ -1,4 +1,12 @@
 # Shelf progress
+### M5b slice 3 (2026-11-22)
+
+- Status: The palette runs SHA-256 duplicate scans and exports a selection or collection as ZIP. Duplicate results lead to guarded, versioned pending deletes. ZIP streams provider or cached bytes, shows progress and can be cancelled.
+- Decisions: Scan files from the current listing and local listing and byte caches. Review deletes one provider location or GitHub branch at a time. ZIP includes nested folders, uses unique safe paths and refuses archives above 100 MiB.
+- Not done: Styleguide specimens, acceptance criteria, the manual checklist and final validation follow.
+- Manual steps: Verify cross-account and large-download behavior on target browsers with disposable data.
+- Known issues: Scans report files with missing sizes or unreadable bytes. Cached reads may be available offline. Staging duplicate deletes requires a current connection and one versioned survivor per group.
+
 ### M5b slice 2 (2026-11-22)
 
 - Status: View switches between List, Grid and Columns in the command bar or palette. Grid uses three sizes and versioned thumbnails. Columns show counts, support resizing and offer an inline file preview.

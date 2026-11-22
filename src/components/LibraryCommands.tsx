@@ -31,6 +31,11 @@ import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import styles from "./Library.module.css";
 import type { Label } from "../services/organizer";
+import type { LibraryItem } from "../services/organizer";
+import type { LibraryTool } from "./LibraryTools";
+import { lazy, Suspense } from "react";
+import "../i18n/libraryTools";
+const LibraryTools = lazy(() => import("./LibraryTools"));
 export function LibraryCommands({
   current,
   selection,
@@ -46,6 +51,9 @@ export function LibraryCommands({
   tags,
   onTag,
   onView,
+  toolItems,
+  collection,
+  listed,
 }: {
   current: GitRef | null;
   selection: Entry[];
@@ -61,8 +69,12 @@ export function LibraryCommands({
   tags?: Label[];
   onTag?: (id: string) => void;
   onView?: (view: import("./ViewMenu").FileView) => void;
+  toolItems: LibraryItem[];
+  collection?: { name: string; items: LibraryItem[] };
+  listed: Entry[];
 }) {
   const previousRoute = useRef("");
+  const [tool, setTool] = useState<LibraryTool>();
   const previous = useRef(current);
   if (current) previous.current = current;
   const [action, setAction] = useState(""),
@@ -84,6 +96,26 @@ export function LibraryCommands({
   }, []);
   const dispatch = async (action: string) => {
     switch (action) {
+      case "exportSelection":
+        if (toolItems.length) setTool({ kind: action, items: toolItems });
+        return;
+      case "exportCollection":
+        if (collection?.items.length)
+          setTool({ kind: "exportSelection", ...collection });
+        return;
+      case "duplicateFinder": {
+        const browser = cloud?.active ? cloud.explorer : undefined;
+        const items = browser
+          ? browser.rows.map((entry) => ({
+              entry,
+              endpoint: { ...browser.endpoint, ref: entry.ref },
+            }))
+          : account
+            ? listed.map((entry) => githubTransferSource(account, entry))
+            : [];
+        setTool({ kind: action, items });
+        return;
+      }
       case "commandPalette":
         setPalette(true);
         return;
@@ -148,8 +180,6 @@ export function LibraryCommands({
         await savePreference("density", node.dataset.density);
         return;
       }
-      case "exportSelection":
-        return;
     }
     if (action === "push" && !navigator.onLine) {
       setNotice(t("pushOffline"));
@@ -350,6 +380,15 @@ export function LibraryCommands({
   ];
   const search = (
     <>
+      {tool && (
+        <Suspense fallback={null}>
+          <LibraryTools
+            tool={tool}
+            access={{ account: account ?? "", roots, current, cloud }}
+            onClose={() => setTool(undefined)}
+          />
+        </Suspense>
+      )}
       {palette && (
         <CommandPalette
           bindings={bindings}
@@ -362,7 +401,10 @@ export function LibraryCommands({
           tags={tags}
           onTag={onTag}
           unavailable={(command) => {
-            if (command === "exportSelection") return t("paletteZipLater");
+            if (command === "exportSelection" && !toolItems.length)
+              return t("zipSelect");
+            if (command === "exportCollection" && !collection?.items.length)
+              return t("zipNoCollection");
             if (command === "push" && !navigator.onLine)
               return t("pushOffline");
             if (command === "sizeLedger" && (!current || cloud?.active))
