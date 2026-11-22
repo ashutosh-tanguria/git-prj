@@ -12,7 +12,7 @@ import type { NamedEntry } from "../services/filenameSearch";
 import { nameMatches } from "../services/paletteQuery";
 import type { TextMatch } from "../services/textSearch";
 import { QuickLook } from "./QuickLook";
-import { ReadViewer } from "../viewers/ReadViewer";
+import { ReadViewer } from "../viewers/LazyReadViewer";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import { DriveProvider } from "../providers/gdrive/client";

@@ -112,6 +112,7 @@ it("wipes every Shelf database, private file directory and storage cache", async
   await wipeLocalData();
   expect(deleted.sort()).toEqual([
     "shelf-future",
+    "shelf-github-oauth",
     "shelf-library",
     "shelf-media-cache",
     "shelf-preferences",

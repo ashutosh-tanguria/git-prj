@@ -12,6 +12,8 @@ import { t } from "../i18n";
 import type { MediaProgress } from "../services/mediaRead";
 import { recordOpen } from "../services/organizer";
 import { githubTransferSource } from "../services/transferRequests";
+import { clearToken, lockGitHubSession } from "../providers/github/client";
+import type { GitHubOAuthSession } from "../providers/github/oauthSession";
 export function useLibrary(offline: boolean) {
   const previewRequest = useRef<AbortController | null>(null);
   const [previewOrder, setPreviewOrder] = useState<Entry[]>([]);
@@ -19,6 +21,9 @@ export function useLibrary(offline: boolean) {
   const [offlineAccount, setOfflineAccount] = useState("");
   const [offlineRoots, setOfflineRoots] = useState<Repo[]>([]);
   const [account, setAccount] = useState("");
+  const initialGitHubAuthorization = useRef(false);
+  const connectFromCallback = useRef(connect);
+  connectFromCallback.current = connect;
   const [token, setToken] = useState("");
   const [roots, setRoots] = useState<Repo[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -39,6 +44,44 @@ export function useLibrary(offline: boolean) {
   }
   const key = ref ? refString(ref) : "";
   const activeAccount = account || (offline ? offlineAccount : "");
+  useEffect(() => {
+    const ended = () => {
+      previewRequest.current?.abort();
+      setAccount("");
+      setPreview(undefined);
+      setBlob(undefined);
+      setEntries([]);
+      setSelection([]);
+      setLoading(false);
+      setError(t("githubSessionEnded"));
+    };
+    window.addEventListener("shelf-github-auth-ended", ended);
+    return () => window.removeEventListener("shelf-github-auth-ended", ended);
+  }, []);
+  useEffect(() => {
+    if (
+      initialGitHubAuthorization.current ||
+      !import.meta.env.VITE_GITHUB_APP_CLIENT_ID ||
+      !import.meta.env.VITE_OAUTH_WORKER_URL
+    )
+      return;
+    initialGitHubAuthorization.current = true;
+    if (!sessionStorage.getItem("shelf-github-oauth")) return;
+    setLoading(true);
+    void import("../providers/github/oauthFlow")
+      .then(async (flow) => {
+        try {
+          const pending = flow.completeGitHubSignIn();
+          if (pending) await connectFromCallback.current(await pending);
+        } finally {
+          flow.clearGitHubCompletion();
+        }
+      })
+      .catch(() => {
+        setLoading(false);
+        setError(t("githubSignInError"));
+      });
+  }, []);
   useEffect(() => {
     let active = true;
     void import("../services/githubCache")
@@ -144,17 +187,25 @@ export function useLibrary(offline: boolean) {
       });
     return () => controller.abort();
   }, [activeAccount, key, hash, refreshVersion, offline]);
-  async function connect() {
+  async function connect(
+    candidate: string | GitHubOAuthSession = token,
+    idleMinutes?: number,
+  ) {
     setLoading(true);
     setError("");
     try {
-      const login = await library.connect(token);
+      const login = await library.connect(candidate);
       setToken("");
       const repos = await library.roots();
       setRoots(repos);
       setAccount(login);
       setOfflineAccount(login);
       setOfflineRoots(repos);
+      if (idleMinutes && typeof candidate !== "string") {
+        const { watchGitHubIdle } =
+          await import("../providers/github/oauthVault");
+        watchGitHubIdle(candidate, idleMinutes, lockGitHubSession);
+      }
       void import("../services/githubCache")
         .then((cache) => cache.rememberGitHub(login, repos))
         .catch(() => {});
@@ -168,8 +219,11 @@ export function useLibrary(offline: boolean) {
         });
       }
     } catch {
+      if (typeof candidate !== "string") clearToken();
       setToken("");
-      setError(t("connectError"));
+      setError(
+        t(typeof candidate === "string" ? "connectError" : "githubSignInError"),
+      );
     } finally {
       setLoading(false);
     }

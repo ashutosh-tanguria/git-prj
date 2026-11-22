@@ -1,0 +1,17 @@
+{
+  "githubSignIn": "Sign in with GitHub",
+  "githubSignOut": "Sign out",
+  "githubInstallMore": "Install on more repositories",
+  "githubAppAccess": "GitHub sign-in shows repositories where the Shelf GitHub App is installed and you have access. A personal access token uses the repositories and permissions you selected when creating it.",
+  "githubRemember": "Remember on this device",
+  "githubForget": "Forget this device",
+  "githubUnlock": "Unlock saved GitHub sign-in",
+  "githubPassphrase": "Device passphrase",
+  "githubIdleMinutes": "Lock after idle minutes",
+  "githubWrongPassphrase": "That passphrase did not unlock the saved sign-in.",
+  "githubTryLater": "Wait a moment before trying another passphrase.",
+  "githubSessionEnded": "GitHub sign-in is locked or expired. Reconnect to continue. Your pending changes are saved.",
+  "githubSignInError": "GitHub sign-in did not finish. Try again.",
+  "githubRevokeError": "Signed out locally. Review Shelf access in your GitHub settings to revoke the grant.",
+  "githubCreateOnGitHub": "Create your repository on GitHub, add it to the Shelf installation, then refresh."
+}

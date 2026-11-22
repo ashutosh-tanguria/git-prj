@@ -1349,7 +1349,8 @@ shelf/
 | Variable | Purpose |
 | --- | --- |
 | `VITE_GITHUB_APP_CLIENT_ID` | GitHub App client id (optional, enables Sign in with GitHub) |
-| `VITE_OAUTH_WORKER_URL` | Origin of the OAuth worker |
+| `VITE_OAUTH_WORKER_URL` | Exact HTTPS origin of the OAuth worker |
+| `VITE_GITHUB_APP_SLUG` | Optional GitHub App slug for the direct installation link |
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth web client id |
 | `VITE_GOOGLE_API_KEY`, `VITE_GOOGLE_APP_ID` | Google Picker (optional feature) |
 | `VITE_DROPBOX_APP_KEY` | Dropbox app key |
@@ -1359,7 +1360,7 @@ Every provider is feature-flagged by the presence of its variable; a missing var
 
 ### 13.4 SETUP.md must contain (the **[HUMAN]** steps, with exact values)
 
-1. GitHub: write the plain-text guide for creating a fine-grained token (this text is also shown inside the Connect dialog), and optionally create a GitHub App with callback URL `<origin>/auth/github/` (`http://localhost:5173/auth/github/` for development), permissions Contents (read and write) and Metadata (read), "Request user authorization during installation" on, user-to-server token expiry on.
+1. GitHub: write the plain-text guide for creating a fine-grained token (this text is also shown inside the Connect dialog), and optionally create a GitHub App with callback URL `<origin>/auth/github/` (`http://localhost:5173/auth/github/` for development), permissions Contents (read and write) and Metadata (read), start sign-in from Shelf so the callback has state and PKCE, user-to-server token expiry on.
 2. Google Cloud: create a project, enable the Drive API (and Picker API if used), configure the OAuth consent screen, set publishing status to "In production" so it is not limited to test users, add authorised JavaScript origins, create a web client id, create an API key restricted by HTTP referrer.
 3. Dropbox: create an app with "Scoped access" and "App folder", enable the permissions for files read and write, add redirect URIs, note that apps start in development mode with a user limit and need Dropbox approval for production.
 4. Microsoft Entra: register a single-page application, supported account types "personal and work", redirect URI `<origin>/`, delegated permission `Files.ReadWrite.AppFolder`.

@@ -19,10 +19,10 @@ import { useLibrary } from "./useLibrary";
 import { library } from "../services/library";
 import { explorerRoute, parseRef, viewerRoute } from "../lib/refs";
 import { ReadShell } from "../components/ReadShell";
+import { ReadViewer } from "../viewers/LazyReadViewer";
 import { FileTable } from "../components/FileTable";
 import { AddressBar } from "../components/AddressBar";
 import { GuardStrip, PendingTray, StatusBar } from "../components/ReadChrome";
-import { ReadViewer } from "../viewers/ReadViewer";
 import { ConnectPanel } from "../components/ConnectPanel";
 import { Button } from "../ui/Button";
 import { t } from "../i18n";
@@ -31,6 +31,10 @@ import styles from "../components/Library.module.css";
 import { useOffline } from "../components/useOffline";
 import { CommandBar } from "../components/CommandBar";
 import type { FileView } from "../components/ViewMenu";
+import {
+  githubOAuthSession,
+  revokeGitHubSession,
+} from "../providers/github/client";
 const LibraryPreview = lazy(() =>
   import("../components/LibraryPreview").then(({ LibraryPreview }) => ({
     default: LibraryPreview,
@@ -207,6 +211,16 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
     }
   }
   function disconnect() {
+    const hadOAuth = Boolean(githubOAuthSession());
+    if (hadOAuth) {
+      void revokeGitHubSession()
+        .finally(() =>
+          import("../providers/github/oauthVault").then((vault) =>
+            vault.forgetGitHubVault(),
+          ),
+        )
+        .catch(() => setError(t("githubRevokeError")));
+    }
     previewRequest.current?.abort();
     setPreview(undefined);
     setSelection([]);
@@ -280,6 +294,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
     onToken: setToken,
     onConnect: () => void connect(),
     loading,
+    onOAuth: connect,
   };
   return (
     <div className={styles.shell}>
@@ -301,7 +316,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         <h1>Shelf</h1>
         {account && (
           <Button variant="quiet" onPress={disconnect}>
-            {t("disconnect")}
+            {t(githubOAuthSession() ? "githubSignOut" : "disconnect")}
           </Button>
         )}
       </header>

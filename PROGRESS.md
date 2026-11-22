@@ -1,5 +1,14 @@
 # Shelf progress
 
+### M6a slice 2 (2026-11-22)
+
+- Status: Optional GitHub App sign-in, static callback, installation-scoped repository listing, in-memory access and refresh, encrypted opt-in refresh storage, expiry and 401 recovery, and grant revocation.
+- Decisions: Use GitHub's PKCE support and a one-use, same-tab authorization-code handoff after scrubbing the URL. The UI lists GET /user/installations and GET /user/installations/{installation_id}/repositories. POST /user/repos supports GitHub App user tokens with Administration write or Repository creation write. Shelf requests Contents and Metadata only, so app sign-in uses github.com/new and then asks the user to add the repository to the installation. [OAuth](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app) [Installations](https://docs.github.com/en/rest/apps/installations) [Repository creation](https://docs.github.com/en/rest/repos/repos#create-a-repository-for-the-authenticated-user)
+- Not done: Hosted OAuth acceptance and the remaining M6a slices.
+- Manual steps: Use both public OAuth build variables and register <origin>/auth/github/ or http://localhost:5173/auth/github/ on a development GitHub App. Supply the app slug for a direct installation link.
+- Known issues: A locked device requires the passphrase to reconnect. A failed live revocation directs the owner to GitHub settings. Pending changes stay local.
+
+
 ### M6a slice 1 (2026-11-22)
 
 - Status: Stateless GitHub token exchange, refresh and grant revocation use strict CORS, bounded JSON and fixed GitHub endpoints.

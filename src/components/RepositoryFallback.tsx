@@ -3,9 +3,11 @@ import { t } from "../i18n";
 export function RepositoryFallback({
   error,
   onRefresh,
+  appLogin = false,
 }: {
   error: string;
   onRefresh: () => void;
+  appLogin?: boolean;
 }) {
   return (
     <div role="alert">
@@ -17,10 +19,12 @@ export function RepositoryFallback({
       >
         {t("repoGithub")}
       </a>
-      <details>
-        <summary>{t("repoAllow")}</summary>
-        <p>{t("repoGuide")}</p>
-      </details>
+      {!appLogin && (
+        <details>
+          <summary>{t("repoAllow")}</summary>
+          <p>{t("repoGuide")}</p>
+        </details>
+      )}
       <Button onPress={onRefresh}>{t("repoRefresh")}</Button>
     </div>
   );

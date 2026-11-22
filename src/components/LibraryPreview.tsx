@@ -1,5 +1,5 @@
 import { QuickLook } from "./QuickLook";
-import { ReadViewer } from "../viewers/ReadViewer";
+import { ReadViewer } from "../viewers/LazyReadViewer";
 import { t } from "../i18n";
 import { MediaStatus } from "./MediaStatus";
 import type { useLibrary } from "../screens/useLibrary";

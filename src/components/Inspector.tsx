@@ -8,7 +8,7 @@ import { useEffect, useState, useId, useRef } from "react";
 import { InspectorTabList } from "./InspectorTabList";
 import { library, type Entry } from "../services/library";
 import { parseRef } from "../lib/refs";
-import { ReadViewer } from "../viewers/ReadViewer";
+import { ReadViewer } from "../viewers/LazyReadViewer";
 import { t } from "../i18n";
 import styles from "./Panels.module.css";
 import { useSiteAvailable, openSitePreview } from "./useSiteAvailable";

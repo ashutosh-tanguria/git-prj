@@ -5,6 +5,7 @@ const databaseNames = [
   "shelf-preferences",
   "shelf-media-cache",
   "shelf-library",
+  "shelf-github-oauth",
 ];
 
 let wiping = false;

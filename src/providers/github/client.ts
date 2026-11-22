@@ -1,5 +1,6 @@
 import { refString, type GitRef } from "../../lib/refs";
 import { ProviderError } from "../types";
+import type { GitHubOAuthSession } from "./oauthSession";
 export { ProviderError } from "../types";
 export interface Repo {
   size?: number;
@@ -19,15 +20,35 @@ export interface Entry {
 }
 let token = "";
 let login = "";
+let oauth: GitHubOAuthSession | undefined;
+export const githubOAuthSession = () => oauth;
 export function isConnected() {
-  return !!token;
+  return !!(token || oauth);
 }
 export function isConnectedAs(account: string) {
-  return !!token && login.toLowerCase() === account.toLowerCase();
+  return isConnected() && login.toLowerCase() === account.toLowerCase();
 }
 export function clearToken() {
+  oauth?.close();
+  oauth = undefined;
   token = "";
   login = "";
+}
+export function lockGitHubSession() {
+  clearToken();
+  window.dispatchEvent(new Event("shelf-github-auth-ended"));
+}
+
+export async function revokeGitHubSession() {
+  const session = oauth;
+  oauth = undefined;
+  token = "";
+  login = "";
+  try {
+    await session?.revoke();
+  } finally {
+    session?.close();
+  }
 }
 export async function request(
   path: string,
@@ -39,28 +60,43 @@ export async function request(
   const url = new URL(path, "https://api.github.com");
   if (url.origin !== "https://api.github.com")
     throw new ProviderError("PERMISSION");
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      ...init,
-      signal,
-      redirect: "error",
-      headers: {
-        ...(init.body ? { "Content-Type": "application/json" } : {}),
-        Accept: raw
-          ? "application/vnd.github.raw+json"
-          : "application/vnd.github+json",
-        ...(token ? { Authorization: "Bearer " + token } : {}),
-        ...init.headers,
-      },
-    });
-  } catch (error) {
-    if (signal?.aborted) throw error;
-    throw new ProviderError("OFFLINE", true);
+  const session = oauth;
+  const send = async (credential: string) => {
+    signal?.throwIfAborted();
+    try {
+      return await fetch(url, {
+        ...init,
+        signal,
+        redirect: "error",
+        headers: {
+          ...(init.body ? { "Content-Type": "application/json" } : {}),
+          Accept: raw
+            ? "application/vnd.github.raw+json"
+            : "application/vnd.github+json",
+          ...(credential ? { Authorization: "Bearer " + credential } : {}),
+          ...init.headers,
+        },
+      });
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      throw new ProviderError("OFFLINE", true);
+    }
+  };
+  const credential = session ? await session.token() : token;
+  if (session && session !== oauth) throw new ProviderError("AUTH_EXPIRED");
+  let res = await send(credential);
+  if (res.status === 401 && session && session === oauth) {
+    void res.body?.cancel().catch(() => {});
+    const refreshed = await session.token(credential);
+    if (session !== oauth) throw new ProviderError("AUTH_EXPIRED");
+    res = await send(refreshed);
   }
   if (conditional && res.status === 304) return res;
   if (!res.ok) {
-    if (res.status === 401) clearToken();
+    if (res.status === 401 && session === oauth) {
+      if (session) lockGitHubSession();
+      else if (credential === token) clearToken();
+    }
     throw new ProviderError(
       res.status === 409
         ? "EMPTY_REPO"
@@ -91,9 +127,15 @@ export async function request(
   }
   return res;
 }
-export async function connect(candidate: string) {
-  token = candidate;
-  login = "";
+export async function connect(candidate: string | GitHubOAuthSession) {
+  clearToken();
+  if (typeof candidate === "string") token = candidate;
+  else {
+    oauth = candidate;
+    candidate.onExpired = () => {
+      if (oauth === candidate) lockGitHubSession();
+    };
+  }
   try {
     const user = (await (await request("/user")).json()) as { login: string };
     login = user.login;
@@ -104,6 +146,7 @@ export async function connect(candidate: string) {
   }
 }
 export async function repos(signal?: AbortSignal) {
+  if (oauth) return installedRepositories(signal);
   let result: Repo[] = [];
   for (let page = 1; ; page++) {
     const items = (await (
@@ -112,6 +155,36 @@ export async function repos(signal?: AbortSignal) {
     result = result.concat(items);
     if (items.length < 100) return result;
   }
+}
+
+async function installedRepositories(signal?: AbortSignal) {
+  const repos = new Map<string, Repo>();
+  async function pages<T>(path: string, field: string) {
+    const all: T[] = [];
+    for (let page = 1; ; page++) {
+      const response = await request(
+        path + "?per_page=100&page=" + page,
+        signal,
+      );
+      const data = (await response.json()) as Record<string, T[]>;
+      all.push(...data[field]);
+      if (data[field].length < 100) return all;
+    }
+  }
+  const installations = await pages<{ id: number }>(
+    "/user/installations",
+    "installations",
+  );
+  for (const { id } of installations) {
+    if (!Number.isSafeInteger(id) || id < 1)
+      throw new ProviderError("PROVIDER_DOWN");
+    for (const repo of await pages<Repo>(
+      "/user/installations/" + id + "/repositories",
+      "repositories",
+    ))
+      repos.set(repo.full_name.toLowerCase(), repo);
+  }
+  return [...repos.values()];
 }
 interface TreeItem {
   path: string;

@@ -13,6 +13,7 @@ import {
 import type { Repo } from "../services/library";
 import { t } from "../i18n";
 import styles from "./Library.module.css";
+import { githubOAuthSession } from "../providers/github/client";
 export function CreateRepository({
   onCreated,
   onClose,
@@ -39,7 +40,10 @@ export function CreateRepository({
     [available, setAvailable] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const appLogin =
+    !!githubOAuthSession() && api.createRepository === createRepository;
   useEffect(() => {
+    if (appLogin) return;
     let active = true;
     void api
       .repositoryOwners()
@@ -54,7 +58,7 @@ export function CreateRepository({
     return () => {
       active = false;
     };
-  }, [api.repositoryOwners]);
+  }, [api.repositoryOwners, appLogin]);
   useEffect(() => {
     const abort = new AbortController();
     setAvailable("");
@@ -114,77 +118,90 @@ export function CreateRepository({
     >
       <Dialog>
         <Heading slot="title">{t("repoCreate")}</Heading>
-        <label>
-          {t("repoOwner")}
-          <select
-            value={owner}
-            onChange={(e) => {
-              setOwner(e.target.value);
-              setConfirm(false);
-            }}
-          >
-            {owners.map((value) => (
-              <option key={value}>{value}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {t("repoName")}
-          <input
-            value={name}
-            maxLength={100}
-            onChange={(e) => {
-              setName(e.target.value);
-              setConfirm(false);
-            }}
-          />
-        </label>
-        <p role="status">
-          {name && !validRepositoryName(name)
-            ? t("repoInvalid")
-            : available === "taken"
-              ? t("repoTaken")
-              : available === owner + "/" + name
-                ? t("repoAvailable")
-                : name
-                  ? t("repoChecking")
-                  : ""}
-        </p>
-        <label>
-          {t("repoDescription")}
-          <input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </label>
-        <RepositoryAccess
-          privateRepo={privateRepo}
-          confirmed={confirmed}
-          readme={readme}
-          onPrivate={setPrivate}
-          onConfirm={setConfirm}
-          onReadme={setReadme}
-        />
-        <Button
-          variant="primary"
-          isDisabled={
-            busy ||
-            available !== owner + "/" + name ||
-            !validRepositoryName(name) ||
-            (!privateRepo && !confirmed)
-          }
-          onPress={() => void create()}
-        >
-          {t("repoCreate")}
-        </Button>
-        {error && (
+        {appLogin ? (
           <RepositoryFallback
-            error={error}
+            error="githubCreateOnGitHub"
             onRefresh={() =>
               void onRefresh().catch(() => setError("repoError"))
             }
+            appLogin
           />
+        ) : (
+          <>
+            <label>
+              {t("repoOwner")}
+              <select
+                value={owner}
+                onChange={(e) => {
+                  setOwner(e.target.value);
+                  setConfirm(false);
+                }}
+              >
+                {owners.map((value) => (
+                  <option key={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {t("repoName")}
+              <input
+                value={name}
+                maxLength={100}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setConfirm(false);
+                }}
+              />
+            </label>
+            <p role="status">
+              {name && !validRepositoryName(name)
+                ? t("repoInvalid")
+                : available === "taken"
+                  ? t("repoTaken")
+                  : available === owner + "/" + name
+                    ? t("repoAvailable")
+                    : name
+                      ? t("repoChecking")
+                      : ""}
+            </p>
+            <label>
+              {t("repoDescription")}
+              <input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </label>
+            <RepositoryAccess
+              privateRepo={privateRepo}
+              confirmed={confirmed}
+              readme={readme}
+              onPrivate={setPrivate}
+              onConfirm={setConfirm}
+              onReadme={setReadme}
+            />
+            <Button
+              variant="primary"
+              isDisabled={
+                busy ||
+                available !== owner + "/" + name ||
+                !validRepositoryName(name) ||
+                (!privateRepo && !confirmed)
+              }
+              onPress={() => void create()}
+            >
+              {t("repoCreate")}
+            </Button>
+            {error && (
+              <RepositoryFallback
+                error={error}
+                onRefresh={() =>
+                  void onRefresh().catch(() => setError("repoError"))
+                }
+              />
+            )}
+          </>
         )}
+        {appLogin && error && <p role="alert">{t(error)}</p>}
         <Button isDisabled={busy} onPress={onClose}>
           {t("workingCancel")}
         </Button>
