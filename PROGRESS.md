@@ -303,3 +303,11 @@ Final review note: diagnostics injection now preserves an existing HTML doctype,
 - Not done: Final toolbar, specimens, acceptance/manual documentation and the single full check remain in slice 4. M4 remains unstarted.
 - Manual steps: Production separate-site headers and browser/device/real-account checks remain owner gates.
 - Known issues: SVG-based slide shapes and advanced presentation features can be omitted by the conservative sanitizer. The fixture initially lacked required OOXML content-type declarations; corrected fixture passes the renderer test. No dependency or audit research was repeated.
+
+### M4a slice 2 completion (2026-11-22)
+
+- Status: Drive deletes now move items to Trash and moves use metadata parent updates. A 401 clears the in-memory credential and auth state.
+- Decisions: Keep the first-write Shelf folder and existing upload thresholds. Google documents multipart through 5 MB and 308 with Range during a resumable upload. [Drive upload guide](https://developers.google.com/workspace/drive/api/guides/manage-uploads)
+- Not done: Dropbox, OneDrive and integration follow.
+- Manual steps: [HUMAN] Verify Drive CORS, access to conditional request headers and resumable responses in a real browser session.
+- Known issues: Lost write responses leave work staged for review. No new network host was introduced.
