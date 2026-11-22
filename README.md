@@ -1266,6 +1266,7 @@ Unpushed changes live only in the browser, and browsers can discard site data, n
 - Call `navigator.storage.persist()` after the first staged change and record the result; show the outcome in Settings.
 - When pending changes exist, show a quiet persistent line in the tray: "Pending changes are stored only in this browser. Push them or download a backup."
 - **Download working copy**: export a ZIP containing the staged bytes plus a `shelf-working-copy.json` manifest. **Restore working copy** re-imports it. Both are in the tray menu and the command palette.
+- Pending transfers also offer their own backup and restore in review. Backups include staged local bytes. Restored transfers start staged and verify again before any source deletion.
 - Warn when the oldest pending change is over 24 hours old.
 - `beforeunload` confirmation when pending changes exist.
 - On iOS, show an install hint ("Add to Home Screen") once, with plain steps, because installed apps get far more reliable storage.
@@ -1413,7 +1414,7 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 6. Staging 3 uploads and 1 delete then pressing Push produces exactly one commit on GitHub.
 7. Editing a staged file on github.com before pushing triggers the conflict dialog and loses nothing.
 8. Open a 20 MB PDF, go to page 50, go offline, reload: it opens at page 50 from cache.
-9. Move a file from GitHub to Drive: hash verified, source deleted only after verification; a simulated mismatch leaves the source intact.
+9. Move a file from GitHub to Drive. Verify with Drive MD5 or a SHA-256 download comparison before issuing the source delete. A simulated mismatch leaves the GitHub source intact, flags the target and offers Retry without duplicates.
 10. Force-quit the tab with 5 staged changes and reopen: all 5 are still pending. Export the working copy, wipe local data, restore it: all 5 return.
 11. The network allowlist test passes; no token appears in logs, localStorage, sessionStorage, cookies, or URLs.
 12. Full-text search finds a phrase on page 12 of a cached PDF and opens the viewer at that page.
@@ -1422,7 +1423,7 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 15. Bundle and performance budgets in section 11 pass in CI.
 16. All user-facing strings exist in `en` and `hi`, and contain no em dashes.
 17. Wipe local data removes every record, cache file and token, and signs out of all providers.
-18. Works at 360px width: Locations as a drawer, Inspector as a bottom sheet, selection mode instead of drag and drop.
+18. At 360 px, Locations opens as a drawer and Inspector as a bottom sheet. In Split view, touch selection offers Move to and Copy to without dragging. Both panes show their own location and view.
 19. With a token that can create repositories, New repository (button and `Alt+N`) creates a private repo with a README and opens it; with a token that cannot, the fallback message and the github.com link appear.
 20. Staging 3 files while browsing `semester-5/` and pressing Push shows the popover with destination `.../semester-5` and an automatic message; one click produces exactly one commit adding those files into that folder.
 21. Typing a new folder path in the destination field creates that path in the commit.
@@ -1456,6 +1457,10 @@ Feature flags per provider so that M4 can be merged provider by provider if one 
 47. A truncated recursive tree falls back to complete per-folder enumeration. A truncated non-recursive response, inaccessible child or unsupported special entry fails the whole operation without publishing a partial group.
 48. Rename or Paste onto an existing path requires an explicit Keep both, Replace or Cancel choice. No option is selected; Keep both generates a free (shelf copy) suffix and Replace checks the destination tree version again at Push.
 49. Pending filters retain complete linked groups; discard and undo do not leave half a folder operation. Add-only destination changes retain nested paths. Case and Unicode normalization collisions are warned about without changing Git paths.
+50. A transfer records staged, reading, writing, verifying, verified, deleting, done, failed and cancelled in IndexedDB. Reloading a staged or interrupted transfer leaves a single Pending row with its state and the next available action.
+51. Resume uses the recorded account, source version and target. It rechecks an uncertain write or delete before replaying it, and an interrupted move keeps the source until the target verifies. Cancel before deletion leaves the source in place.
+52. A batch with a failed transfer keeps that source and staged work while other rows can complete. A failed verification shows "Not verified, source kept" and a Retry action.
+53. Local folder import retains paths relative to the selected folder. Export streams selected files to a chosen folder, or downloads a ZIP when the folder API is missing. Local folders do not appear as sync targets.
 
 ---
 

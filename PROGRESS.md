@@ -1,4 +1,13 @@
 # Shelf progress
+### M4b complete (2026-11-22)
+
+- Status: All five slices are implemented locally. Transfers verify before recoverable deletion, retain interrupted work across reload, and offer a backup of pending drafts and local bytes. PDF split, Split view, Local folder and English/Hindi specimens are included. README acceptance items 9, 18 and 50 to 53 describe the verified behavior.
+- Decisions: Resume reconciles prior network attempts and asks for fresh GitHub approvals where needed. Restoring a backup stages fresh drafts and disregards any verification receipts. The three snapshot baselines cover default light, default dark and Hindi at 360 px. No new runtime network host was added.
+- Not done: Real-account OAuth, provider CORS and physical-device testing remain owner checks. M5 was not started.
+- Manual steps: Follow docs/manual-test-m4b.md using disposable credentials and revoke them afterward.
+- Known issues: Cloud directory transfers require selecting their files. Classic working-copy ZIPs have a 4 GiB format cap, and the local export fallback materializes the final ZIP. The existing standalone licence checker flags JSZip's dual-licence expression.
+- Validation: One final `npm run check` passed with 272 tests and a 153168-byte gzip production shell. Ten focused Chromium cases passed, covering native directory handles, fallback import and ZIP export, backup restore, transfer reload, pane history, drag and 360 px touch selection. Light, dark and Hindi snapshots refreshed in one run, with accessibility, forced-colour and reflow checks. MSW and generated PDF tests cover journal states, cancellation, partial failure, hash and size guards, and part sizing.
+
 ### M4b slice 4: Split view and Local folder (2026-11-22)
 
 - Status: Split panes have independent locations, list/grid views and history. Drag stages a copy, Shift-drop stages a move, and touch selection offers both actions. Local folder import preserves nested paths. Export streams to a chosen directory or downloads a client-zip archive.

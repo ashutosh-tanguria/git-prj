@@ -1,12 +1,17 @@
 import type { Change } from "./staging";
 // Store-only ZIP: interoperable backup without a compression dependency.
 const encoder = new TextEncoder();
-function crc(data: Uint8Array) {
+async function crc(data: Blob) {
   let value = 0xffffffff;
-  for (const byte of data) {
-    value ^= byte;
-    for (let bit = 0; bit < 8; bit++)
-      value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+  for (let from = 0; from < data.size; from += 1024 * 1024) {
+    const bytes = new Uint8Array(
+      await data.slice(from, from + 1024 * 1024).arrayBuffer(),
+    );
+    for (const byte of bytes) {
+      value ^= byte;
+      for (let bit = 0; bit < 8; bit++)
+        value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+    }
   }
   return (value ^ 0xffffffff) >>> 0;
 }
@@ -14,24 +19,34 @@ export async function exportWorking(
   rows: Change[],
   read: (c: Change) => Promise<Blob>,
 ): Promise<Blob> {
+  return exportWorkingArchive(
+    { version: 1, changes: rows },
+    await Promise.all(
+      rows
+        .filter((row) => row.blobKey)
+        .map(async (row) => ({
+          name: row.blobKey!,
+          data: await read(row),
+        })),
+    ),
+  );
+}
+export async function exportWorkingArchive(
+  manifest: unknown,
+  entries: { name: string; data: Blob }[],
+): Promise<Blob> {
   const files = [
     {
       name: "shelf-working-copy.json",
-      data: encoder.encode(JSON.stringify({ version: 1, changes: rows })),
+      data: new Blob([JSON.stringify(manifest)]),
     },
-    ...(await Promise.all(
-      rows
-        .filter((c) => c.blobKey)
-        .map(async (c) => ({
-          name: c.blobKey!,
-          data: new Uint8Array(await (await read(c)).arrayBuffer()),
-        })),
-    )),
+    ...entries,
   ];
   if (
     files.length > 65535 ||
     files.reduce(
-      (sum, file) => sum + file.data.length + file.name.length + 100,
+      (sum, file) =>
+        sum + file.data.size + 2 * encoder.encode(file.name).length + 100,
       0,
     ) > 0xffffffff
   )
@@ -42,14 +57,14 @@ export async function exportWorking(
   let centralSize = 0;
   for (const file of files) {
     const name = encoder.encode(file.name),
-      sum = crc(file.data),
+      sum = await crc(file.data),
       header = new Uint8Array(30 + name.length),
       v = new DataView(header.buffer);
     v.setUint32(0, 0x04034b50, true);
     v.setUint16(4, 20, true);
     v.setUint32(14, sum, true);
-    v.setUint32(18, file.data.length, true);
-    v.setUint32(22, file.data.length, true);
+    v.setUint32(18, file.data.size, true);
+    v.setUint32(22, file.data.size, true);
     v.setUint16(26, name.length, true);
     header.set(name, 30);
     parts.push(header, file.data);
@@ -59,14 +74,14 @@ export async function exportWorking(
     d.setUint16(4, 20, true);
     d.setUint16(6, 20, true);
     d.setUint32(16, sum, true);
-    d.setUint32(20, file.data.length, true);
-    d.setUint32(24, file.data.length, true);
+    d.setUint32(20, file.data.size, true);
+    d.setUint32(24, file.data.size, true);
     d.setUint16(28, name.length, true);
     d.setUint32(42, offset, true);
     entry.set(name, 46);
     central.push(entry);
     centralSize += entry.length;
-    offset += header.length + file.data.length;
+    offset += header.length + file.data.size;
   }
   const end = new Uint8Array(22),
     d = new DataView(end.buffer);
@@ -77,31 +92,34 @@ export async function exportWorking(
   d.setUint32(16, offset, true);
   return new Blob([...parts, ...central, end], { type: "application/zip" });
 }
-export async function parseWorking(blob: Blob) {
-  const data = new Uint8Array(await blob.arrayBuffer()),
-    v = new DataView(data.buffer),
-    files = new Map<string, Uint8Array>();
+export async function parseWorkingArchive(blob: Blob) {
+  const files = new Map<string, Blob>();
   let at = 0;
-  while (at + 30 <= data.length && v.getUint32(at, true) === 0x04034b50) {
-    if (v.getUint16(at + 8, true) !== 0) throw Error("workingInvalid");
-    const size = v.getUint32(at + 18, true),
-      nameLength = v.getUint16(at + 26, true),
-      extra = v.getUint16(at + 28, true),
+  while (at + 30 <= blob.size) {
+    const v = new DataView(await blob.slice(at, at + 30).arrayBuffer());
+    if (v.getUint32(0, true) !== 0x04034b50) break;
+    if (v.getUint16(6, true) !== 0 || v.getUint16(8, true) !== 0)
+      throw Error("workingInvalid");
+    const size = v.getUint32(18, true),
+      nameLength = v.getUint16(26, true),
+      extra = v.getUint16(28, true),
       start = at + 30 + nameLength + extra,
       end = start + size;
-    if (end > data.length) throw Error("workingInvalid");
-    const name = new TextDecoder().decode(
-        data.subarray(at + 30, at + 30 + nameLength),
-      ),
-      bytes = data.slice(start, end);
-    if (crc(bytes) !== v.getUint32(at + 14, true) || files.has(name))
+    if (end > blob.size) throw Error("workingInvalid");
+    const name = await blob.slice(at + 30, at + 30 + nameLength).text();
+    const bytes = blob.slice(start, end);
+    if ((await crc(bytes)) !== v.getUint32(14, true) || files.has(name))
       throw Error("workingInvalid");
     files.set(name, bytes);
     at = end;
   }
   const manifest = files.get("shelf-working-copy.json");
   if (!manifest) throw Error("workingInvalid");
-  const parsed = JSON.parse(new TextDecoder().decode(manifest)) as {
+  return { manifest: await manifest.text(), files };
+}
+export async function parseWorking(blob: Blob) {
+  const archive = await parseWorkingArchive(blob);
+  const parsed = JSON.parse(archive.manifest) as {
     version: number;
     changes: Change[];
   };
@@ -121,8 +139,16 @@ export async function parseWorking(blob: Blob) {
       !c.target?.path ||
       !Number.isSafeInteger(c.size) ||
       c.size < 0 ||
-      (c.blobKey && !files.has(c.blobKey))
+      (c.blobKey && !archive.files.has(c.blobKey))
     )
       throw Error("workingInvalid");
+  const files = new Map<string, Uint8Array>();
+  for (const c of parsed.changes) {
+    if (c.blobKey)
+      files.set(
+        c.blobKey,
+        new Uint8Array(await archive.files.get(c.blobKey)!.arrayBuffer()),
+      );
+  }
   return { rows: parsed.changes, files };
 }

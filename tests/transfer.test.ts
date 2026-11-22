@@ -292,6 +292,20 @@ it("keeps the source on a native hash mismatch and retries against the same targ
   expect(targets).toHaveLength(1);
 });
 
+it("keeps the source if the SHA-256 readback differs", async () => {
+  const f = await fixture();
+  const journal = f.make();
+  const [row] = await journal.stage([{ draft: await f.draft() }]);
+  omitHash = true;
+  corrupt = true;
+  await journal.run([row.id], f.options);
+  expect((await journal.load())[0]).toMatchObject({
+    state: "failed",
+    error: "transferNotVerified",
+  });
+  expect(gitChanges).toHaveLength(0);
+});
+
 it.each([
   "reading",
   "writing",

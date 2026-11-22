@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, Heading, Modal } from "react-aria-components";
 import { parseRef } from "../lib/refs";
 import { t } from "../i18n";
@@ -125,6 +125,10 @@ export function TransferReview({
   onRun,
   onCancel,
   onClose,
+  onBackup,
+  onRestore,
+  backupBusy,
+  error,
 }: {
   rows: Transfer[];
   roots: Repo[];
@@ -133,7 +137,12 @@ export function TransferReview({
   onRun(ids: string[], approvals: Record<string, Approvals>): void;
   onCancel(id: string): void;
   onClose(): void;
+  onBackup(): void;
+  onRestore(file: File): void;
+  backupBusy: boolean;
+  error?: string;
 }) {
+  const restore = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [approvals, setApprovals] = useState<Record<string, Approvals>>({});
   const [overrideChecked, setOverrideChecked] = useState<
@@ -174,6 +183,33 @@ export function TransferReview({
     >
       <Dialog>
         <Heading slot="title">{t("transferReview")}</Heading>
+        <div className={transferStyles.actions}>
+          <Button
+            isDisabled={backupBusy || !!running || !rows.some(transferPending)}
+            onPress={onBackup}
+          >
+            {t("transferBackup")}
+          </Button>
+          <Button
+            isDisabled={backupBusy || !!running}
+            onPress={() => restore.current?.click()}
+          >
+            {t("transferRestore")}
+          </Button>
+          <input
+            ref={restore}
+            hidden
+            type="file"
+            accept=".zip"
+            aria-label={t("transferRestore")}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) onRestore(file);
+              event.target.value = "";
+            }}
+          />
+        </div>
+        {error && <p role="alert">{error}</p>}
         {queue.length > 1 && (
           <Button
             isDisabled={!!running}
@@ -307,7 +343,7 @@ export function TransferReview({
                 </fieldset>
               ))}
             <Button
-              isDisabled={!ready || !!running}
+              isDisabled={!ready || !!running || backupBusy}
               onPress={() => {
                 onRun(
                   active.map((row) => row.id),

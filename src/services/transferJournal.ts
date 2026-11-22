@@ -19,7 +19,8 @@ import type {
 const normalized = (name: string) => name.normalize("NFC").toLowerCase();
 const equalName = (provider: StorageProvider, a: string, b: string) =>
   provider.id === "github" ? a === b : normalized(a) === normalized(b);
-const sourceKey = (row: Transfer) => "transfer-" + row.id;
+export const transferBytesKey = (row: Transfer) => "transfer-" + row.id;
+const sourceKey = transferBytesKey;
 const verificationKey = (row: Transfer) => sourceKey(row) + "-verify";
 const mismatch = "transferNotVerified";
 const hashPatterns: Record<Exclude<HashKind, "sha256">, RegExp> = {
@@ -145,8 +146,10 @@ export function createTransferJournal(
       rows.map((stored) => (stored.id === row.id ? row : stored)),
     );
   };
-  const cleanup = (row: Transfer) =>
-    storage.remove(sourceKey(row)).catch(() => undefined);
+  const cleanup = async (row: Transfer) => {
+    for (const key of [sourceKey(row), verificationKey(row)])
+      await storage.remove(key).catch(() => undefined);
+  };
 
   async function execute(
     initial: Transfer,
@@ -460,7 +463,13 @@ export function createTransferJournal(
             },
           },
         );
-        if (result.failed) throw result.failed.error;
+        if (result.failed) {
+          if (!result.failed.error.details.uncertain) {
+            await update({ deleteAttempted: false });
+            activity.deleting = false;
+          }
+          throw result.failed.error;
+        }
         if (!result.completed.includes(row.id))
           throw Error("transferDeleteUncertain");
         await finish("done");
@@ -532,7 +541,11 @@ export function createTransferJournal(
       return lock(async () => {
         for (const id of ids) {
           const row = (await load()).find((r) => r.id === id);
-          if (!row || !transferPending(row)) continue;
+          if (!row) continue;
+          if (!transferPending(row)) {
+            await cleanup(row);
+            continue;
+          }
           const activity = {
             controller: new AbortController(),
             deleting: !!row.deleteAttempted,

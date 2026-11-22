@@ -8,6 +8,8 @@
   "transferPending": "बाकी ट्रांसफ़र",
   "transferStart": "ट्रांसफ़र शुरू करें",
   "transferPushAll": "ट्रांसफ़र पुश करें",
+  "transferBackup": "ट्रांसफ़र का बैकअप डाउनलोड करें",
+  "transferRestore": "ट्रांसफ़र का बैकअप बहाल करें",
   "transferRetry": "फिर कोशिश करें",
   "transferResume": "जारी रखें",
   "transferStaged": "ट्रांसफ़र तैयार है।",

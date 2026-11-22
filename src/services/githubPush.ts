@@ -102,20 +102,16 @@ export async function pushChanges(
       release();
     }
   };
-  const repo = await get<{ size: number; private: boolean }>(root),
+  const repo = await get<{ size?: number; private?: boolean }>(root),
     user = await get<{
       id: number;
       login: string;
       name?: string;
       email?: string;
     }>("/user");
-  if (
-    evaluateVisibility(
-      repo.private ? "private" : "public",
-      options.publicConfirmed,
-    ).level === "block"
-  )
-    throw Error("guardVisibilityConfirm");
+  const visibility = typeof repo.private !== "boolean" ? "unknown" : repo.private ? "private" : "public";
+  const visibilityGuard = evaluateVisibility(visibility, options.publicConfirmed);
+  if (visibilityGuard.level === "block") throw Error(visibilityGuard.code);
   const blobs = new Map<string, Blob>(),
     reusedSizes = new Map<string, number>();
   if (changes.some((c) => c.blobSha)) {
@@ -149,19 +145,19 @@ export async function pushChanges(
       blobs.set(c.id, blob);
     }
     if (
-      evaluateName(c.target.path, repo.private ? "private" : "public").level ===
+      evaluateName(c.target.path, visibility).level ===
         "warn" &&
       !options.sensitiveConfirmed
     )
       throw Error("guardNameSensitive");
   }
   const repoGuard = evaluateRepo(
-    repo.size,
+    repo.size ?? null,
     [...blobs.values()].reduce((sum, b) => sum + b.size, 0) +
       [...reusedSizes.values()].reduce((a, b) => a + b, 0),
   );
   if (
-    (repoGuard.level === "block" && !options.repoOverride?.trim()) ||
+    (repoGuard.level === "block" && (repoGuard.code !== "guardRepoBlock" || !options.repoOverride?.trim())) ||
     (repoGuard.level === "warn" && !options.warningsConfirmed)
   )
     throw Error(repoGuard.code);

@@ -209,6 +209,19 @@ test("imports nested files through folder upload and exports a ZIP when the API 
   await picker.getByRole("button", { name: "Stage files" }).click();
   await page.getByRole("button", { name: "Review transfers (1)" }).click();
   const review = page.getByRole("dialog", { name: "Review transfers" });
+  const backingUp = page.waitForEvent("download");
+  await review
+    .getByRole("button", { name: "Download transfer backup" })
+    .click();
+  const backup = await backingUp;
+  const backupPath = testInfo.outputPath("transfer-backup.zip");
+  await backup.saveAs(backupPath);
+  await review.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(review.getByText("Cancelled", { exact: true })).toBeVisible();
+  await review
+    .locator('input[type="file"][accept=".zip"]')
+    .setInputFiles(backupPath);
+  await expect(review.getByText("Staged", { exact: true })).toBeVisible();
   await review.getByRole("button", { name: "Push", exact: true }).click();
   await review.getByRole("button", { name: "Start transfer" }).click();
   await expect(review.getByText("Done", { exact: true })).toBeVisible();
@@ -226,4 +239,51 @@ test("imports nested files through folder upload and exports a ZIP when the API 
   const contents = await readFile((await download.path())!);
   expect(contents.includes("entry.txt")).toBe(true);
   expect(contents.includes("local folder bytes")).toBe(true);
+});
+
+test("at 360px the drawer, sheet, and split touch actions stay in view", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 360, height: 800 },
+    hasTouch: true,
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto("/#/styleguide");
+    await page.getByLabel("Language").selectOption("hi");
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator("#transfer-specimens")).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.goto("/?touch=1");
+    await page.getByRole("button", { name: "Connect Google Drive" }).click();
+    for (const label of ["Locations", "Inspector"]) {
+      const drawer = page.getByRole("dialog", { name: label });
+      if (!(await drawer.isVisible()))
+        await page.getByRole("button", { name: label, exact: true }).click();
+      await expect(drawer).toBeVisible();
+      await drawer.getByRole("button", { name: "Close", exact: true }).click();
+    }
+    await page.keyboard.press("Control+Backslash");
+    const left = page.getByRole("region", { name: "Left explorer" });
+    const row = left
+      .getByRole("listitem")
+      .filter({ hasText: "reading-notes.txt" });
+    await expect(row).toHaveAttribute("draggable", "false");
+    await left.getByRole("checkbox", { name: "reading-notes.txt" }).check();
+    await expect(left.getByRole("button", { name: "Move to" })).toBeVisible();
+    await left.getByRole("button", { name: "Copy to" }).click();
+    await expect(page.getByRole("dialog", { name: "Copy to" })).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  } finally {
+    await context.close();
+  }
 });

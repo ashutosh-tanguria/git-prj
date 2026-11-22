@@ -8,6 +8,8 @@
   "transferPending": "Pending transfers",
   "transferStart": "Start transfer",
   "transferPushAll": "Push transfers",
+  "transferBackup": "Download transfer backup",
+  "transferRestore": "Restore transfer backup",
   "transferRetry": "Retry",
   "transferResume": "Resume",
   "transferStaged": "Transfer staged.",

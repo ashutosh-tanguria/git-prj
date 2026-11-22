@@ -7,6 +7,7 @@ import type { TransferRequest } from "../services/transferRequests";
 import { transferPending } from "../services/transferJournal";
 import type { Approvals, Transfer } from "../services/transferTypes";
 import { transfers } from "../services/transfers";
+import { exportTransfers, restoreTransfers } from "../services/transferBackup";
 import { Button } from "../ui/Button";
 import { TransferPicker, transferMessage } from "./TransferPicker";
 import { TransferReview } from "./TransferReview";
@@ -33,6 +34,7 @@ export default function TransferIntegration({
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [failure, setFailure] = useState("");
   const [notice, setNotice] = useState("");
+  const [backupBusy, setBackupBusy] = useState(false);
   const pending = rows.filter(transferPending);
   const refresh = useCallback(() => {
     void transfers
@@ -88,6 +90,27 @@ export default function TransferIntegration({
       refresh();
     }
   }
+  async function useBackup(file?: File) {
+    setBackupBusy(true);
+    setFailure("");
+    try {
+      if (file) {
+        await restoreTransfers(file);
+        refresh();
+        return;
+      }
+      const url = URL.createObjectURL(await exportTransfers());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "shelf-transfers.zip";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      setFailure(transferMessage(error));
+    } finally {
+      setBackupBusy(false);
+    }
+  }
   const visible = review
     ? rows
         .filter((row) => transferPending(row) || row.id === running)
@@ -99,7 +122,7 @@ export default function TransferIntegration({
     : [];
   return (
     <>
-      {(rows.length > 0 || notice) && (
+      {(rows.length > 0 || notice || !!account || locations.length > 0) && (
         <section
           className={styles.pendingStrip}
           aria-label={t("transferPending")}
@@ -119,7 +142,7 @@ export default function TransferIntegration({
           {notice && <span role="status">{notice}</span>}
         </section>
       )}
-      {failure && <p role="alert">{failure}</p>}
+      {failure && !review && <p role="alert">{failure}</p>}
       {request && (
         <TransferPicker
           request={request}
@@ -144,6 +167,10 @@ export default function TransferIntegration({
           roots={roots}
           progress={progress}
           running={running}
+          backupBusy={backupBusy}
+          error={failure}
+          onBackup={() => void useBackup()}
+          onRestore={(file) => void useBackup(file)}
           onClose={() => setReview(false)}
           onRun={(ids, approvals) => void run(ids, approvals)}
           onCancel={(id) => {

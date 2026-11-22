@@ -24,13 +24,13 @@ export function githubProvider(candidate: () => Promise<string>, wait?: (ms: num
       const { owner, repo } = parseRef(ref);
       const path = "/repos/" + encodeURIComponent(owner) + "/" + encodeURIComponent(repo);
       const remote = await (await client.request(path, ctx.signal)).json() as { size?: number; private?: boolean };
-      const visibility = remote.private === undefined ? "unknown" : remote.private ? "private" : "public";
+      const visibility = typeof remote.private !== "boolean" ? "unknown" : remote.private ? "private" : "public";
       const file = evaluateFile(size);
       const projected = evaluateRepo(remote.size ?? null, size);
       for (const verdict of [file, evaluateBatch([size]), evaluateVisibility(visibility, ctx.publicConfirmed)]) {
         if (verdict.level === "block") throw new client.ProviderError(verdict.code);
       }
-      if (projected.level === "block" && (remote.size === undefined || !ctx.repoOverride?.trim()))
+      if (projected.level === "block" && (projected.code !== "guardRepoBlock" || !ctx.repoOverride?.trim()))
         throw new client.ProviderError(projected.code);
       if (!ctx.warningsConfirmed && (file.level === "warn" || projected.level === "warn"))
         throw new client.ProviderError(file.level === "warn" ? file.code : projected.code);
