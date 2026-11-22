@@ -311,3 +311,11 @@ Final review note: diagnostics injection now preserves an existing HTML doctype,
 - Not done: Dropbox, OneDrive and integration follow.
 - Manual steps: [HUMAN] Verify Drive CORS, access to conditional request headers and resumable responses in a real browser session.
 - Known issues: Lost write responses leave work staged for review. No new network host was introduced.
+
+### M4a slice 3: Dropbox (2026-11-22)
+
+- Status: Dropbox implements PKCE with offline refresh, App folder listing, versioned reads and writes, session upload, history, native content hash and recoverable deletion.
+- Decisions: Keep refresh tokens and the PKCE verifier in memory. The same-origin callback delivers the code over a state-specific BroadcastChannel. The OAuth guide confirms App folder isolation, PKCE and offline refresh. Dropbox specifies SHA-256 over concatenated binary hashes of 4 MiB blocks. [OAuth](https://docs.dropboxapi.com/dropbox-api/docs/oauth) [Content hash](https://docs.dropboxapi.com/dropbox-api/docs/technical-reference/content-hash)
+- Not done: OneDrive and integration follow.
+- Manual steps: [HUMAN] Register the Dropbox app and authorize the exact /dropbox-callback.html redirect.
+- Known issues: Real OAuth and account-specific Dropbox limits remain unverified. No new app network host was required.
