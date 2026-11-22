@@ -24,6 +24,7 @@
     "sandbox:preview": "vite preview --config sandbox/vite.config.ts"
   },
   "dependencies": {
+    "@azure/msal-browser": "5.26.0",
     "@fontsource-variable/atkinson-hyperlegible-mono": "5.3.0",
     "@fontsource-variable/atkinson-hyperlegible-next": "5.3.0",
     "@fontsource-variable/noto-sans-devanagari": "5.3.0",

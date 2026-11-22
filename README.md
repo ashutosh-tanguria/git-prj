@@ -1043,7 +1043,7 @@ M3.5a authorizes official documentation research on `docs.github.com`, `develope
 - `api.github.com`, `raw.githubusercontent.com` (public raw files only)
 - `www.googleapis.com` (Drive), `accounts.google.com`, `apis.google.com` and `docs.google.com` (GIS and Picker, loaded lazily only after the user connects Drive)
 - `api.dropboxapi.com`, `content.dropboxapi.com`, `www.dropbox.com` (auth redirect)
-- `graph.microsoft.com`, `login.microsoftonline.com`, and the pre-authenticated download hosts that OneDrive redirects to. If CSP blocks one, add only the Microsoft-owned domain actually observed and record it in `PROGRESS.md`.
+- `graph.microsoft.com`, `login.microsoftonline.com`, and the Microsoft-owned `*.files.1drv.com` download and `*.up.1drv.com` upload-session subdomains documented by Microsoft and exercised by MSW. Verify and record any additional host before adding it.
 - The OAuth worker origin, and the app's own origin.
 
 Preview Plus also permits the configured sandbox origin B in `frame-src`; add it to `connect-src` only when a direct connection is verified as necessary. After consent, add verified Google and Microsoft viewer origins to `frame-src`, and documented direct vendor upload/download origins to `connect-src`. Origin B uses its own allowlist, including verified npm registry and StackBlitz hosts needed by enabled features. Test both origins and inspect messages for tokens. Cloudflare Turnstile is permitted for enabled managed-tier start requests; verify and document its origins before enabling it.
@@ -1054,11 +1054,14 @@ Ship a `_headers` file (Cloudflare Pages and Netlify syntax) with:
 
 ```text
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://apis.google.com <TURNSTILE_SCRIPT_ORIGINS>; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://www.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com https://graph.microsoft.com https://login.microsoftonline.com https://accounts.google.com <WORKER_ORIGIN> <TURNSTILE_CONNECT_ORIGINS> <VENDOR_CONNECT_ORIGINS>; worker-src 'self' blob:; frame-src blob: https://docs.google.com https://accounts.google.com <SANDBOX_ORIGIN> <CONSENTED_VIEWER_ORIGINS> <TURNSTILE_FRAME_ORIGINS>; object-src 'none'; base-uri 'none'; form-action 'self' <CONSENTED_VENDOR_UPLOAD_ORIGINS>; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://apis.google.com <TURNSTILE_SCRIPT_ORIGINS>; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://www.googleapis.com https://api.dropboxapi.com https://content.dropboxapi.com https://graph.microsoft.com https://login.microsoftonline.com https://*.files.1drv.com https://*.up.1drv.com https://accounts.google.com <WORKER_ORIGIN> <TURNSTILE_CONNECT_ORIGINS> <VENDOR_CONNECT_ORIGINS>; worker-src 'self' blob:; frame-src blob: https://docs.google.com https://accounts.google.com https://login.microsoftonline.com <SANDBOX_ORIGIN> <CONSENTED_VIEWER_ORIGINS> <TURNSTILE_FRAME_ORIGINS>; object-src 'none'; base-uri 'none'; form-action 'self' <CONSENTED_VENDOR_UPLOAD_ORIGINS>; frame-ancestors 'none'
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+/onedrive-callback.html
+  ! Cross-Origin-Opener-Policy
 ```
 
 The service worker precaches only the app shell and fonts. It never caches provider API responses or file bytes (those go to IndexedDB and OPFS under the app's own control).

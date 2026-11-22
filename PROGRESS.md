@@ -319,3 +319,11 @@ Final review note: diagnostics injection now preserves an existing HTML doctype,
 - Not done: OneDrive and integration follow.
 - Manual steps: [HUMAN] Register the Dropbox app and authorize the exact /dropbox-callback.html redirect.
 - Known issues: Real OAuth and account-specific Dropbox limits remain unverified. No new app network host was required.
+
+### M4a slice 4: OneDrive (2026-11-22)
+
+- Status: OneDrive implements MSAL with in-memory tokens, app-root pagination, eTags, versions, recoverable deletion, Graph upload sessions, quota and byte verification.
+- Decisions: Microsoft documents a separate MSAL redirect bridge without COOP. The main page permits OAuth popups. Browser reads use the signed download annotation to avoid authenticated CORS redirects. Microsoft documents signed hosts under files.1drv.com and up.1drv.com, used without bearer headers. The runtime and CSP allow those suffixes. [MSAL bridge](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/redirect-bridge) [Download](https://learn.microsoft.com/en-us/graph/api/driveitem-get-content) [Upload session](https://learn.microsoft.com/en-us/graph/api/driveitem-createuploadsession) [QuickXor](https://learn.microsoft.com/en-us/onedrive/developer/code-snippets/quickxorhash)
+- Not done: Integration follows. Live tenant download and upload domains were not observed because validation is MSW-only.
+- Manual steps: [HUMAN] Verify work and personal account scopes, version download annotations, quota visibility and any tenant-specific signed hosts. The allowlist fails closed on other hosts.
+- Known issues: If Graph omits the version download annotation, browser historical download reports an error. Graph may provision the app folder when first accessed. No live provider was contacted.

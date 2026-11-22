@@ -12,7 +12,7 @@ function include(key) {
   for (const dependency of chunk.imports || []) include(dependency);
 }
 for (const [key, chunk] of Object.entries(manifest))
-  if (chunk.isEntry || key === "src/screens/Library.tsx") include(key);
+  if (key === "index.html" || key === "src/screens/Library.tsx") include(key);
 const size = files
   .filter((file) => shell.has("assets/" + file))
   .reduce(
