@@ -1,5 +1,5 @@
 import type { Auth } from "../auth";
-import { readResponse } from "../http";
+import { readBody } from "../http";
 import { SequentialProvider } from "../sequential";
 import {
   ProviderError,
@@ -8,6 +8,7 @@ import {
   type Entry,
   type Location,
   type PushContext,
+  type ReadOptions,
 } from "../types";
 
 const API = "https://api.dropboxapi.com/2";
@@ -141,17 +142,12 @@ export class DropboxProvider extends SequentialProvider {
   }
   async read(
     ref: string,
-    opts?: {
-      signal?: AbortSignal;
-      onProgress?(n: number, total: number): void;
-      version?: string;
-    },
+    opts?: ReadOptions,
   ) {
     const path = opts?.version ? "rev:" + opts.version : id(ref);
-    return readResponse(
+    return readBody(
       await this.content("/files/download", { path }, undefined, opts?.signal),
-      opts?.onProgress,
-      opts?.signal,
+      opts,
     );
   }
 

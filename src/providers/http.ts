@@ -1,4 +1,4 @@
-import { ProviderError } from "./types";
+import { ProviderError, type ReadOptions } from "./types";
 export function allowedUrl(value: string, hosts: readonly string[]) {
   const url = new URL(value);
   if (
@@ -108,4 +108,9 @@ export async function readResponse(
   } finally {
     await reader.cancel();
   }
+}
+export function readBody(response: Response, opts?: ReadOptions) {
+  return opts?.consume
+    ? opts.consume(response)
+    : readResponse(response, opts?.onProgress, opts?.signal);
 }

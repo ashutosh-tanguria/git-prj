@@ -1,5 +1,5 @@
 import type { Auth } from "../auth";
-import { providerFetch, readResponse } from "../http";
+import { providerFetch, readBody } from "../http";
 import { SequentialProvider } from "../sequential";
 import {
   ProviderError,
@@ -8,6 +8,7 @@ import {
   type Entry,
   type Location,
   type PushContext,
+  type ReadOptions,
 } from "../types";
 import { verifyOneDriveBytes, type OneDriveHashes } from "./hash";
 import { ONE_DRIVE_DOWNLOAD_SUFFIX, ONE_DRIVE_UPLOAD_SUFFIX } from "./hosts";
@@ -40,6 +41,7 @@ function entry(item: Item): Entry {
     modified: item.lastModifiedDateTime ?? null,
     hash:
       item.file?.hashes?.sha1Hash ?? item.file?.hashes?.quickXorHash ?? null,
+    hashKind: item.file?.hashes?.sha1Hash ? "sha1" : "quickxor",
     version: item.eTag ?? null,
   };
 }
@@ -110,11 +112,7 @@ export class OneDriveProvider extends SequentialProvider {
   }
   async read(
     ref: string,
-    opts?: {
-      signal?: AbortSignal;
-      onProgress?(n: number, total: number): void;
-      version?: string;
-    },
+    opts?: ReadOptions,
   ) {
     const url =
       itemUrl(ref) +
@@ -125,7 +123,7 @@ export class OneDriveProvider extends SequentialProvider {
     );
     const signed = item["@microsoft.graph.downloadUrl"];
     if (!signed) throw new ProviderError("PROVIDER_DOWN");
-    return readResponse(
+    return readBody(
       await preauthenticated(
         signed,
         ONE_DRIVE_DOWNLOAD_SUFFIX,
@@ -134,8 +132,7 @@ export class OneDriveProvider extends SequentialProvider {
         },
         () => this.disconnect(),
       ),
-      opts?.onProgress,
-      opts?.signal,
+      opts,
     );
   }
   async history(ref: string) {
@@ -241,6 +238,7 @@ export class OneDriveProvider extends SequentialProvider {
     }
     const saved = entry(item);
     if (
+      !ctx.deferVerification &&
       !(await verifyOneDriveBytes(blob, item.file?.hashes ?? {}, () =>
         this.read(saved.ref, { signal }),
       ))

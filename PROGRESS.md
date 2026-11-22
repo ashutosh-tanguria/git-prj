@@ -1,4 +1,12 @@
 # Shelf progress
+### M4b slice 1: Transfer journal (2026-11-22)
+
+- Status: Added IndexedDB journal, streamed OPFS working bytes, incremental native and SHA-256 worker digests, conditional recoverable deletes, and mock tests for checkpoints, partial failure, cancellation and two atomic GitHub ref updates.
+- Decisions: Use one GitHub atomic commit per target file. Drive retries reuse a reserved file ID. A mismatch flags the target and only retries replacement against a recorded version. Transfer execution derives confirmations from the current session and uses the existing GitHub guards. Cloud size and quota failures use provider responses and reported quota.
+- Not done: User entry points, Pending controls and remaining M4b slices follow.
+- Manual steps: None for MSW validation. The final owner checklist will cover browser and account behavior.
+- Known issues: GitHub's blob endpoint requires JSON base64, so only that provider materializes one file for the final upload request. The independent licence script still rejects the existing JSZip dual-licence expression. The transfer dependency is MIT and was installed from the local npm cache.
+
 ### M4b gate checkpoint (2026-11-22)
 
 - Status: The single `npm run check` command passes all six gates with 250 tests and a 151886-byte gzip shell.

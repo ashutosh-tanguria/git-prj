@@ -28,6 +28,7 @@
     "@fontsource-variable/atkinson-hyperlegible-mono": "5.3.0",
     "@fontsource-variable/atkinson-hyperlegible-next": "5.3.0",
     "@fontsource-variable/noto-sans-devanagari": "5.3.0",
+    "@noble/hashes": "2.0.1",
     "@tanstack/react-virtual": "3.14.26",
     "docx-preview": "0.4.1",
     "dompurify": "3.4.18",

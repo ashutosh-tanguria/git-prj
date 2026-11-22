@@ -5,8 +5,9 @@ import {
   type Entry,
   type Change,
   type PushContext,
+  type ReadOptions,
 } from "../types";
-import { readResponse, allowedUrl } from "../http";
+import { readBody, allowedUrl } from "../http";
 import type { Auth } from "../auth";
 const API = "https://www.googleapis.com/drive/v3";
 const FIELDS =
@@ -137,13 +138,9 @@ export class DriveProvider extends SequentialProvider {
   }
   async read(
     ref: string,
-    opts?: {
-      signal?: AbortSignal;
-      onProgress?(n: number, total: number): void;
-      version?: string;
-    },
+    opts?: ReadOptions,
   ) {
-    return readResponse(
+    return readBody(
       await this.request(
         API +
           "/files/" +
@@ -154,8 +151,7 @@ export class DriveProvider extends SequentialProvider {
           "?alt=media",
         { signal: opts?.signal },
       ),
-      opts?.onProgress,
-      opts?.signal,
+      opts,
     );
   }
   async history(ref: string) {
@@ -196,6 +192,11 @@ export class DriveProvider extends SequentialProvider {
         }
       : null;
   }
+  async reserveCreate(signal?: AbortSignal) {
+    const { ids } = await this.json<{ ids: string[] }>("/files/generateIds?count=1&space=drive", { signal });
+    if (ids.length !== 1 || !/^[a-z\d_-]+$/i.test(ids[0])) throw new ProviderError("PROVIDER_DOWN");
+    return ids[0];
+  }
   protected async write(c: Change, blob: Blob | undefined, ctx: PushContext) {
     const parent =
       c.parent === "gd:app-root" || c.ref === "gd:app-root"
@@ -232,6 +233,7 @@ export class DriveProvider extends SequentialProvider {
     const meta = {
       ...(c.name ? { name: c.name } : {}),
       ...(!existing ? { parents: [parent] } : {}),
+      ...(!existing && c.createId ? { id: c.createId } : {}),
       ...(c.op === "mkdir"
         ? { mimeType: "application/vnd.google-apps.folder" }
         : {}),

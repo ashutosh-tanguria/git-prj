@@ -26,6 +26,7 @@ export interface PushOptions {
   repoOverride?: string;
   signal?: AbortSignal;
   onRef?: () => void;
+  beforeRef?: () => Promise<void>;
   onProgress?: (done: number) => void;
 }
 let last = 0,
@@ -85,8 +86,12 @@ export async function pushChanges(
     try {
       await wait(Math.max(0, 1000 - (Date.now() - last)));
       options.signal?.throwIfAborted();
+      if (ref) {
+        await options.beforeRef?.();
+        options.signal?.throwIfAborted();
+        options.onRef?.();
+      }
       last = Date.now();
-      if (ref) options.onRef?.();
       return (
         await request(path, ref ? undefined : options.signal, false, {
           method,

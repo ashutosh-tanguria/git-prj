@@ -22,6 +22,7 @@ export interface Entry {
   size: number | null;
   modified: string | null;
   hash: string | null;
+  hashKind?: Capabilities["hashKind"];
   version: string | null;
 }
 export interface Change {
@@ -33,6 +34,7 @@ export interface Change {
   baseVersion?: string;
   bytesKey?: string;
   size?: number;
+  createId?: string;
 }
 export interface VersionInfo {
   id: string;
@@ -50,6 +52,15 @@ export interface PushContext {
   publicConfirmed?: boolean;
   warningsConfirmed?: boolean;
   sensitiveConfirmed?: boolean;
+  repoOverride?: string;
+  deferVerification?: boolean;
+}
+export interface ReadOptions {
+  signal?: AbortSignal;
+  onProgress?(n: number, total: number): void;
+  version?: string;
+  blobSha?: string;
+  consume?(response: Response): Promise<Blob>;
 }
 export interface PushResult {
   completed: string[];
@@ -64,14 +75,9 @@ export interface StorageProvider {
   listRoots(): Promise<Location[]>;
   list(ref: string, opts?: { signal?: AbortSignal }): Promise<Entry[]>;
   stat(ref: string): Promise<Entry>;
-  read(
-    ref: string,
-    opts?: {
-      signal?: AbortSignal;
-      onProgress?(n: number, total: number): void;
-      version?: string;
-    },
-  ): Promise<Blob>;
+  read(ref: string, opts?: ReadOptions): Promise<Blob>;
+  preflightTransfer?(ref: string, name: string, size: number, ctx: PushContext): Promise<void>;
+  reserveCreate?(signal?: AbortSignal): Promise<string>;
   push(changes: Change[], ctx: PushContext): Promise<PushResult>;
   history(ref: string): Promise<VersionInfo[]>;
   quota(): Promise<{ used: number; total: number } | null>;

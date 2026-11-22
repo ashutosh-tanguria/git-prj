@@ -30,16 +30,18 @@ async function read<T>(store: string, key: string): Promise<T> {
   });
 }
 let persistenceRequested = false;
+async function requestPersistence() {
+  if (persistenceRequested) return;
+  persistenceRequested = true;
+  const granted =
+    (await navigator.storage?.persist?.().catch(() => false)) ?? false;
+  await write("meta", "persistence", granted);
+}
 const storage: WorkingStorage = {
   load: async () => (await read<Change[]>("meta", "current")) || [],
   save: async (rows) => {
     await write("meta", "current", rows);
-    if (rows.length && !persistenceRequested) {
-      persistenceRequested = true;
-      const granted =
-        (await navigator.storage?.persist?.().catch(() => false)) ?? false;
-      await write("meta", "persistence", granted);
-    }
+    if (rows.length) await requestPersistence();
   },
   put: async (key, blob) => {
     if (navigator.storage?.getDirectory) {
@@ -84,5 +86,62 @@ export const cloudStorage = {
       tx.oncomplete = () => resolve();
       tx.onabort = () => reject(tx.error);
     });
+  },
+};
+
+export const transferStorage = {
+  load: <T>() => read<T>("meta", "transfers"),
+  save: (value: unknown) => write("meta", "transfers", value),
+  get: storage.get,
+  put: storage.put,
+  remove: cloudStorage.remove,
+  requestPersistence,
+  async spool(
+    key: string,
+    response: Response,
+    expected: number,
+    progress: (bytes: number) => void,
+    signal?: AbortSignal,
+  ): Promise<Blob> {
+    if (!response.body) throw Error("transferReadFailed");
+    let total = 0;
+    const body = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        total += chunk.length;
+        if (total > expected) throw Error("transferSourceChanged");
+        progress(total);
+        controller.enqueue(chunk);
+      },
+      flush() {
+        if (total !== expected) throw Error("transferSourceChanged");
+      },
+    }));
+    const type = response.headers.get("Content-Type") ?? "application/octet-stream";
+    if (navigator.storage?.getDirectory) {
+      const root = await navigator.storage.getDirectory();
+      const dir = await root.getDirectoryHandle("staged", { create: true });
+      const file = await dir.getFileHandle(key, { create: true });
+      await body.pipeTo(await file.createWritable(), { signal });
+      return new Blob([await file.getFile()], { type });
+    }
+    if (expected > 5 * 1024 * 1024) {
+      await body.cancel();
+      throw Error("transferStorageUnavailable");
+    }
+    const parts: BlobPart[] = [];
+    const reader = body.getReader();
+    try {
+      for (;;) {
+        signal?.throwIfAborted();
+        const item = await reader.read();
+        if (item.done) break;
+        parts.push(new Uint8Array(item.value));
+      }
+    } finally {
+      await reader.cancel();
+    }
+    const blob = new Blob(parts, { type });
+    await storage.put(key, blob);
+    return blob;
   },
 };

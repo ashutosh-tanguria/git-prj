@@ -136,18 +136,20 @@ export async function list(
     };
   });
 }
-export async function read(ref: GitRef, signal?: AbortSignal) {
-  const res = await request(
+export function openRead(ref: GitRef, signal?: AbortSignal, blobSha?: string) {
+  return request(
     "/repos/" +
       encodeURIComponent(ref.owner) +
       "/" +
       encodeURIComponent(ref.repo) +
-      "/contents/" +
+      (blobSha ? "/git/blobs/" + encodeURIComponent(blobSha) : "/contents/" +
       ref.path.split("/").map(encodeURIComponent).join("/") +
       "?ref=" +
-      encodeURIComponent(ref.branch),
+      encodeURIComponent(ref.branch)),
     signal,
     true,
   );
-  return res.blob();
+}
+export async function read(ref: GitRef, signal?: AbortSignal) {
+  return (await openRead(ref, signal)).blob();
 }
