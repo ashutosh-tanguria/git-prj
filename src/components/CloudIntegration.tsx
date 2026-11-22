@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Dialog, Heading, Modal } from "react-aria-components";
 import { useOffline } from "./useOffline";
 import { cacheData } from "../services/cacheData";
-import { listCloud, readCloud } from "../services/cloudCache";
+import { cloudScope, listCloud, readCloud } from "../services/cloudCache";
+import type { TextMatch } from "../services/textSearch";
 import { QuickLook } from "./QuickLook";
 import { ReadViewer } from "../viewers/ReadViewer";
 import { Button } from "../ui/Button";
@@ -100,7 +101,11 @@ export default function CloudIntegration({
   children(cloud: CloudLibrary): ReactNode;
 }) {
   const offline = useOffline();
-  const [preview, setPreview] = useState<{ item: Entry; bytes: Blob }>();
+  const [preview, setPreview] = useState<{
+    item: Entry;
+    bytes: Blob;
+    result?: TextMatch;
+  }>();
   const [deferred, setDeferred] = useState<{ ids: string; root: string }>();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [folder, setFolder] = useState(currentRef);
@@ -558,6 +563,30 @@ export default function CloudIntegration({
     refresh,
     parent,
     command,
+    openTextResult: (item) => {
+      const owner = sessions.find(
+        ({ root }) => cloudScope(root) === item.scope,
+      );
+      if (!owner) return;
+      void run(async () => {
+        const entry: Entry = {
+          kind: "file",
+          name: item.name,
+          ref: item.ref,
+          version: null,
+          size: null,
+          modified: null,
+          hash: null,
+        };
+        const bytes = await readCloud(
+          owner.root,
+          owner.provider,
+          entry,
+          item.path,
+        );
+        setPreview({ item: entry, bytes, result: item });
+      });
+    },
     transferDestination:
       active && session?.provider.isConnected()
         ? {
@@ -848,6 +877,12 @@ export default function CloudIntegration({
           blob={preview.bytes}
           name={preview.item.name}
           fileKey={preview.item.ref}
+          provider={
+            (preview.result?.scope.split(":")[0] ??
+              session?.root.provider ??
+              "local") as CloudId
+          }
+          textMatch={preview.result}
         />
       </QuickLook>
     ) : (

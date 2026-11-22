@@ -52,3 +52,7 @@ The chosen pptx-preview renderer bundles its chart runtime even though advanced 
 ## M5a licence review
 
 JSZip declares (MIT OR GPL-3.0-or-later). Shelf uses JSZip under MIT. The lockfile checker accepts an SPDX OR expression when one complete alternative is approved and requires approval for every licence in an AND expression. Zlib is approved for the existing MIT AND Zlib dependency.
+
+## M5a full-text search
+
+MiniSearch 7.2.0 (MIT) lives in the local tarball vendor/minisearch-7.2.0.tgz. It was compiled from the six runtime TypeScript files at upstream Git tree 3d239d1c3ae7aef1bf5d8945dd7b5f0709f646f5 with TypeScript 6 targeting ES2022. The package adds ESM import extensions and ships the original licence. SHA-256: ecbe56b90d7046effb164e66e2e9695c4c05b5dab9a85518bb0047348a432f88. MiniSearch and pdf.js text extraction load in a worker.

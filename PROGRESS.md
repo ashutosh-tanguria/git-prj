@@ -1,4 +1,12 @@
 # Shelf progress
+### M5a slice 2: Full-text index
+
+- Status: A cancellable worker indexes cached PDF pages and text files. The Chromium page 12 phrase case opened the viewer at the match. The full check passed with 283 tests.
+- Decisions: MiniSearch loads from a verified local source build. Persistent indexes expire with the corresponding bytes or version. The worker evicts oldest indexes first under the 100 MB limit.
+- Not done: The palette and final browser acceptance follow.
+- Manual steps: Check scan notices on representative PDFs during owner acceptance.
+- Known issues: OCR is outside M5a. An evicted index stays evicted until its source is cached again at a new version.
+
 ### M5a slice 1: Cache and offline
 
 - Status: The byte cache, pins, version checks, folder cache, offline Push controls, and Storage actions are wired. The full check passed with 282 tests and a 145483-byte gzip shell.

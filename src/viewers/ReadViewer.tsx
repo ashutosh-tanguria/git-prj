@@ -4,7 +4,8 @@ import { Button } from "../ui/Button";
 import { t } from "../i18n";
 import { library } from "../services/library";
 import { viewerRoute, parseRef, refString } from "../lib/refs";
-import { ProviderMark } from "../ui/ProviderMark";
+import type { TextMatch } from "../services/textSearch";
+import { ProviderMark, type Provider } from "../ui/ProviderMark";
 import { useRef } from "react";
 import styles from "./Viewer.module.css";
 const Media = lazy(() => import("./Media"));
@@ -21,10 +22,14 @@ export function ReadViewer({
   blob,
   name,
   fileKey,
+  provider = "github",
+  textMatch,
 }: {
   blob: Blob;
   name: string;
   fileKey?: string;
+  provider?: Provider;
+  textMatch?: TextMatch;
 }) {
   const help = useRef<HTMLDetailsElement>(null);
   let providerUrl = "";
@@ -45,6 +50,8 @@ export function ReadViewer({
   const extension = name.split(".").at(-1)?.toLowerCase();
   const textType = [
     "md",
+    "markdown",
+    "text",
     "csv",
     "tsv",
     "html",
@@ -94,14 +101,15 @@ export function ReadViewer({
     >
       <header>
         <h2>{name}</h2>
-        <ProviderMark provider="github" label={t("github")} />
+        <ProviderMark provider={provider} label={t(provider)} />
         <a href={url} download={name}>
           {t("download")}
         </a>
         <Button
           onPress={() => {
             const link = new URL(location.href);
-            if (fileKey) link.hash = viewerRoute(parseRef(fileKey));
+            if (fileKey && provider === "github")
+              link.hash = viewerRoute(parseRef(fileKey));
             void navigator.clipboard.writeText(link.href);
           }}
         >
@@ -111,7 +119,9 @@ export function ReadViewer({
           isDisabled={!fileKey}
           onPress={() => {
             if (fileKey)
-              void navigator.clipboard.writeText(refString(parseRef(fileKey)));
+              void navigator.clipboard.writeText(
+                provider === "github" ? refString(parseRef(fileKey)) : fileKey,
+              );
           }}
         >
           {t("copyPath")}
@@ -149,6 +159,7 @@ export function ReadViewer({
             key={fileKey || name}
             blob={blob}
             fileKey={fileKey || location.hash + "/" + name}
+            textMatch={textMatch}
           />
         ) : ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(
             extension || "",
@@ -186,15 +197,20 @@ export function ReadViewer({
           <Delimited text={text} separator={extension === "tsv" ? "\t" : ","} />
         ) : extension === "html" ? (
           <Html text={text} />
-        ) : extension === "md" ? (
-          <Markdown text={text} fileRef={fileKey} />
-        ) : ["txt", "ts", "js", "json", "css", "html", "py"].includes(
+        ) : ["md", "markdown"].includes(extension || "") ? (
+          <Markdown
+            text={text}
+            fileRef={provider === "github" ? fileKey : undefined}
+            query={textMatch?.match}
+          />
+        ) : ["txt", "text", "ts", "js", "json", "css", "html", "py"].includes(
             extension || "",
           ) ? (
           <Code
             text={blob.size > 10 * 1048576 ? t("textLimit") : text}
             language={extension || "txt"}
             plain={blob.size > 2 * 1048576}
+            query={textMatch?.match}
           />
         ) : (
           <p>{t("unsupported")}</p>

@@ -1,3 +1,6 @@
+import { IndexingStatus } from "./IndexingStatus";
+import { FullTextSearch } from "./FullTextSearch";
+import type { TextMatch } from "../services/textSearch";
 import { StorageSettings } from "./StorageSettings";
 import { HomeUpload } from "./HomeUpload";
 import "../i18n/m3b";
@@ -37,6 +40,7 @@ export function LibraryCommands({
   account,
   providerSettings,
   onRefresh,
+  onTextResult,
 }: {
   current: GitRef | null;
   selection: Entry[];
@@ -47,6 +51,7 @@ export function LibraryCommands({
   providerSettings?: ReactNode;
   onCreated: (repo: Repo, branchWarning?: boolean) => void;
   onRefresh: () => Promise<void>;
+  onTextResult: (item: TextMatch) => void;
 }) {
   const previousRoute = useRef("");
   const previous = useRef(current);
@@ -227,59 +232,83 @@ export function LibraryCommands({
         onRefresh={onRefresh}
       />
     );
-  if (!action) return notice ? <p role="status">{notice}</p> : null;
+  const scopes = [
+    ...(account ? ["github:" + account.toLowerCase()] : []),
+    ...(cloud?.locations.roots ?? []).map(
+      (root) => root.provider + ":" + root.id,
+    ),
+  ];
+  const search = scopes.length > 0 && (
+    <>
+      <IndexingStatus scopes={scopes} />
+      <FullTextSearch scopes={scopes} onOpen={onTextResult} />
+    </>
+  );
+  if (!action)
+    return (
+      <>
+        {search}
+        {notice && <p role="status">{notice}</p>}
+      </>
+    );
   return (
-    <Modal
-      isOpen
-      className={styles.workingPanel + " " + styles.formPanel}
-      onOpenChange={(open) => {
-        if (!open) close();
-      }}
-    >
-      <Dialog>
-        <Heading slot="title">
-          {t(
-            ["settings", "storageWipe"].includes(action)
-              ? "commandSettings"
-              : action,
-          )}
-        </Heading>
-        {action === "uploadFiles" || action === "uploadFolder" ? (
-          <HomeUpload
-            roots={roots}
-            onClose={close}
-            directory={action === "uploadFolder"}
-          />
-        ) : ["settings", "storageWipe"].includes(action) ? (
-          <>
-            <StorageSettings startWipe={action === "storageWipe"} />
-            {providerSettings}
-            <ShortcutSettings
-              bindings={bindings}
-              onSave={(value) => {
-                setBindings(value);
-                close();
-              }}
-            />
-          </>
-        ) : job ? (
-          <OperationReview job={job} onClose={close} />
-        ) : action !== "paste" ? (
-          <>
-            {action !== "delete" && (
-              <label>
-                {t("commandName")}
-                <input value={name} onChange={(e) => setName(e.target.value)} />
-              </label>
+    <>
+      {search}
+      <Modal
+        isOpen
+        className={styles.workingPanel + " " + styles.formPanel}
+        onOpenChange={(open) => {
+          if (!open) close();
+        }}
+      >
+        <Dialog>
+          <Heading slot="title">
+            {t(
+              ["settings", "storageWipe"].includes(action)
+                ? "commandSettings"
+                : action,
             )}
-            {action === "delete" && <p>{t("commandDelete")}</p>}
-            {action === "newFolder" && <p>{t("commandNewFolder")}</p>}
-            <Button onPress={prepare}>{t("commandPreview")}</Button>
-          </>
-        ) : null}
-        {error && <p role="alert">{t(error)}</p>}
-        <Button onPress={close}>{t("workingCancel")}</Button>
-      </Dialog>
-    </Modal>
+          </Heading>
+          {action === "uploadFiles" || action === "uploadFolder" ? (
+            <HomeUpload
+              roots={roots}
+              onClose={close}
+              directory={action === "uploadFolder"}
+            />
+          ) : ["settings", "storageWipe"].includes(action) ? (
+            <>
+              <StorageSettings startWipe={action === "storageWipe"} />
+              {providerSettings}
+              <ShortcutSettings
+                bindings={bindings}
+                onSave={(value) => {
+                  setBindings(value);
+                  close();
+                }}
+              />
+            </>
+          ) : job ? (
+            <OperationReview job={job} onClose={close} />
+          ) : action !== "paste" ? (
+            <>
+              {action !== "delete" && (
+                <label>
+                  {t("commandName")}
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </label>
+              )}
+              {action === "delete" && <p>{t("commandDelete")}</p>}
+              {action === "newFolder" && <p>{t("commandNewFolder")}</p>}
+              <Button onPress={prepare}>{t("commandPreview")}</Button>
+            </>
+          ) : null}
+          {error && <p role="alert">{t(error)}</p>}
+          <Button onPress={close}>{t("workingCancel")}</Button>
+        </Dialog>
+      </Modal>
+    </>
   );
 }

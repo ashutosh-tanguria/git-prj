@@ -9,7 +9,7 @@ void i18next.init({
 });
 export function t(
   key: string,
-  options?: { count?: number; size?: string; repo?: string },
+  options?: { count?: number; total?: number; size?: string; repo?: string },
 ): string {
   return i18next.t(key, options ?? {});
 }
@@ -17,4 +17,3 @@ export function setLanguage(language: string) {
   void i18next.changeLanguage(language);
   document.documentElement.lang = language;
 }
-

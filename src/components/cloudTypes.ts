@@ -1,6 +1,10 @@
+import type { TextMatch } from "../services/textSearch";
 import type { ReactNode } from "react";
 import type { Entry, Location, StorageProvider } from "../providers/types";
-import type { TransferEndpoint, TransferSource } from "../services/transferTypes";
+import type {
+  TransferEndpoint,
+  TransferSource,
+} from "../services/transferTypes";
 
 export interface CloudLocations {
   roots: Location[];
@@ -22,6 +26,7 @@ export interface CloudLibrary {
   transferDestination?: TransferEndpoint;
   transferSelection: TransferSource[];
   transferProvider(endpoint: TransferEndpoint): StorageProvider | undefined;
+  openTextResult(item: TextMatch): void;
   command(action: string): boolean;
   refresh(): void;
   parent(): void;

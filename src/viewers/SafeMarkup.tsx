@@ -1,3 +1,4 @@
+import { highlightMatches } from "./highlight";
 import { library } from "../services/library";
 import { resolveRelative } from "../services/contentPaths";
 import { viewerRoute, explorerRoute } from "../lib/refs";
@@ -28,9 +29,11 @@ export function sanitizedMarkdown(text: string) {
 export default function SafeMarkup({
   text,
   fileRef,
+  query,
 }: {
   text: string;
   fileRef?: string;
+  query?: string;
 }) {
   const node = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -95,11 +98,12 @@ export default function SafeMarkup({
       });
     }
     node.current?.replaceChildren(fragment);
+    if (node.current && query) highlightMatches(node.current, query);
     return () => {
       controller.abort();
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [text, fileRef]);
+  }, [text, fileRef, query]);
   return <div ref={node} className={styles.documentText} />;
 }
 
@@ -107,10 +111,12 @@ export function SafeCode({
   text,
   language,
   plain = false,
+  query,
 }: {
   text: string;
   language: string;
   plain?: boolean;
+  query?: string;
 }) {
   const node = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -131,11 +137,12 @@ export function SafeCode({
       code.replaceChildren(
         DOMPurify.sanitize(html, { RETURN_DOM_FRAGMENT: true }),
       );
+      if (query) highlightMatches(code, query);
       row.append(gutter, code);
       fragment.append(row);
     }
     node.current?.replaceChildren(fragment);
-  }, [text, language, plain]);
+  }, [text, language, plain, query]);
   const [wrap, setWrap] = useState(false);
   return (
     <section className={styles.codeViewer}>

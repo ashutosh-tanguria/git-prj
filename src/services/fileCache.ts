@@ -19,8 +19,10 @@ export type FileIdentity = Pick<
   CachedFile,
   "scope" | "ref" | "path" | "name" | "version"
 >;
-const id = ({ scope, ref }: Pick<FileIdentity, "scope" | "ref">) =>
-  JSON.stringify([scope, ref]);
+export const fileCacheKey = ({
+  scope,
+  ref,
+}: Pick<FileIdentity, "scope" | "ref">) => JSON.stringify([scope, ref]);
 export const cacheChanged = () =>
   window.dispatchEvent(new Event("shelf-cache-changed"));
 
@@ -68,8 +70,9 @@ async function removeBytes(file: CachedFile) {
 
 async function remove(file: CachedFile) {
   await removeBytes(file);
-  await cacheData.remove("textindex", id(file));
-  await cacheData.remove("cachefiles", id(file));
+  await cacheData.remove("textindex", fileCacheKey(file));
+  await cacheData.remove("indexmeta", fileCacheKey(file));
+  await cacheData.remove("cachefiles", fileCacheKey(file));
 }
 
 export const cachedFiles = () => cacheData.all<CachedFile>("cachefiles");
@@ -93,7 +96,7 @@ export function changeCacheCap(cap: number) {
 export function clearCache() {
   return exclusive(async () => {
     for (const file of await cachedFiles()) await remove(file);
-    for (const store of ["bytes", "listings", "meta", "textindex"])
+    for (const store of ["bytes", "listings", "meta", "textindex", "indexmeta"])
       await cacheData.clear(store);
     if (typeof navigator.storage?.getDirectory === "function") {
       const dir = await navigator.storage.getDirectory();
@@ -110,7 +113,7 @@ export function clearCache() {
 }
 
 export function findCachedFile(file: Pick<FileIdentity, "scope" | "ref">) {
-  return cacheData.get<CachedFile>("cachefiles", id(file));
+  return cacheData.get<CachedFile>("cachefiles", fileCacheKey(file));
 }
 
 export function getCachedFile(
@@ -130,7 +133,7 @@ export function getCachedFile(
       return;
     }
     if (touch)
-      await cacheData.put("cachefiles", id(record), {
+      await cacheData.put("cachefiles", fileCacheKey(record), {
         ...record,
         lastUsed: Date.now(),
       });
@@ -149,7 +152,9 @@ export function storeCachedFile(file: FileIdentity, blob: Blob, pin = false) {
     }
     const digest = await crypto.subtle.digest(
       "SHA-256",
-      new TextEncoder().encode(JSON.stringify([id(file), file.version])),
+      new TextEncoder().encode(
+        JSON.stringify([fileCacheKey(file), file.version]),
+      ),
     );
     const bytesKey = Array.from(new Uint8Array(digest), (byte) =>
       byte.toString(16).padStart(2, "0"),
@@ -164,7 +169,7 @@ export function storeCachedFile(file: FileIdentity, blob: Blob, pin = false) {
       opfs: false,
     };
     const candidates = (await cachedFiles()).filter(
-      (row) => id(row) !== id(file),
+      (row) => fileCacheKey(row) !== fileCacheKey(file),
     );
     const evictions = evictionOrder([...candidates, next], cap);
     for (const row of evictions) if (row !== next) await remove(row);
@@ -187,11 +192,13 @@ export function storeCachedFile(file: FileIdentity, blob: Blob, pin = false) {
       }
     }
     if (!next.opfs) await cacheData.put("bytes", bytesKey, blob);
-    await cacheData.put("cachefiles", id(file), next);
+    await cacheData.put("cachefiles", fileCacheKey(file), next);
     if (old && (old.bytesKey !== bytesKey || old.opfs !== next.opfs))
       await removeBytes(old);
-    if (old && old.version !== next.version)
-      await cacheData.remove("textindex", id(file));
+    if (old && old.version !== next.version) {
+      await cacheData.remove("textindex", fileCacheKey(file));
+      await cacheData.remove("indexmeta", fileCacheKey(file));
+    }
     cacheChanged();
     return true;
   }).catch(() => false);
@@ -204,7 +211,7 @@ export function pinCachedFile(
   return exclusive(async () => {
     const row = await findCachedFile(file);
     if (!row) return false;
-    await cacheData.put("cachefiles", id(row), { ...row, pinned });
+    await cacheData.put("cachefiles", fileCacheKey(row), { ...row, pinned });
     if (!pinned) {
       for (const candidate of evictionOrder(
         await cachedFiles(),

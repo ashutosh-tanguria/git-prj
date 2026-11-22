@@ -1,11 +1,16 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex -- Focusable reader region owns scoped PDF navigation shortcuts. */
+import type { TextMatch } from "../services/textSearch";
 import { PdfControls } from "./PdfControls";
 import { usePdf } from "./usePdf";
 import { PdfPage } from "./PdfPage";
 import { PdfOutline } from "./PdfOutline";
 import { t } from "../i18n";
 import styles from "./Pdf.module.css";
-export default function Pdf(props: { blob: Blob; fileKey: string }) {
+export default function Pdf(props: {
+  blob: Blob;
+  fileKey: string;
+  textMatch?: TextMatch;
+}) {
   const reader = usePdf(props);
   const {
     positionRef,

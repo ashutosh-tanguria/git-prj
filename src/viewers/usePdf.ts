@@ -1,3 +1,4 @@
+import type { TextMatch } from "../services/textSearch";
 import { useEffect, useRef, useState } from "react";
 import {
   getDocument,
@@ -14,7 +15,15 @@ interface Position {
   zoom: number;
   mode: string;
 }
-export function usePdf({ blob, fileKey }: { blob: Blob; fileKey: string }) {
+export function usePdf({
+  blob,
+  fileKey,
+  textMatch,
+}: {
+  blob: Blob;
+  fileKey: string;
+  textMatch?: TextMatch;
+}) {
   const [doc, setDoc] = useState<PDFDocumentProxy>();
   const [position, setPosition] = useState<Position>({
     page: 1,
@@ -98,7 +107,10 @@ export function usePdf({ blob, fileKey }: { blob: Blob; fileKey: string }) {
       setDoc(pdf);
       setPosition({
         ...remembered,
-        page: Math.min(pdf.numPages, Math.max(1, remembered.page)),
+        page: Math.min(
+          pdf.numPages,
+          Math.max(1, textMatch?.page ?? remembered.page),
+        ),
         zoom: Math.max(0.25, Math.min(4, remembered.zoom)),
       });
       setOutline((await pdf.getOutline()) || []);
@@ -112,6 +124,13 @@ export function usePdf({ blob, fileKey }: { blob: Blob; fileKey: string }) {
       destroy();
     };
   }, [blob, fileKey]);
+  useEffect(() => {
+    if (!doc || !ready || !textMatch) return;
+    setQuery(textMatch.match);
+    setMatches([textMatch.page]);
+    setMatch(0);
+    go(textMatch.page);
+  }, [doc, ready, textMatch]);
   useEffect(() => {
     if (ready) void savePreference("pdf:" + fileKey, position);
   }, [position, fileKey, ready]);

@@ -1,11 +1,12 @@
 import { cloudEnabled } from "../providers/flags";
 import type { CloudLibrary } from "../components/cloudTypes";
+import type { TextMatch } from "../services/textSearch";
 import { lazy, Suspense, useState } from "react";
 import { GuardMount } from "../components/GuardMount";
 import { VisibilityBadge } from "../components/VisibilityBadge";
 import { useLibrary } from "./useLibrary";
 import { library } from "../services/library";
-import { explorerRoute, parseRef } from "../lib/refs";
+import { explorerRoute, parseRef, viewerRoute } from "../lib/refs";
 import { ReadShell } from "../components/ReadShell";
 import { FileTable } from "../components/FileTable";
 import { AddressBar } from "../components/AddressBar";
@@ -50,6 +51,7 @@ export default function Library() {
   );
 }
 function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
+  const [textMatch, setTextMatch] = useState<TextMatch>();
   const [notice, setNotice] = useState("");
   const [split, setSplit] = useState(false);
   const offline = useOffline();
@@ -183,6 +185,7 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
                   blob={blob}
                   name={ref?.path.split("/").at(-1) || ""}
                   fileKey={key}
+                  textMatch={textMatch?.ref === key ? textMatch : undefined}
                 />
               )
             ) : (
@@ -226,6 +229,12 @@ function LibraryScreen({ cloud }: { cloud?: CloudLibrary }) {
         />
         <LibraryCommands
           current={ref}
+          onTextResult={(item) => {
+            if (item.scope.startsWith("github:")) {
+              setTextMatch(item);
+              location.hash = viewerRoute(parseRef(item.ref));
+            } else cloud?.openTextResult(item);
+          }}
           selection={selection}
           roots={roots}
           cloudCommand={cloud?.command}
