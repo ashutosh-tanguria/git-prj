@@ -48,3 +48,7 @@ Registry metadata reports docx-preview 0.4.1, Apache-2.0, published 2026-09-21, 
 ### Office Quick view bundle exception (M3.5b)
 
 The chosen pptx-preview renderer bundles its chart runtime even though advanced charts are outside Quick view's fidelity promise. Its isolated lazy chunk measures 386,345 bytes gzip in the local production sandbox build, above the 250 KB viewer budget. It is loaded only when a PPTX opens, on origin B, and never in the app shell or a DOCX/XLSX session. Splitting generated vendor internals would add maintenance risk to the accepted dependency. A narrowly scoped 400 KiB ceiling is enforced by `node scripts/check-office-size.mjs` after the sandbox build; all other sandbox chunks retain the 250 KiB ceiling. DOCX's renderer is 20,486 bytes gzip plus the shared 28,743-byte ZIP chunk; the SheetJS worker is approximately 122 KB gzip. Revisit the exception on renderer upgrades. No dependency verification or audit was repeated for this implementation.
+
+## M5a licence review
+
+JSZip declares (MIT OR GPL-3.0-or-later). Shelf uses JSZip under MIT. The lockfile checker accepts an SPDX OR expression when one complete alternative is approved and requires approval for every licence in an AND expression. Zlib is approved for the existing MIT AND Zlib dependency.

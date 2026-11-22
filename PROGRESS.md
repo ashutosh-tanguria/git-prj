@@ -1,4 +1,12 @@
 # Shelf progress
+### M5a licence checker
+
+- Status: Locked SPDX alternatives are evaluated and JSZip is approved under MIT. The checker and the full check passed with 278 tests.
+- Decisions: Review every requirement in an AND expression. Approve Zlib for the existing MIT AND Zlib dependency.
+- Not done: M5a feature slices follow.
+- Manual steps: None.
+- Known issues: SPDX exceptions require individual review.
+
 ### M4b complete (2026-11-22)
 
 - Status: All five slices are implemented locally. Transfers verify before recoverable deletion, retain interrupted work across reload, and offer a backup of pending drafts and local bytes. PDF split, Split view, Local folder and English/Hindi specimens are included. README acceptance items 9, 18 and 50 to 53 describe the verified behavior.
